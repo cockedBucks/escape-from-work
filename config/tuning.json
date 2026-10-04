@@ -54,6 +54,14 @@
     "inputRatePerSec": 70,
     "inputBurst": 20
   },
+  "camera": {
+    "fov": 70,
+    "chaseDistance": 7.5,
+    "chaseHeight": 3.2,
+    "lookAhead": 5,
+    "lookHeight": 1,
+    "followRate": 8
+  },
   "quality": {
     "default": "medium",
     "presets": {

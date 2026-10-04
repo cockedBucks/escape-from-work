@@ -41,6 +41,8 @@ export const RaceState = schema(
     cars: t.map(CarView),
     /** Sim tick of the state being sent (clients use it to order snapshots). */
     tick: t.uint32().default(0),
+    /** Server cost of one sim tick (ms, smoothed), for the F3 overlay. */
+    tickMs: t.float32().default(0),
   },
   'RaceState',
 );

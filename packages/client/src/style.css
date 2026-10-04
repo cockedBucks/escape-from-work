@@ -56,10 +56,44 @@ body {
   font-size: 3rem;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+.game {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.game canvas {
+  display: block;
+}
+
 .status {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
   margin: 0;
+  padding: 0.4rem 1rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.85);
   font-size: 1.1rem;
   color: var(--road);
+}
+
+.debug-overlay {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(30, 34, 48, 0.8);
+  color: #fff;
+  font: 600 0.95rem/1.35 ui-monospace, Consolas, monospace;
+  pointer-events: none;
 }
 
 .status.error {

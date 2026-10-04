@@ -5,6 +5,9 @@ import { TokenBucket } from '../net/rateLimit';
 import { CarView, PlayerState, RaceState } from '../schema/RaceState';
 import { RaceSim } from './raceSim';
 
+/** Weight of the newest tick in the smoothed tick cost shown by the F3 overlay. */
+const TICK_MS_SMOOTHING = 0.05;
+
 /** Track used until the lobby can pick one (P3). */
 const DEFAULT_TRACK = 'test-loop';
 
@@ -35,7 +38,10 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     });
 
     this.setFixedTimestep(() => {
+      const started = performance.now();
       const events = this.sim.tick();
+      // Smoothed so the overlay number is readable (weight of the newest tick).
+      this.state.tickMs += (performance.now() - started - this.state.tickMs) * TICK_MS_SMOOTHING;
       this.syncState(this.sim.world);
       if (events.length > 0) this.broadcast(MSG.events, events);
     }, Math.round(1 / tuning.sim.dt));

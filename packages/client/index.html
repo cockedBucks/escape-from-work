@@ -7,11 +7,12 @@
     <link rel="icon" href="data:," />
   </head>
   <body>
-    <main class="hello">
+    <main id="hello" class="hello" hidden>
       <h1 id="title"></h1>
       <p class="count"><span id="player-count">–</span> <span id="player-label">players</span></p>
-      <p id="status" class="status">Connecting…</p>
     </main>
+    <div id="game" class="game" hidden></div>
+    <p id="status" class="status">Loading…</p>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

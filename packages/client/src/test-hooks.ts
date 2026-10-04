@@ -31,7 +31,7 @@ declare global {
 }
 
 /** Every `?scenario=` the client can show. New screens add theirs (docs/TESTING.md). */
-export const KNOWN_SCENARIOS: readonly string[] = ['hello'];
+export const KNOWN_SCENARIOS: readonly string[] = ['hello', 'chase', 'track-overview'];
 
 const DEFAULT_SEED = 1;
 

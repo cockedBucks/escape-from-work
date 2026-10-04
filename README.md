@@ -61,6 +61,10 @@ once first.
 | `npm run track:check` | checks every track file (or `-- test-loop` for one): shape, width, tight curves, crossing walls |
 | `npm run bots`, `npm run faces` | arrive in P2 and P4 |
 
+Driving (from P1.6): open the page and you join the race at once. **W/S** or **↑/↓** gas and
+brake (hold S when stopped to reverse), **A/D** or **←/→** steer, **R** respawn, **F3** debug overlay
+(fps, ping, draw calls). Add `?quality=low` to the URL on a slow laptop.
+
 Stop a running server with **Ctrl+C**. The game port is `net.port` in `config/tuning.json`.
 
 ## 4. The plan (11 phases)

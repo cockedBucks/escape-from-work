@@ -53,9 +53,12 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | Scenario | Shows |
 |---|---|
 | `hello` | Phase 0 player-count page |
-| `chase` | bot race on the test track (or `&track=<id>`), chase cam behind car 1 |
+
+Any scenario also takes `&quality=low|medium|high` (default `quality.default`).
+
+| `chase` | 4-bot race on the test track (or `&track=<id>`), run locally with the shared sim and frozen at 6 s; chase cam behind car 1 |
 | `cockpit` | same race, cockpit cam of car 1, teammate bobblehead visible |
-| `track-overview` | top-down camera over the whole track |
+| `track-overview` | top-down camera over the whole track, cars on the start line |
 | `garage` | all roster cars side by side in team colors |
 | `lobby` | lobby with fake players in 4 teams |
 | `items` | frozen moment with several item effects active |

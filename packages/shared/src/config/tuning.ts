@@ -99,6 +99,22 @@ const RaceSchema = z.strictObject({
   offTrackRespawnDistance: pos(),
 });
 
+/** Chase camera feel (client only, but tuned live like everything else). */
+const CameraSchema = z.strictObject({
+  /** Vertical field of view (degrees). */
+  fov: z.number().min(30).max(110),
+  /** Distance behind the car (m). */
+  chaseDistance: pos(),
+  /** Height above the car (m). */
+  chaseHeight: pos(),
+  /** The camera looks at a point this far ahead of the car (m)… */
+  lookAhead: nonNeg(),
+  /** …and this high above the ground (m). */
+  lookHeight: nonNeg(),
+  /** How quickly the camera catches up with the car (1/s). Higher = stiffer, lower = floatier. */
+  followRate: pos(),
+});
+
 const QualityPresetSchema = z.strictObject({
   /** Highest devicePixelRatio the renderer uses. */
   pixelRatioCap: z.number().min(0.5).max(3),
@@ -150,6 +166,7 @@ export const TuningSchema = z.strictObject({
   bot: BotSchema,
   race: RaceSchema,
   net: NetSchema,
+  camera: CameraSchema,
   quality: QualitySchema,
 });
 

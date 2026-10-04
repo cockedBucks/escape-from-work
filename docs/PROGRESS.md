@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
-- Next task: P1.6 (client rendering)
-- Status: P1.5 done. `npm run verify` passes (115 tests + headless bot race).
+- Next task: P1.7 (live tuning)
+- Status: P1.6 done. `npm run verify` passes (127 tests + bot race). `npm run shots -- chase track-overview` ok (11 / 30 draw calls).
 
 ## Half-done
 - (nothing)
@@ -39,6 +39,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P1.3 car physics v1 — `sim/` (drive, air, walls, car, step): smoothed steer, gas/brake/reverse, drag, grip, slick, ramp jump + landing, wall bounce, ordered checkpoints, respawn (button + off-track). D033.
 - 2026-10-04: P1.4 bot driver (pilot look-ahead steer + engineer curve-speed pedals + stuck respawn), `runBotRace`, `hashWorld`, golden lap window + pinned replay hash, bot race in verify and track:check. D034. `/next` now keeps going until a HUMAN GATE (human request).
 - 2026-10-04: P1.5 server sim — `race` room runs the sim at 60 Hz (setFixedTimestep), zod `input` + token-bucket rate limit, synced `cars` map + `tick`, `events` broadcast; `RaceSim` unit tests + real-client integration test. D035.
+- 2026-10-04: P1.6 client rendering — greybox track mesh, box car, chase + overview cams, snapshot interpolation, WASD/arrows + R, F3 overlay, `chase`/`track-overview` scenarios; live drive smoke-tested in headless Chrome. D036.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

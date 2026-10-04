@@ -217,7 +217,9 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | jumps too floaty / too small | `car.gravity`, `car.rampLaunch`, ramp zone `launch` (track file) |
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |
 | respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds`, `race.offTrackRespawnDistance` |
-| low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots) |
+| low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots); try `?quality=low` in the URL |
+| chase cam too close / too far / too stiff / floaty | `camera.chaseDistance`, `camera.chaseHeight`, `camera.followRate` |
+| chase cam looks at the wrong spot / feels slow | `camera.lookAhead`, `camera.lookHeight`, `camera.fov` |
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
 | drifting hard to start | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
 | overheating too fast | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |

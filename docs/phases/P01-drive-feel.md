@@ -29,7 +29,7 @@ Driving feel is the foundation of everything else, so it gets its own phase.
 - [x] **P1.5 Server sim.** The `race` room runs the sim at 60 Hz for solo players; `input`
   message with zod validation and rate limit; patch rate from config. Integration test:
   a client holding gas moves forward.
-- [ ] **P1.6 Client rendering.** Scene, lights, quality presets; track mesh from data (road
+- [x] **P1.6 Client rendering.** Scene, lights, quality presets; track mesh from data (road
   ribbon, curbs, walls, ground); placeholder box car; chase cam with spring smoothing;
   snapshot interpolation; keyboard input (physical keys); F3 debug overlay (fps, ping, draw
   calls, triangles, tick ms). Scenarios `chase` and `track-overview`. `/shots chase track-overview`.
