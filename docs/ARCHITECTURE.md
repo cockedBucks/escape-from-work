@@ -173,6 +173,12 @@ installed types for the API. Anything not on this list → ask the human first.
 | `lobby:*` | setName, joinTeam, setSeat, setTeamName, ready | anyone |
 | `host:*` | shuffle, bots, chaos, track, laps, start, kick | host only |
 
+Schemas live in `packages/shared/src/net/messages.ts` (`MSG` names the message types). Until P2
+every player drives solo and `input` is `{ seq, steer?, gas?, brake?, respawn? }`: missing keys
+mean "not pressed", steer is clamped to -1..1, stale `seq` and malformed messages are dropped,
+and each client is rate-limited by a token bucket (`net.inputRatePerSec`, `net.inputBurst`).
+The room runs the sim with Colyseus `setFixedTimestep` at 1/`sim.dt` Hz, copies cars into the
+synced `cars` map after each tick, and broadcasts that tick's `SimEvent[]` as `events`.
 The server keeps only the fields the sender's current role allows. Items like Control Swap
 and Lag Spike change the role mapping or add an input delay queue on the server.
 
@@ -217,6 +223,7 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | overheating too fast | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |
 | laggy | `net.patchRateMs`, `net.interpDelayMs` |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
+| controls ignored when mashing keys | `net.inputRatePerSec`, `net.inputBurst` |
 | port already in use | `net.port` |
 | sim too coarse / too costly (rarely touch) | `sim.dt` |
 | walls look jagged / track lookups slow (rarely touch) | `track.sampleSpacing`, `track.gridCellSize` |

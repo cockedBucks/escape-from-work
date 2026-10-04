@@ -50,7 +50,9 @@
     "port": 2567,
     "patchRateMs": 33,
     "interpDelayMs": 50,
-    "reconnectSeconds": 30
+    "reconnectSeconds": 30,
+    "inputRatePerSec": 70,
+    "inputBurst": 20
   },
   "quality": {
     "default": "medium",

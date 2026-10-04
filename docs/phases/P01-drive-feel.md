@@ -26,7 +26,7 @@ Driving feel is the foundation of everything else, so it gets its own phase.
   pilot half and engineer half. Golden lap window on the Test Loop, replay determinism hash.
   Add the short headless bot race (1 track, 2 cars, 1 lap) to `scripts/verify.mjs` (slot
   marked there; replace the "bot race n/a" summary text).
-- [ ] **P1.5 Server sim.** The `race` room runs the sim at 60 Hz for solo players; `input`
+- [x] **P1.5 Server sim.** The `race` room runs the sim at 60 Hz for solo players; `input`
   message with zod validation and rate limit; patch rate from config. Integration test:
   a client holding gas moves forward.
 - [ ] **P1.6 Client rendering.** Scene, lights, quality presets; track mesh from data (road

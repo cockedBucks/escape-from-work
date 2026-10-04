@@ -137,6 +137,10 @@ const NetSchema = z.strictObject({
   interpDelayMs: z.number().int().nonnegative(),
   /** How long a dropped player's seat is held for them. */
   reconnectSeconds: z.number().positive(),
+  /** Input messages a client may send per second on average; extra ones are dropped. */
+  inputRatePerSec: z.number().positive(),
+  /** Short bursts above the average rate that are still allowed (messages). */
+  inputBurst: z.number().int().min(1),
 });
 
 export const TuningSchema = z.strictObject({
