@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
-- Next task: P1.3 (car physics v1)
-- Status: P1.2 done. `npm run verify` passes (69 tests); `npm run track:check` passes the Test Loop.
+- Next task: P1.4 (bot driver + golden tests)
+- Status: P1.3 done. `npm run verify` passes (96 tests).
 
 ## Half-done
 - (nothing)
@@ -36,6 +36,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   step timeout. Decisions D015–D030.
 - 2026-10-04: P1.1 shared basics — seeded RNG, XZ math helpers, ring buffer; tuning gains `car`, `race` (stub), `quality`; new `config/cars.json` (one Box Car) and track schema. D031.
 - 2026-10-04: P1.2 track system — spline sampling, walls, sector gates, grids, `locateOnTrack`/`zonesAt`, `checkTrack`; `config/tracks/test-loop.json` (931 m); `npm run track:check`. D032.
+- 2026-10-04: P1.3 car physics v1 — `sim/` (drive, air, walls, car, step): smoothed steer, gas/brake/reverse, drag, grip, slick, ramp jump + landing, wall bounce, ordered checkpoints, respawn (button + off-track). D033.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

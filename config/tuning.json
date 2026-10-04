@@ -7,6 +7,7 @@
     "reverseTopSpeed": 9,
     "reverseAccel": 14,
     "drag": 0.6,
+    "rollingResistance": 1.5,
     "grip": 9,
     "slickGrip": 0.2,
     "steerRiseRate": 5,
@@ -31,7 +32,8 @@
   },
   "race": {
     "respawnFadeSeconds": 1,
-    "respawnGhostSeconds": 1
+    "respawnGhostSeconds": 1,
+    "offTrackRespawnDistance": 4
   },
   "net": {
     "port": 2567,

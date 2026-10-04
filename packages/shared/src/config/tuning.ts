@@ -23,6 +23,8 @@ const CarSchema = z.strictObject({
   reverseAccel: pos(),
   /** Coasting slowdown: fraction of speed lost per second with no gas or brake (1/s). */
   drag: nonNeg(),
+  /** Coasting slowdown that does not depend on speed, so a rolling car comes to a stop (m/s²). */
+  rollingResistance: nonNeg(),
   /** How fast sideways sliding is removed (1/s). Higher = stickier. Scaled by `stats.grip`. */
   grip: pos(),
   /** Grip multiplier on slick zones (0–1). */
@@ -72,6 +74,8 @@ const RaceSchema = z.strictObject({
   respawnFadeSeconds: nonNeg(),
   /** Time a respawned car is ghosted: no collisions with other cars (s). */
   respawnGhostSeconds: nonNeg(),
+  /** A grounded car this far outside the road edge (m) respawns by itself. */
+  offTrackRespawnDistance: pos(),
 });
 
 const QualityPresetSchema = z.strictObject({

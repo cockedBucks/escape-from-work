@@ -204,12 +204,13 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | can't turn when slow / spins on the spot | `car.steerFullSpeed`, `car.maxYawRate` |
 | floaty / too sticky | `car.grip`, `car.driftGrip`, `car.drag` |
 | slow / too fast | `car.topSpeed`, `car.accel`, `car.drag`, car `stats.speed` (cars.json) |
+| rolls too far / stops too soon off the gas | `car.drag`, `car.rollingResistance` |
 | brakes weak / reverse useless | `car.brake`, `car.reverseTopSpeed`, `car.reverseAccel` |
 | walls too punishing | `car.wallBounce`, `car.wallSpeedLoss`, `car.radius` |
 | slick patch too slippery / not slippery | `car.slickGrip` |
 | jumps too floaty / too small | `car.gravity`, `car.rampLaunch`, ramp zone `launch` (track file) |
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |
-| respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds` |
+| respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds`, `race.offTrackRespawnDistance` |
 | low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots) |
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
 | drifting hard to start | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |

@@ -32,3 +32,6 @@ export {
 export { lapProgress, locateOnTrack, zonesAt, type TrackLocation } from './track/locate';
 export { checkTrack, type TrackCheck, type TrackStats } from './track/validate';
 export { SpatialGrid } from './track/grid';
+export { NO_INPUT, type CarInput, type CarState, type CarStats, type SimEvent, type World } from './sim/types';
+export { createCar, createWorld, placeAtGate } from './sim/car';
+export { step, type InputsByCar } from './sim/step';
