@@ -1,0 +1,67 @@
+/* Palette from docs/ART_STYLE.md */
+:root {
+  --sand: #f4ebdc;
+  --ui-dark: #1e2230;
+  --red: #e63946;
+  --teal: #2a9d8f;
+  --road: #3d4a5c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--sand);
+  color: var(--ui-dark);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.hello {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.hello h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 600;
+  color: var(--red);
+  transform: rotate(-3deg);
+  text-shadow: 0.06em 0.06em 0 var(--ui-dark);
+}
+
+.count {
+  margin: 1.5rem 0 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.count #player-count {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 0.3em;
+  border-radius: 0.4em;
+  background: var(--teal);
+  color: #fff;
+  font-size: 3rem;
+}
+
+.status {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--road);
+}
+
+.status.error {
+  color: var(--red);
+}

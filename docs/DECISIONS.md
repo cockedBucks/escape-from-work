@@ -25,3 +25,8 @@ Big decisions that change ARCHITECTURE or GAME_DESIGN need the human's OK first.
 - D020 (2026-10-04, P0.3): TS uses `module: preserve` + `moduleResolution: bundler`, no emit; workspace packages export their `src/*.ts` directly. The server runs through tsx, the client through Vite, so nothing needs a compile step or `.js` import suffixes.
 - D021 (2026-10-04, P0.4): Config loaders in shared take already-parsed JSON (`parseTuning(raw)`) and never read files — shared must stay free of Node APIs. Server/scripts/tests read the file. Schemas use strict objects so a mistyped key is an error.
 - D022 (2026-10-04, P0.4): Starting net values: port 2567 (Colyseus default), patch 33 ms, interp 50 ms (from ARCHITECTURE), reconnect 30 s — long enough for a Wi-Fi blip or a laptop waking up.
+- D023 (2026-10-04, P0.5): Colyseus state is declared with schema 5's `schema({...})` builder, not decorators — no compiler flags, works the same under TS 7, tsx and Vite.
+- D024 (2026-10-04, P0.5): The server creates the one `race` room at startup (`autoDispose = false`); clients only `join`. The room reads tuning from disk, never from client-supplied options.
+- D025 (2026-10-04, P0.5): `npm start` passes `--prod` to the server instead of `NODE_ENV=production cmd` (bash-only syntax). The server then sets `NODE_ENV` itself.
+- D026 (2026-10-04, P0.5): In dev the client connects to `net.port` on the page's own hostname (Vite serves the page on its own port); in production page and game share one origin. No Vite proxy needed.
+- D027 (2026-10-04, P0.5): The LAN URL printout skips virtual adapters (Hyper-V/WSL `vEthernet`, VirtualBox, VMware, Docker) and 169.254.x.x — coworkers cannot reach those.

@@ -23,7 +23,7 @@ checks and screenshot pipeline that let the agent prove its own work.
 - [x] **P0.4 Config foundation.** `config/tuning.json` with `sim`, `net` (port, patchRateMs,
   interpDelayMs, reconnectSeconds) sections only. zod schema + loader in shared.
   `GAME_TITLE` constant. Unit tests for valid and invalid config.
-- [ ] **P0.5 Hello multiplayer.** Server: Express + Colyseus, room `race` that tracks connected
+- [x] **P0.5 Hello multiplayer.** Server: Express + Colyseus, room `race` that tracks connected
   players, prints LAN URLs, serves the built client in production. Client: Vite page showing
   the title and the live player count. `npm run dev` runs both with hot reload; the client
   finds the server on the same hostname.

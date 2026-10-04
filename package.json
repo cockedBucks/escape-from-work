@@ -9,6 +9,11 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "tsx watch packages/server/src/index.ts",
+    "dev:client": "npm run dev -w @escape/client",
+    "build": "npm run build -w @escape/client",
+    "start": "npm run build && tsx packages/server/src/index.ts --prod",
     "test": "vitest run",
     "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/client"
   },
