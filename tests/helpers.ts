@@ -3,6 +3,8 @@ import type { Room } from '@colyseus/sdk';
 /**
  * Resolve once the room's synced state satisfies `check`. Event-driven (no sleeps):
  * checks now, then on every state patch, and fails with `label` after `timeoutMs`.
+ * Note: `join()` can resolve before the first full state arrives, so `check` must cope
+ * with fields that are still missing (use `?.`).
  */
 export function waitForState<S>(
   room: Room<unknown, S>,

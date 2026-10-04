@@ -1,4 +1,5 @@
 // Server entry. `--prod` (used by `npm start`) serves the built client; otherwise Vite does.
+// `--port <n>` overrides `net.port` (0 = any free port; used by `npm run shots`).
 import { networkInterfaces } from 'node:os';
 import path from 'node:path';
 import { GAME_TITLE } from '@escape/shared';
@@ -9,19 +10,31 @@ import { lanUrls } from './lan';
 const isProd = process.argv.includes('--prod') || process.env['NODE_ENV'] === 'production';
 if (isProd) process.env['NODE_ENV'] = 'production';
 
-const tuning = loadTuningFile();
-const port = tuning.net.port;
+function portArg(): number | undefined {
+  const i = process.argv.indexOf('--port');
+  if (i === -1) return undefined;
+  const n = Number(process.argv[i + 1]);
+  if (!Number.isInteger(n) || n < 0 || n > 65535) {
+    console.error('--port needs a number from 0 to 65535');
+    process.exit(1);
+  }
+  return n;
+}
 
+const tuning = loadTuningFile();
+const requestedPort = portArg() ?? tuning.net.port;
+
+let port: number;
 try {
-  await startServer({
-    port,
+  ({ port } = await startServer({
+    port: requestedPort,
     host: '0.0.0.0',
     clientDir: isProd ? path.join(REPO_ROOT, 'packages', 'client', 'dist') : undefined,
     handleSignals: true,
-  });
+  }));
 } catch (err) {
   if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
-    console.error(`Port ${port} is busy. Is the game already running? Or change net.port in config/tuning.json.`);
+    console.error(`Port ${requestedPort} is busy. Is the game already running? Or change net.port in config/tuning.json.`);
     process.exit(1);
   }
   throw err;

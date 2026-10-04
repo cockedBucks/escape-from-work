@@ -31,7 +31,7 @@ checks and screenshot pipeline that let the agent prove its own work.
   in-process, connect 2 clients, see count 2, disconnect one, see 1.
   `scripts/verify.mjs` + `npm run verify` (typecheck + tests, terse output, nonzero exit on
   failure).
-- [ ] **P0.7 Shots pipeline.** `scripts/shots.mjs` + `npm run shots` per `docs/TESTING.md`,
+- [x] **P0.7 Shots pipeline.** `scripts/shots.mjs` + `npm run shots` per `docs/TESTING.md`,
   with the `hello` scenario, `window.__game.ready` and `stats()`. Run `/shots hello`.
 - [ ] **P0.8 Docs pass.** README commands section confirmed, PROGRESS updated, anything that
   differs from `docs/ARCHITECTURE.md` fixed there.

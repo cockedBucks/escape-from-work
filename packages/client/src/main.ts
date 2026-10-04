@@ -3,6 +3,7 @@ import '@fontsource/fredoka/600.css';
 import './style.css';
 import { GAME_TITLE } from '@escape/shared';
 import { joinRace } from './net/connection';
+import { installHooks, liveStats, markReady } from './test-hooks';
 
 function el(id: string): HTMLElement {
   const found = document.getElementById(id);
@@ -22,16 +23,27 @@ function setStatus(text: string, isError = false): void {
 document.title = GAME_TITLE;
 el('title').textContent = GAME_TITLE;
 
-try {
-  const room = await joinRace();
-  setStatus('Connected');
-  room.onStateChange((state) => {
-    const n = state.players.size;
-    countEl.textContent = String(n);
-    labelEl.textContent = n === 1 ? 'player' : 'players';
-  });
-  room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
-} catch (err) {
-  console.error(err);
-  setStatus(`Can't reach the game server at ${window.location.hostname}. Is it running? Reload to retry.`, true);
+const hooks = installHooks();
+
+if (hooks.error !== null) {
+  setStatus(hooks.error, true);
+} else {
+  try {
+    const room = await joinRace();
+    setStatus('Connected');
+    room.ping((ms) => {
+      liveStats.pingMs = ms;
+    });
+    room.onStateChange((state) => {
+      const n = state.players.size;
+      countEl.textContent = String(n);
+      labelEl.textContent = n === 1 ? 'player' : 'players';
+      if (!hooks.ready) void markReady(hooks);
+    });
+    room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
+  } catch (err) {
+    console.error(err);
+    setStatus(`Can't reach the game server at ${window.location.hostname}. Is it running? Reload to retry.`, true);
+    hooks.error = 'cannot reach the game server';
+  }
 }

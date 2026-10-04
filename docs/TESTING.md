@@ -34,13 +34,17 @@ split-control networking end to end. Bots also fill empty cars in real races.
 
 ## 4. Shots (visual checks)
 
-`npm run shots -- <scenario ...>`:
-1. Builds the client if needed and starts the server on a free port.
+`npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed]` (`scripts/shots.mjs`):
+1. Builds the client and starts the real server entry with `--prod --port 0` (a free port).
 2. Launches the system browser with `playwright-core` (`channel: "chrome"`, then `"msedge"`),
    so no browser download is needed.
 3. Opens `http://localhost:<port>/?scenario=<name>&seed=1` per scenario, waits for
    `window.__game.ready`, saves `artifacts/shots/<name>.png` (1280×720) and adds
-   `window.__game.stats()` to `artifacts/shots/stats.json`.
+   `window.__game.stats()` to `artifacts/shots/stats.json`, plus console errors and failed
+   requests (HTTP ≥ 400) per scenario.
+4. An unknown scenario sets `window.__game.error`, so that shot fails at once instead of
+   timing out. Hooks live in `packages/client/src/test-hooks.ts` (`KNOWN_SCENARIOS`).
+   `stats()` returns `tickMs`/`pingMs` as `null` until measured.
 
 ### Scenarios
 
@@ -60,9 +64,9 @@ New screens add a scenario in the same task.
 
 ### If WebGL fails headless
 Try in order, and record which worked in `docs/DECISIONS.md`:
-1. Launch args `--use-angle=swiftshader --enable-unsafe-swiftshader`.
-2. `--use-gl=angle` with the default backend.
-3. Run headed (a real window opens for a few seconds).
+1. `--gl swiftshader` (launch args `--use-angle=swiftshader --enable-unsafe-swiftshader`).
+2. `--gl angle` (`--use-gl=angle` with the default backend).
+3. `--gl headed` (a real window opens for a few seconds).
 Headless FPS is meaningless; only draw calls, triangles and the images are judged.
 
 ## 5. What the human tests (HUMAN GATEs)

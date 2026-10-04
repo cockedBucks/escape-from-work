@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: P0.7
-- Status: P0.1–P0.6 done. `npm run verify` passes (typecheck + 15 tests incl. real-server test).
+- Next task: P0.8
+- Status: P0.1–P0.7 done. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
 
 ## Half-done
 - (nothing)
@@ -22,8 +22,6 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Known issues
 - A client could call `create('race')` and make a second room. Lock this down when the
   lobby is built (one lobby per server, D004).
-- `/shots` not run for P0.5 (pipeline arrives in P0.7); checked by one manual screenshot.
-
 ## Last sessions
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
 - 2026-10-04: P0.1 environment check passed (Node 24, npm 11, git 2.55, Chrome + Edge).
@@ -32,6 +30,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P0.4 `config/tuning.json` (sim, net) + zod schema/loader + GAME_TITLE, tests (D021–D022).
 - 2026-10-04: P0.5 Express+Colyseus `race` room, LAN URLs, Vite page with live count; 2 Chrome tabs → 2, close one → 1 (D023–D027).
 - 2026-10-04: P0.6 Vitest projects, `tests/race-room.test.ts` (2 clients → 2 → 1), `npm run verify` (D028). Bot race step added to P1.4.
+- 2026-10-04: P0.7 `npm run shots` + `window.__game` hooks; `/shots hello` PASS (D029).
 
 ## Playtest log
 - (none yet)
