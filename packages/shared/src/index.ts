@@ -40,4 +40,5 @@ export { botSteer, lookAheadPoint } from './bot/pilot';
 export { botPedals, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
 export { botInput } from './bot/driver';
 export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';
-export { MSG, InputMessageSchema, parseInputMessage, toCarInput, type InputMessage } from './net/messages';
+export { MSG, InputMessageSchema, TuningPostSchema, parseInputMessage, toCarInput, type InputMessage } from './net/messages';
+export { getTuningValue, tuningFields, type TuningField } from './config/tuningFields';

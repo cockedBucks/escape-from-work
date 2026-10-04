@@ -33,7 +33,7 @@ Driving feel is the foundation of everything else, so it gets its own phase.
   ribbon, curbs, walls, ground); placeholder box car; chase cam with spring smoothing;
   snapshot interpolation; keyboard input (physical keys); F3 debug overlay (fps, ping, draw
   calls, triangles, tick ms). Scenarios `chase` and `track-overview`. `/shots chase track-overview`.
-- [ ] **P1.7 Live tuning.** Server watches `config/` and hot-reloads; F2 lil-gui panel bound to
+- [x] **P1.7 Live tuning.** Server watches `config/` and hot-reloads; F2 lil-gui panel bound to
   `tuning.json`; Save via the dev-only endpoint. Fill the tuning table in `docs/ARCHITECTURE.md`.
 - [ ] **HUMAN GATE — drive it.**
   1. `npm run dev`, open the URL, drive with W/A/S/D. Press F2 for the tuning panel.

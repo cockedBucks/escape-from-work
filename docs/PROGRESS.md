@@ -5,14 +5,14 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
-- Next task: P1.7 (live tuning)
-- Status: P1.6 done. `npm run verify` passes (127 tests + bot race). `npm run shots -- chase track-overview` ok (11 / 30 draw calls).
+- Next task: HUMAN GATE — drive it (then P1.8 phase end)
+- Status: P1.7 done. `npm run verify` passes (138 tests + bot race). Shots ok. Waiting on the human to drive.
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
-- (nothing)
+- P1 HUMAN GATE "drive it": `npm run dev`, drive 5 laps, try F2, reply how it feels.
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
@@ -40,6 +40,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P1.4 bot driver (pilot look-ahead steer + engineer curve-speed pedals + stuck respawn), `runBotRace`, `hashWorld`, golden lap window + pinned replay hash, bot race in verify and track:check. D034. `/next` now keeps going until a HUMAN GATE (human request).
 - 2026-10-04: P1.5 server sim — `race` room runs the sim at 60 Hz (setFixedTimestep), zod `input` + token-bucket rate limit, synced `cars` map + `tick`, `events` broadcast; `RaceSim` unit tests + real-client integration test. D035.
 - 2026-10-04: P1.6 client rendering — greybox track mesh, box car, chase + overview cams, snapshot interpolation, WASD/arrows + R, F3 overlay, `chase`/`track-overview` scenarios; live drive smoke-tested in headless Chrome. D036.
+- 2026-10-04: P1.7 live tuning — LiveConfig + config watcher (dev), `/dev/tuning` live/save/revert, F2 lil-gui panel built from the schema, tuning pushed to clients; dev mode smoke-tested in headless Chrome. D037.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

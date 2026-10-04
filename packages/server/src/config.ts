@@ -36,8 +36,8 @@ export function loadCarsFile(file = path.join(REPO_ROOT, 'config', 'cars.json'))
 }
 
 /** Read, validate and build `config/tracks/<id>.json`. */
-export function loadTrackFile(id: string, tuning: Tuning): Track {
+export function loadTrackFile(id: string, tuning: Tuning, dir = path.join(REPO_ROOT, 'config', 'tracks')): Track {
   if (!/^[a-z0-9-]+$/.test(id)) throw new ConfigError(`bad track id "${id}"`);
-  const file = path.join(REPO_ROOT, 'config', 'tracks', `${id}.json`);
+  const file = path.join(dir, `${id}.json`);
   return buildTrack(parseTrack(readJson(file), rel(file)), tuning.track);
 }

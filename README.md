@@ -63,7 +63,9 @@ once first.
 
 Driving (from P1.6): open the page and you join the race at once. **W/S** or **↑/↓** gas and
 brake (hold S when stopped to reverse), **A/D** or **←/→** steer, **R** respawn, **F3** debug overlay
-(fps, ping, draw calls). Add `?quality=low` to the URL on a slow laptop.
+(fps, ping, draw calls), **F2** tuning panel (dev only: sliders change the feel live,
+**Save** writes `config/tuning.json`, **Revert** goes back to the file). Add `?quality=low` to
+the URL on a slow laptop.
 
 Stop a running server with **Ctrl+C**. The game port is `net.port` in `config/tuning.json`.
 

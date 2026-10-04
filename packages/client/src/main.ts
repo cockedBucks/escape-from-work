@@ -84,6 +84,16 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   setInterval(() => room.ping((ms) => (liveStats.pingMs = ms)), 2000);
 
   const source = new ServerCarSource(tuning.net.interpDelayMs);
+  // Live tuning: the server sends the current values on join and after every change.
+  const tuningListeners: ((t: Tuning) => void)[] = [(t) => (source.interpDelayMs = t.net.interpDelayMs)];
+  let latestTuning = tuning;
+  room.onMessage(MSG.tuning, (t: Tuning) => {
+    latestTuning = t;
+    for (const l of tuningListeners) l(t);
+  });
+  room.onMessage(MSG.reload, () => {
+    if (import.meta.env.DEV) window.location.reload();
+  });
   room.onStateChange((state) => {
     source.push(performance.now(), state);
     liveStats.tickMs = state.tickMs;
@@ -99,7 +109,18 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     focus: () => room.sessionId,
   });
   game.start();
+  game.setTuning(latestTuning);
+  tuningListeners.push((t) => game.setTuning(t));
   new KeyboardControls((msg) => room.send(MSG.input, msg));
+  if (import.meta.env.DEV) {
+    // Dev only: the F2 panel (lil-gui is not in production builds).
+    const { TuningPanel } = await import('./ui/tuningPanel');
+    const panel = new TuningPanel(latestTuning, (t) => {
+      game.setTuning(t);
+      source.interpDelayMs = t.net.interpDelayMs;
+    });
+    tuningListeners.push((t) => panel.serverTuning(t));
+  }
   room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
   void markReady(hooks);
 }

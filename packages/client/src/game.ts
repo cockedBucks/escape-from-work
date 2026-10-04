@@ -55,6 +55,11 @@ export class Game {
     }
   }
 
+  /** New tuning from the server or the F2 panel (camera feel applies at once). */
+  setTuning(t: Tuning): void {
+    this.opts.tuning = t;
+  }
+
   start(): void {
     this.running = true;
     const loop = (now: number): void => {

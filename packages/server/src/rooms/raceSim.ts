@@ -24,19 +24,36 @@ interface Seat {
  */
 export class RaceSim {
   readonly world: World;
+  private stats: CarStats;
   private readonly seats = new Map<string, Seat>();
 
   constructor(
     track: Track,
     private cfg: Tuning,
-    private readonly stats: CarStats,
+    stats: CarStats,
   ) {
     this.world = createWorld(track, []);
+    this.stats = { ...stats };
   }
 
   /** Swap in new tuning (live tuning in P1.7). */
   setConfig(cfg: Tuning): void {
     this.cfg = cfg;
+  }
+
+  /** New car stats (cars.json edited): applies to every car right away. */
+  setStats(stats: CarStats): void {
+    this.stats = { ...stats };
+    for (const car of this.world.cars) car.stats = { ...stats };
+  }
+
+  /** New track (track file edited): every car goes back to the start line. */
+  setTrack(track: Track): void {
+    this.world.track = track;
+    for (const car of this.world.cars) {
+      const fresh = createCar(car.id, car.stats, track);
+      Object.assign(car, fresh);
+    }
   }
 
   /** Add a car for a player on the start line. Cars do not collide yet, so they share it. */

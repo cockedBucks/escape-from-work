@@ -38,6 +38,8 @@ try {
     host: '0.0.0.0',
     clientDir: isProd ? clientDir : undefined,
     handleSignals: true,
+    dev: !isProd,
+    watchConfig: !isProd,
   }));
 } catch (err) {
   if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {

@@ -7,6 +7,12 @@ const trackFiles = import.meta.glob<unknown>('../../../config/tracks/*.json', { 
 
 export const DEFAULT_TRACK = 'test-loop';
 
+// Dev: tuning.json and cars.json changes arrive live from the server (MSG.tuning), so the
+// page must not reload for them. Track edits are not accepted here: Vite reloads the page.
+if (import.meta.hot) {
+  import.meta.hot.accept(['../../../config/tuning.json', '../../../config/cars.json'], () => {});
+}
+
 export function loadTuning(): Tuning {
   return parseTuning(rawTuning);
 }

@@ -200,15 +200,23 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 ## 7. Configuration and tuning
 
 - `config/*.json` validated by zod at load; invalid data fails `npm run verify`.
-- Dev: the server watches `config/` and pushes changes to clients live. The F2 tuning panel
-  edits values live and **Save** writes `config/tuning.json` through a dev-only endpoint.
+- Dev: the server watches `config/` (`LiveConfig` in `packages/server/src/liveConfig.ts`) and
+  hot-reloads: tuning goes to the sim and to every client (`tuning` message); cars.json updates
+  car stats; a track edit rebuilds the track, puts cars on the start line and tells pages to
+  reload. A bad edit logs one line and keeps the last good config.
+- The F2 panel (lil-gui, dev builds only) is built from the tuning schema (`tuningFields()`:
+  every number with its min/max). Edits go live via `POST /dev/tuning {tuning, save:false}`;
+  **Save** sends `save:true` (validated, atomic write of `config/tuning.json`); **Revert** is
+  `POST /dev/tuning/revert`. Vite proxies `/dev` to the game server. The panel leaves out
+  `sim`, `track`, `quality` and `net.port` (they need a restart or a rebuild). These routes
+  and the watcher exist only in dev (never with `--prod` / `NODE_ENV=production`).
 - Tuning table (feeling → keys). The agent keeps this table complete:
 
 | If it feels… | Look at |
 |---|---|
 | twitchy / too slow steering | `car.steerRiseRate`, `car.steerFallRate`, `car.steerAtTopSpeed`, `car.maxYawRate` |
 | can't turn when slow / spins on the spot | `car.steerFullSpeed`, `car.maxYawRate` |
-| floaty / too sticky | `car.grip`, `car.driftGrip`, `car.drag` |
+| floaty / too sticky | `car.grip`, `car.drag` (`car.driftGrip` arrives in P5) |
 | slow / too fast | `car.topSpeed`, `car.accel`, `car.drag`, car `stats.speed` (cars.json) |
 | rolls too far / stops too soon off the gas | `car.drag`, `car.rollingResistance` |
 | brakes weak / reverse useless | `car.brake`, `car.reverseTopSpeed`, `car.reverseAccel` |
@@ -221,8 +229,8 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | chase cam too close / too far / too stiff / floaty | `camera.chaseDistance`, `camera.chaseHeight`, `camera.followRate` |
 | chase cam looks at the wrong spot / feels slow | `camera.lookAhead`, `camera.lookHeight`, `camera.fov` |
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
-| drifting hard to start | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
-| overheating too fast | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |
+| drifting hard to start (P5) | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
+| overheating too fast (P5) | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |
 | laggy | `net.patchRateMs`, `net.interpDelayMs` |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
 | controls ignored when mashing keys | `net.inputRatePerSec`, `net.inputBurst` |
@@ -230,7 +238,7 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | sim too coarse / too costly (rarely touch) | `sim.dt` |
 | walls look jagged / track lookups slow (rarely touch) | `track.sampleSpacing`, `track.gridCellSize` |
 | track:check too strict about narrow roads | `track.minWidth` |
-| bots too slow / crash in corners (moves golden lap windows!) | `bot.cornerAccel`, `bot.brakePlanDecel`, `bot.planDistance` |
+| bots too slow / crash in corners (moves golden lap windows!) | `bot.cornerAccel`, `bot.brakePlanDecel`, `bot.planDistance`, `bot.speedMargin` |
 | bots weave / cut corners | `bot.lookAheadBase`, `bot.lookAheadTime`, `bot.steerGain` |
 | bots respawn too eagerly when stuck | `bot.stuckSpeed`, `bot.stuckSeconds` |
 

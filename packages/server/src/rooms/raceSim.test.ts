@@ -41,3 +41,17 @@ describe('RaceSim', () => {
     expect(() => sim.tick()).not.toThrow();
   });
 });
+
+describe('RaceSim live config', () => {
+  it('setTrack puts every car back on the start line; setStats updates every car', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addCar('a');
+    sim.handleInput('a', { seq: 1, gas: true });
+    for (let i = 0; i < 60; i++) sim.tick();
+    expect(sim.world.cars[0]!.x).toBeGreaterThan(5);
+    sim.setTrack(loadTrackFile('test-loop', cfg));
+    expect(sim.world.cars[0]!.x).toBeCloseTo(0);
+    sim.setStats({ speed: 1.05, grip: 1, weight: 1 });
+    expect(sim.world.cars[0]!.stats.speed).toBe(1.05);
+  });
+});

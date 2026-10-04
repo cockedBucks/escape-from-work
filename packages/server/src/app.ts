@@ -4,6 +4,9 @@ import express from 'express';
 import { Server, matchMaker } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { ROOM_NAME } from '@escape/shared';
+import { watchConfig } from './dev/configWatcher';
+import { installTuningRoutes } from './dev/tuningRoutes';
+import { LiveConfig, setLiveConfig } from './liveConfig';
 import { RaceRoom } from './rooms/RaceRoom';
 
 export interface StartOptions {
@@ -14,6 +17,12 @@ export interface StartOptions {
   clientDir?: string | undefined;
   /** Install Ctrl+C handlers (the real server yes, tests no). */
   handleSignals?: boolean;
+  /** Dev tools: the F2 tuning endpoints. Never in production. */
+  dev?: boolean;
+  /** Dev: watch the config folder and hot-reload edits. */
+  watchConfig?: boolean;
+  /** Config folder (tests use a temporary copy). Default: the repo's config/. */
+  configDir?: string | undefined;
 }
 
 export interface GameServer {
@@ -39,12 +48,16 @@ function listenOrFail(server: Server, transport: WebSocketTransport, opts: Start
 
 /** Start Express + Colyseus and create the one `race` room. Used by index.ts and tests. */
 export async function startServer(opts: StartOptions): Promise<GameServer> {
+  const live = new LiveConfig(opts.configDir);
+  setLiveConfig(live);
+  const dev = (opts.dev ?? false) && process.env['NODE_ENV'] !== 'production';
   const transport = new WebSocketTransport();
   const server = new Server({
     transport,
     greet: false,
     gracefullyShutdown: opts.handleSignals ?? false,
     express: (app) => {
+      if (dev) installTuningRoutes(app, live);
       const dir = opts.clientDir;
       if (dir !== undefined && existsSync(dir)) {
         app.use(express.static(dir));
@@ -58,10 +71,14 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
   server.define(ROOM_NAME, RaceRoom);
   await listenOrFail(server, transport, opts);
   await matchMaker.createRoom(ROOM_NAME, {});
+  const watcher = dev && opts.watchConfig ? watchConfig(live) : null;
 
   const address = transport.server?.address() as AddressInfo | null;
   return {
     port: address?.port ?? opts.port,
-    close: () => server.gracefullyShutdown(false),
+    close: () => {
+      watcher?.close();
+      return server.gracefullyShutdown(false);
+    },
   };
 }

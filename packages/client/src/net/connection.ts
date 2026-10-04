@@ -52,7 +52,8 @@ export function joinRace(tuning: Tuning): Promise<Room<unknown, RaceStateView>> 
 export class ServerCarSource implements CarSource {
   private readonly buffer = new SnapshotBuffer();
 
-  constructor(private readonly interpDelayMs: number) {}
+  /** How far in the past cars are drawn (ms): `net.interpDelayMs`, tunable live. */
+  constructor(public interpDelayMs: number) {}
 
   /** Call on every state change. */
   push(now: number, state: RaceStateView): void {

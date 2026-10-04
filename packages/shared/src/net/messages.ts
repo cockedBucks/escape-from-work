@@ -8,6 +8,10 @@ export const MSG = {
   input: 'input',
   /** server → clients: sim events from one tick (`SimEvent[]`). */
   events: 'events',
+  /** server → clients: the full current tuning (on join and after every live change). */
+  tuning: 'tuning',
+  /** server → clients (dev): a track or car file changed; reload the page to rebuild it. */
+  reload: 'reload',
 } as const;
 
 /**
@@ -41,3 +45,10 @@ export function toCarInput(msg: InputMessage): CarInput {
     respawn: msg.respawn ?? false,
   };
 }
+
+/** Dev-only `POST /dev/tuning` body from the F2 panel. `tuning` is checked by the tuning schema. */
+export const TuningPostSchema = z.strictObject({
+  tuning: z.unknown(),
+  /** true = also write config/tuning.json; false = live preview only. */
+  save: z.boolean(),
+});
