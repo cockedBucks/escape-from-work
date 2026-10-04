@@ -5,14 +5,14 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
-- Next task: HUMAN GATE — drive it (then P1.8 phase end)
-- Status: P1.7 done. `npm run verify` passes (138 tests + bot race). Shots ok. Waiting on the human to drive.
+- Next task: P1.8 (phase end)
+- Status: P1 gate passed ("all good"). `npm run verify` passes (138 tests + bot race).
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
-- P1 HUMAN GATE "drive it": `npm run dev`, drive 5 laps, try F2, reply how it feels.
+- (nothing)
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
@@ -47,3 +47,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Second laptop on office Wi-Fi first got "site can't be reached": Wi-Fi is a Public network
   and Node is only allowed on Private/Domain. Human added the game-ports firewall rule (D030)
   → second laptop loaded `http://192.168.0.105:5173/`: **works**.
+- 2026-10-04 P1 gate "drive it": human drove the Test Loop and tried F2 — "all good". They had
+  saved topSpeed 30→90, gravity 25→75, radius 1.1→1.27 (topSpeed and gravity at the slider max,
+  which nearly removed the jump); asked, they chose to restore the old values (slider experiments).
+  Tuning unchanged.

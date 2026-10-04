@@ -35,7 +35,7 @@ Driving feel is the foundation of everything else, so it gets its own phase.
   calls, triangles, tick ms). Scenarios `chase` and `track-overview`. `/shots chase track-overview`.
 - [x] **P1.7 Live tuning.** Server watches `config/` and hot-reloads; F2 lil-gui panel bound to
   `tuning.json`; Save via the dev-only endpoint. Fill the tuning table in `docs/ARCHITECTURE.md`.
-- [ ] **HUMAN GATE — drive it.**
+- [x] **HUMAN GATE — drive it.**
   1. `npm run dev`, open the URL, drive with W/A/S/D. Press F2 for the tuning panel.
   2. Drive 5 laps. Try the jump, the slick patch, hitting walls, R to respawn.
   3. Tune anything you want live and press Save, or tell the agent with
