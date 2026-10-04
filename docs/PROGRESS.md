@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: P0.6
-- Status: P0.1–P0.5 done. `npm run dev` / `npm start` work; page shows live player count.
+- Next task: P0.7
+- Status: P0.1–P0.6 done. `npm run verify` passes (typecheck + 15 tests incl. real-server test).
 
 ## Half-done
 - (nothing)
@@ -31,6 +31,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P0.3 npm workspaces (shared/server/client), strict TS 7, deps pinned (D017–D020).
 - 2026-10-04: P0.4 `config/tuning.json` (sim, net) + zod schema/loader + GAME_TITLE, tests (D021–D022).
 - 2026-10-04: P0.5 Express+Colyseus `race` room, LAN URLs, Vite page with live count; 2 Chrome tabs → 2, close one → 1 (D023–D027).
+- 2026-10-04: P0.6 Vitest projects, `tests/race-room.test.ts` (2 clients → 2 → 1), `npm run verify` (D028). Bot race step added to P1.4.
 
 ## Playtest log
 - (none yet)

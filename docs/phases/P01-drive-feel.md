@@ -24,6 +24,8 @@ Driving feel is the foundation of everything else, so it gets its own phase.
   zones, respawn to last checkpoint. Events for wall hits and landings. Tests per behavior.
 - [ ] **P1.4 Bot driver + golden tests.** Look-ahead steering and curve-based speed, split into
   pilot half and engineer half. Golden lap window on the Test Loop, replay determinism hash.
+  Add the short headless bot race (1 track, 2 cars, 1 lap) to `scripts/verify.mjs` (slot
+  marked there; replace the "bot race n/a" summary text).
 - [ ] **P1.5 Server sim.** The `race` room runs the sim at 60 Hz for solo players; `input`
   message with zod validation and rate limit; patch rate from config. Integration test:
   a client holding gas moves forward.

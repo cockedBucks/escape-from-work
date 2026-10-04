@@ -15,7 +15,8 @@
     "build": "npm run build -w @escape/client",
     "start": "npm run build && tsx packages/server/src/index.ts --prod",
     "test": "vitest run",
-    "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/client"
+    "typecheck": "node scripts/verify.mjs --types-only",
+    "verify": "node scripts/verify.mjs"
   },
   "devDependencies": {
     "@types/node": "24.19.1",

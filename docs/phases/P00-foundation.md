@@ -27,7 +27,7 @@ checks and screenshot pipeline that let the agent prove its own work.
   players, prints LAN URLs, serves the built client in production. Client: Vite page showing
   the title and the live player count. `npm run dev` runs both with hot reload; the client
   finds the server on the same hostname.
-- [ ] **P0.6 Checks.** Vitest across packages. One integration test in `tests/`: start the room
+- [x] **P0.6 Checks.** Vitest across packages. One integration test in `tests/`: start the room
   in-process, connect 2 clients, see count 2, disconnect one, see 1.
   `scripts/verify.mjs` + `npm run verify` (typecheck + tests, terse output, nonzero exit on
   failure).
