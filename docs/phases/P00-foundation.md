@@ -20,7 +20,7 @@ checks and screenshot pipeline that let the agent prove its own work.
   `tsconfig.base.json` (strict), packages `shared`, `server`, `client` with their own
   `package.json`/`tsconfig`. Look up current versions of the approved dependencies and pin
   them. Record versions in `docs/DECISIONS.md`.
-- [ ] **P0.4 Config foundation.** `config/tuning.json` with `sim`, `net` (port, patchRateMs,
+- [x] **P0.4 Config foundation.** `config/tuning.json` with `sim`, `net` (port, patchRateMs,
   interpDelayMs, reconnectSeconds) sections only. zod schema + loader in shared.
   `GAME_TITLE` constant. Unit tests for valid and invalid config.
 - [ ] **P0.5 Hello multiplayer.** Server: Express + Colyseus, room `race` that tracks connected

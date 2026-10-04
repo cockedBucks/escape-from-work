@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: P0.4
-- Status: P0.1–P0.3 done. Workspaces installed; `npm run typecheck` passes (placeholders only).
+- Next task: P0.5
+- Status: P0.1–P0.4 done. `npm run typecheck` and `npm test` pass (7 config tests).
 
 ## Half-done
 - (nothing)
@@ -27,6 +27,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P0.1 environment check passed (Node 24, npm 11, git 2.55, Chrome + Edge).
 - 2026-10-04: P0.2 git init on `main`, LF `.gitattributes`, GitHub remote added, kit committed.
 - 2026-10-04: P0.3 npm workspaces (shared/server/client), strict TS 7, deps pinned (D017–D020).
+- 2026-10-04: P0.4 `config/tuning.json` (sim, net) + zod schema/loader + GAME_TITLE, tests (D021–D022).
 
 ## Playtest log
 - (none yet)

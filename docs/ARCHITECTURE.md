@@ -198,6 +198,9 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | drifting hard to start | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
 | overheating too fast | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |
 | laggy | `net.patchRateMs`, `net.interpDelayMs` |
+| players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
+| port already in use | `net.port` |
+| sim too coarse / too costly (rarely touch) | `sim.dt` |
 
 ## 8. Persistence
 

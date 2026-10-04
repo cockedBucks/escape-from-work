@@ -1,0 +1,11 @@
+{
+  "sim": {
+    "dt": 0.016666666666666666
+  },
+  "net": {
+    "port": 2567,
+    "patchRateMs": 33,
+    "interpDelayMs": 50,
+    "reconnectSeconds": 30
+  }
+}

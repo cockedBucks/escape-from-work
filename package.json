@@ -9,6 +9,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/client"
   },
   "devDependencies": {
