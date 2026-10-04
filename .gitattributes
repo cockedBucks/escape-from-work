@@ -1,0 +1,14 @@
+# Same line endings on every OS (see docs/DECISIONS.md D015)
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

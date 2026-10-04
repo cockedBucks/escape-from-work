@@ -1,0 +1,72 @@
+# Testing — how the agent proves things work
+
+The human should only need to test **feel and fun**. Everything else is checked by machines.
+
+## 1. Layers
+
+| Layer | What | Command |
+|---|---|---|
+| Types | strict TypeScript across all packages | part of `npm run verify` |
+| Unit | shared sim, track math, race rules, items, scoring, schemas | `npm test` |
+| Golden | bot lap-time windows per track and car; replay determinism hash | `npm test` |
+| Integration | server room + real Colyseus clients in-process: join, roles, merge, disconnect, full race | `npm test` |
+| Bot race | real WebSocket bot clients against a running server (split pilot/engineer bots) | `npm run bots` |
+| Visual | Playwright screenshots + render stats per scenario | `npm run shots` |
+| Human | feel, fun, real-laptop FPS, real LAN | HUMAN GATEs in the phase files |
+
+`npm run verify` = typecheck + all Vitest tests + a short headless bot race (one track,
+2 cars, 1 lap, stepped as fast as possible). Must stay under about 60 s. Output: dot reporter,
+failures, one summary line.
+
+## 2. Bot driver
+
+`packages/shared/src/bot/` drives a car along the track centerline with a look-ahead point
+and slows down for curves. It is split into a **pilot half** (steer) and an **engineer half**
+(gas/brake/nitro/items) so two separate bot clients can drive one car, which proves the
+split-control networking end to end. Bots also fill empty cars in real races.
+
+## 3. Golden tests
+
+- **Lap window**: the bot drives 3 laps on each track with each car; lap time must be inside
+  the expected window, and the roster spread within ±3% of the median.
+- **Replay hash**: record seeded inputs for 30 s, re-run, compare the world hash.
+- Change expected values only for intended feel changes, and say so in the commit.
+
+## 4. Shots (visual checks)
+
+`npm run shots -- <scenario ...>`:
+1. Builds the client if needed and starts the server on a free port.
+2. Launches the system browser with `playwright-core` (`channel: "chrome"`, then `"msedge"`),
+   so no browser download is needed.
+3. Opens `http://localhost:<port>/?scenario=<name>&seed=1` per scenario, waits for
+   `window.__game.ready`, saves `artifacts/shots/<name>.png` (1280×720) and adds
+   `window.__game.stats()` to `artifacts/shots/stats.json`.
+
+### Scenarios
+
+| Scenario | Shows |
+|---|---|
+| `hello` | Phase 0 player-count page |
+| `chase` | bot race on the test track (or `&track=<id>`), chase cam behind car 1 |
+| `cockpit` | same race, cockpit cam of car 1, teammate bobblehead visible |
+| `track-overview` | top-down camera over the whole track |
+| `garage` | all roster cars side by side in team colors |
+| `lobby` | lobby with fake players in 4 teams |
+| `items` | frozen moment with several item effects active |
+| `results` | results screen with fake times, awards and points |
+| `menu` | main menu |
+
+New screens add a scenario in the same task.
+
+### If WebGL fails headless
+Try in order, and record which worked in `docs/DECISIONS.md`:
+1. Launch args `--use-angle=swiftshader --enable-unsafe-swiftshader`.
+2. `--use-gl=angle` with the default backend.
+3. Run headed (a real window opens for a few seconds).
+Headless FPS is meaningless; only draw calls, triangles and the images are judged.
+
+## 5. What the human tests (HUMAN GATEs)
+
+Feel (steering, speed, drift, heat), fun (does the duo yell?), readability on a real laptop,
+real FPS with the F3 overlay, and the real office LAN with two or more laptops.
+Results go into the "Playtest log" in `docs/PROGRESS.md`; changes go through `/feedback`.

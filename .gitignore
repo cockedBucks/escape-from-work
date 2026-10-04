@@ -1,0 +1,28 @@
+# dependencies and builds
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# generated output
+artifacts/
+coverage/
+
+# runtime data (league results live on the host PC only)
+data/
+
+# coworker photos and company images stay on this PC (manifests are generated)
+assets/faces/*
+!assets/faces/README.md
+assets/menu/*
+!assets/menu/README.md
+
+# personal Claude Code files
+CLAUDE.local.md
+.claude/settings.local.json
+
+# secrets and OS junk
+.env
+.env.*
+.DS_Store
+Thumbs.db
