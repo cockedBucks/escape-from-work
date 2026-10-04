@@ -40,4 +40,4 @@ checks and screenshot pipeline that let the agent prove its own work.
   2. Open the LAN URL from a second laptop or phone on the office Wi-Fi. If it does not load,
      tell the agent: it will help with the firewall now (Phase 2 writes the full LAN guide).
   3. Reply: "works" or what went wrong.
-- [ ] **P0.9 Phase end.** Reviewer, fixes, `git tag p0-done`, phase report.
+- [x] **P0.9 Phase end.** Reviewer, fixes, `git tag p0-done`, phase report.

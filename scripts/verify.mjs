@@ -12,13 +12,23 @@ const TSC = path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
 const VITEST = path.join(ROOT, 'node_modules', 'vitest', 'vitest.mjs');
 const VITEST_JSON = path.join(ROOT, 'artifacts', 'verify', 'vitest.json');
 const MAX_LINES = 12;
+// A hung step (e.g. a test leaving a socket open) must fail, not block verify forever.
+const STEP_TIMEOUT_MS = 180_000;
 
 const typesOnly = process.argv.includes('--types-only');
 const started = Date.now();
 
 /** Run a Node script with the same Node binary (works the same on Windows, macOS, Linux). */
 function runNode(args) {
-  return spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const r = spawnSync(process.execPath, args, {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: STEP_TIMEOUT_MS,
+  });
+  const timedOut = r.error?.code === 'ETIMEDOUT';
+  const note = timedOut ? `\nTIMED OUT after ${STEP_TIMEOUT_MS / 1000}s (killed)` : '';
+  return { status: timedOut ? 1 : r.status, stdout: r.stdout ?? '', stderr: `${r.stderr ?? ''}${note}` };
 }
 
 function nonEmptyLines(text) {

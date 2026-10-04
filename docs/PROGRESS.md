@@ -4,9 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: P0.9 phase end (gate passed)
-- Status: P0.1–P0.8 done. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
+- Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
+- Next task: P1.1
+- Status: P0 done and tagged `p0-done`. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
 
 ## Half-done
 - (nothing)
@@ -18,20 +18,22 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - OS: Windows 11 Pro 10.0.22631
 - Node v24.19.0, npm 11.17.0, git 2.55.0.windows.5
 - Browsers: Chrome 154.0.8037.93, Edge 154.0.4258.53
+- Host LAN IP 192.168.0.105 (office Wi-Fi is a Public network; firewall rule D030 opens 2567 + 5173)
 
 ## Known issues
 - A client could call `create('race')` and make a second room. Lock this down when the
   lobby is built (one lobby per server, D004).
+- `RaceRoom.maxClients` is unlimited. Cap it from config (e.g. 16 players) when the lobby is built.
+- A busy port prints Colyseus' own EADDRINUSE stack before our friendly message (exit code 1);
+  cosmetic, left as is.
+
 ## Last sessions
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
-- 2026-10-04: P0.1 environment check passed (Node 24, npm 11, git 2.55, Chrome + Edge).
-- 2026-10-04: P0.2 git init on `main`, LF `.gitattributes`, GitHub remote added, kit committed.
-- 2026-10-04: P0.3 npm workspaces (shared/server/client), strict TS 7, deps pinned (D017–D020).
-- 2026-10-04: P0.4 `config/tuning.json` (sim, net) + zod schema/loader + GAME_TITLE, tests (D021–D022).
-- 2026-10-04: P0.5 Express+Colyseus `race` room, LAN URLs, Vite page with live count; 2 Chrome tabs → 2, close one → 1 (D023–D027).
-- 2026-10-04: P0.6 Vitest projects, `tests/race-room.test.ts` (2 clients → 2 → 1), `npm run verify` (D028). Bot race step added to P1.4.
-- 2026-10-04: P0.7 `npm run shots` + `window.__game` hooks; `/shots hello` PASS (D029).
-- 2026-10-04: P0.8 docs pass: README game commands, CLAUDE.md command table, ARCHITECTURE folder map + LAN flags; `npm start` re-checked.
+- 2026-10-04: **P0 done** — env check, git (`main`, LF, GitHub remote, human pushes), npm workspaces
+  with strict TS 7 and pinned deps, `config/tuning.json` + zod, Express+Colyseus `race` room with
+  live player count page, `npm run verify` (typecheck + tests incl. real-server test),
+  `npm run shots`, docs pass, LAN gate passed. Review fixes: busy port no longer hangs, verify
+  step timeout. Decisions D015–D030.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

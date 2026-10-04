@@ -10,7 +10,7 @@ interface StateView {
 }
 
 describe('race room (real server, real clients)', () => {
-  let game: GameServer;
+  let game: GameServer | undefined;
   let endpoint: EndpointSettings;
 
   beforeAll(async () => {
@@ -19,7 +19,8 @@ describe('race room (real server, real clients)', () => {
     endpoint = { hostname: '127.0.0.1', port: game.port, secure: false };
   });
 
-  afterAll(() => game.close());
+  // `?.`: if startup failed, don't hide that error behind a TypeError here.
+  afterAll(() => game?.close());
 
   it('counts 2 players when two join, then 1 when one leaves', async () => {
     const a = await new Client(endpoint).join<StateView>(ROOM_NAME);

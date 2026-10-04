@@ -42,7 +42,8 @@ export function parseScenario(search: string): { scenario: string | null; seed: 
   return { scenario: scenario === '' ? null : scenario, seed: Number.isFinite(seed) ? seed : DEFAULT_SEED };
 }
 
-/** Live values behind `stats()`. The renderer and net code write here; nothing is allocated per call. */
+/** Live values behind `stats()`. The renderer and net code write here (no per-frame allocation);
+ *  `stats()` itself returns a copy, which is fine for occasional test calls. */
 export const liveStats: GameStats = {
   fps: 0,
   drawCalls: 0,

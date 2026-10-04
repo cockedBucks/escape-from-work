@@ -1,5 +1,6 @@
 // Server entry. `--prod` (used by `npm start`) serves the built client; otherwise Vite does.
 // `--port <n>` overrides `net.port` (0 = any free port; used by `npm run shots`).
+import { existsSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import path from 'node:path';
 import { GAME_TITLE } from '@escape/shared';
@@ -23,13 +24,19 @@ function portArg(): number | undefined {
 
 const tuning = loadTuningFile();
 const requestedPort = portArg() ?? tuning.net.port;
+const clientDir = path.join(REPO_ROOT, 'packages', 'client', 'dist');
+
+if (isProd && !existsSync(path.join(clientDir, 'index.html'))) {
+  console.error('No built client found (packages/client/dist). Run `npm run build`, or use `npm start`.');
+  process.exit(1);
+}
 
 let port: number;
 try {
   ({ port } = await startServer({
     port: requestedPort,
     host: '0.0.0.0',
-    clientDir: isProd ? path.join(REPO_ROOT, 'packages', 'client', 'dist') : undefined,
+    clientDir: isProd ? clientDir : undefined,
     handleSignals: true,
   }));
 } catch (err) {
@@ -41,6 +48,7 @@ try {
 }
 
 const [local, ...lan] = lanUrls(port, networkInterfaces());
+// scripts/shots.mjs reads the port from "on port <n>" in this line: keep that wording.
 console.log(`\n${GAME_TITLE} server (${isProd ? 'production' : 'dev'}) on port ${port}`);
 if (isProd) {
   console.log(`  This PC:  ${local}`);

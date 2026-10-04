@@ -34,11 +34,15 @@ if (hooks.error !== null) {
     room.ping((ms) => {
       liveStats.pingMs = ms;
     });
+    let readyPending = false;
     room.onStateChange((state) => {
       const n = state.players.size;
       countEl.textContent = String(n);
       labelEl.textContent = n === 1 ? 'player' : 'players';
-      if (!hooks.ready) void markReady(hooks);
+      if (!readyPending) {
+        readyPending = true;
+        void markReady(hooks);
+      }
     });
     room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
   } catch (err) {

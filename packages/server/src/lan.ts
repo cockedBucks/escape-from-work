@@ -2,7 +2,11 @@ import type { NetworkInterfaceInfo } from 'node:os';
 
 type Interfaces = NodeJS.Dict<NetworkInterfaceInfo[]>;
 
-/** Virtual adapters (Hyper-V/WSL, VirtualBox, VMware, Docker) that coworkers cannot reach. */
+/**
+ * Virtual adapters (Hyper-V/WSL, VirtualBox, VMware, Docker) that coworkers cannot reach.
+ * Limitation: a real network card bridged through a Hyper-V *external* switch is also named
+ * "vEthernet (...)" and gets skipped; then use the PC's IP from `ipconfig` directly.
+ */
 const VIRTUAL_ADAPTER = /vEthernet|WSL|Hyper-V|VirtualBox|VMware|docker|^br-|^veth/i;
 
 /**

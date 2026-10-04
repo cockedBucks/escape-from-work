@@ -22,6 +22,21 @@ export interface GameServer {
   close(): Promise<void>;
 }
 
+/**
+ * Colyseus only attaches its 'error' listener after a successful listen, so a busy port
+ * (EADDRINUSE) would become an uncaught exception and hang the process. Catch it ourselves.
+ */
+function listenOrFail(server: Server, transport: WebSocketTransport, opts: StartOptions): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const http = transport.server;
+    http?.once('error', reject);
+    server.listen(opts.port, opts.host).then(() => {
+      http?.off('error', reject);
+      resolve();
+    }, reject);
+  });
+}
+
 /** Start Express + Colyseus and create the one `race` room. Used by index.ts and tests. */
 export async function startServer(opts: StartOptions): Promise<GameServer> {
   const transport = new WebSocketTransport();
@@ -41,7 +56,7 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
     },
   });
   server.define(ROOM_NAME, RaceRoom);
-  await server.listen(opts.port, opts.host);
+  await listenOrFail(server, transport, opts);
   await matchMaker.createRoom(ROOM_NAME, {});
 
   const address = transport.server?.address() as AddressInfo | null;
