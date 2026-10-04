@@ -8,7 +8,9 @@ disable-model-invocation: true
 # /next — do the next piece of work
 
 Argument: `$ARGUMENTS`
-- empty → do exactly ONE task, then stop.
+- empty → keep going: do task after task, across phase ends too, and stop only when a
+  human is needed (HUMAN GATE, a decision for the human, a blocker). The human asked for this.
+- `one` → do exactly ONE task, then stop.
 - `phase` → keep doing tasks until the phase is done, a HUMAN GATE is reached, or the
   context is getting large (then run `/handoff`).
 - a task id like `P2.4` → do that task (only if its prerequisites are done).
@@ -65,4 +67,6 @@ When every task and gate in the phase is ticked:
 2. `git tag pN-done` (N = phase number).
 3. Phase report: what works, how to run it, what the human should try, known issues,
    what the next phase does.
-4. Tell the human: "Run `/clear`, then `/next` to start Phase N+1."
+4. In the default (keep going) mode, write the phase report into PROGRESS and continue with
+   Phase N+1 (context compaction handles length). Otherwise tell the human: "Run `/clear`,
+   then `/next` to start Phase N+1."

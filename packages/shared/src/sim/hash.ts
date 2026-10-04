@@ -1,0 +1,41 @@
+import type { CarState, World } from './types';
+
+/**
+ * A short fingerprint of the world (tick + every car's state), for replay tests: same
+ * inputs must give the same hash. FNV-1a over the exact bits of every number, so even a
+ * one-bit float difference changes it.
+ */
+export function hashWorld(world: World): string {
+  const buf = new DataView(new ArrayBuffer(8));
+  let h = 0x811c9dc5;
+  const byte = (b: number): void => {
+    h ^= b;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  };
+  const num = (v: number): void => {
+    buf.setFloat64(0, v);
+    for (let i = 0; i < 8; i++) byte(buf.getUint8(i));
+  };
+  const str = (s: string): void => {
+    for (let i = 0; i < s.length; i++) num(s.charCodeAt(i));
+  };
+
+  num(world.tick);
+  for (const c of world.cars) {
+    str(c.id);
+    num(c.stats.speed);
+    num(c.stats.grip);
+    num(c.stats.weight);
+    for (const key of CAR_HASH_KEYS) {
+      const v = c[key];
+      num(typeof v === 'boolean' ? (v ? 1 : 0) : v);
+    }
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+/** Every number/boolean field of CarState, in a fixed order. */
+const CAR_HASH_KEYS = [
+  'x', 'z', 'y', 'vy', 'yaw', 'vx', 'vz', 'steer', 'segment', 'progress', 'lateral',
+  'lastGate', 'onSlick', 'onRamp', 'respawnAtTick', 'ghostUntilTick',
+] as const satisfies readonly (keyof CarState)[];

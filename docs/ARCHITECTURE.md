@@ -31,7 +31,7 @@ escape-from-work/
   CLAUDE.md  README.md  package.json (npm workspaces)  tsconfig.base.json
   vitest.config.ts (test projects)  .npmrc (exact versions)  .gitattributes (LF)
   config/
-    tuning.json        car, sim, track, heat, drift, nitro, solo, race, net, league, quality
+    tuning.json        car, sim, track, bot, heat, drift, nitro, solo, race, net, league, quality
     cars.json          roster: stats, visual spec, horn preset
     items.json         item params + roll weights
     tracks/<id>.json   track data
@@ -221,6 +221,9 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | sim too coarse / too costly (rarely touch) | `sim.dt` |
 | walls look jagged / track lookups slow (rarely touch) | `track.sampleSpacing`, `track.gridCellSize` |
 | track:check too strict about narrow roads | `track.minWidth` |
+| bots too slow / crash in corners (moves golden lap windows!) | `bot.cornerAccel`, `bot.brakePlanDecel`, `bot.planDistance` |
+| bots weave / cut corners | `bot.lookAheadBase`, `bot.lookAheadTime`, `bot.steerGain` |
+| bots respawn too eagerly when stuck | `bot.stuckSpeed`, `bot.stuckSeconds` |
 
 ## 8. Persistence
 

@@ -68,6 +68,27 @@ const TrackBuildSchema = z.strictObject({
   minWidth: pos(),
 });
 
+/** Bot driver (also used by golden tests, so changing it moves the golden lap window). */
+const BotSchema = z.strictObject({
+  /** Pilot: look this far ahead along the centerline at standstill (m). */
+  lookAheadBase: pos(),
+  /** Pilot: plus this many seconds of travel at the current speed (s). */
+  lookAheadTime: nonNeg(),
+  /** Pilot: steer amount per radian of angle to the look-ahead point. */
+  steerGain: pos(),
+  /** Engineer: sideways acceleration the bot trusts in corners (m/s²). Higher = braver. */
+  cornerAccel: pos(),
+  /** Engineer: braking the bot plans with (m/s²), kept below `car.brake` for safety. */
+  brakePlanDecel: pos(),
+  /** Engineer: how far ahead to plan corner speeds (m). */
+  planDistance: pos(),
+  /** Engineer: brake only when this much faster than the planned speed (m/s). */
+  speedMargin: nonNeg(),
+  /** Below this speed (m/s) for `stuckSeconds`, the bot presses respawn. */
+  stuckSpeed: nonNeg(),
+  stuckSeconds: pos(),
+});
+
 /** Race rules. A stub for now; P3 adds countdown, finish and results. */
 const RaceSchema = z.strictObject({
   /** Fade-out time before a respawned car reappears (s). */
@@ -122,6 +143,7 @@ export const TuningSchema = z.strictObject({
   car: CarSchema,
   sim: SimSchema,
   track: TrackBuildSchema,
+  bot: BotSchema,
   race: RaceSchema,
   net: NetSchema,
   quality: QualitySchema,

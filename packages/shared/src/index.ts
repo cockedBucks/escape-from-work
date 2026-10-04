@@ -35,3 +35,8 @@ export { SpatialGrid } from './track/grid';
 export { NO_INPUT, type CarInput, type CarState, type CarStats, type SimEvent, type World } from './sim/types';
 export { createCar, createWorld, placeAtGate } from './sim/car';
 export { step, type InputsByCar } from './sim/step';
+export { hashWorld } from './sim/hash';
+export { botSteer, lookAheadPoint } from './bot/pilot';
+export { botPedals, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
+export { botInput } from './bot/driver';
+export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';

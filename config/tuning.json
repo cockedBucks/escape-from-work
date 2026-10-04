@@ -30,6 +30,17 @@
     "gridCellSize": 16,
     "minWidth": 10
   },
+  "bot": {
+    "lookAheadBase": 6,
+    "lookAheadTime": 0.4,
+    "steerGain": 2.5,
+    "cornerAccel": 14,
+    "brakePlanDecel": 24,
+    "planDistance": 90,
+    "speedMargin": 1,
+    "stuckSpeed": 1,
+    "stuckSeconds": 2
+  },
   "race": {
     "respawnFadeSeconds": 1,
     "respawnGhostSeconds": 1,

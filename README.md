@@ -55,7 +55,7 @@ once first.
 |---|---|
 | `npm run dev` | game server + Vite page with hot reload. Open Vite's **Network** URL (port 5173) |
 | `npm start` | builds the page and starts one server for the office; open the printed **LAN** URL (port 2567) |
-| `npm run verify` | typecheck + all tests, one summary line (Claude runs this before every commit) |
+| `npm run verify` | typecheck + all tests + a short headless bot race, one summary line (Claude runs this before every commit) |
 | `npm test` | tests only |
 | `npm run shots -- hello` | screenshots in your Chrome/Edge → `artifacts/shots/` |
 | `npm run track:check` | checks every track file (or `-- test-loop` for one): shape, width, tight curves, crossing walls |

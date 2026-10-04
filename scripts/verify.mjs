@@ -1,4 +1,4 @@
-// npm run verify: typecheck + all Vitest tests (+ a short headless bot race from P1.4).
+// npm run verify: typecheck + all Vitest tests + a short headless bot race.
 // Terse on purpose: prints only failures (first lines of each) and one summary line.
 // `--types-only` runs just the typecheck (used by `npm run typecheck`).
 import { spawnSync } from 'node:child_process';
@@ -85,6 +85,24 @@ function printFailures(failures) {
   }
 }
 
+/** Short headless bot race: 1 track, 2 cars, 1 lap. Proves the sim still drives end to end. */
+function botRace() {
+  const r = runNode([path.join('scripts', 'bot-race.mjs'), '--track', 'test-loop', '--cars', '2', '--laps', '1', '--json']);
+  const last = nonEmptyLines(r.stdout).at(-1) ?? '';
+  let s;
+  try {
+    s = JSON.parse(last);
+  } catch {
+    printFailures([{ name: 'bot race', lines: nonEmptyLines(`${r.stdout}\n${r.stderr}`) }]);
+    return { ok: false, text: 'bot race CRASHED' };
+  }
+  if (r.status !== 0 || !s.ok) {
+    printFailures([{ name: 'bot race', lines: [last] }]);
+    return { ok: false, text: 'bot race DID NOT FINISH' };
+  }
+  return { ok: true, text: `bot race ok (best lap ${s.bestLap}s)` };
+}
+
 const typeFailures = typecheck();
 printFailures(typeFailures);
 const typeErrorCount = typeFailures.reduce((n, f) => n + f.lines.length, 0);
@@ -99,9 +117,9 @@ if (typesOnly) {
   const failedFiles = [...new Set(t.failures.map((f) => f.name.split(' > ')[0]))];
   const testsPart =
     t.failed === 0 ? `${t.passed} tests passed` : `${t.passed} passed, ${t.failed} failed (${failedFiles.join(', ')})`;
-  // Bot race joins here in P1.4 (one track, 2 cars, 1 lap, headless).
-  const ok = typeFailures.length === 0 && t.failed === 0;
-  console.log(`verify: ${ok ? 'OK' : 'FAILED'} — ${typesPart}, ${testsPart}, bot race n/a until P1.4 (${seconds()}s)`);
+  const race = botRace();
+  const ok = typeFailures.length === 0 && t.failed === 0 && race.ok;
+  console.log(`verify: ${ok ? 'OK' : 'FAILED'} — ${typesPart}, ${testsPart}, ${race.text} (${seconds()}s)`);
   if (!ok) process.exitCode = 1;
 }
 if (typeFailures.length > 0) process.exitCode = 1;

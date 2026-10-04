@@ -1,6 +1,6 @@
 // npm run track:check -- [track ids...]
 // Validates track files (schema + geometry). With no ids, checks every file in config/tracks/.
-// Bot laps join this check in P1.4.
+// Then 2 bots drive 3 laps: they must finish without ever needing a respawn (a stuck spot).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -45,12 +45,22 @@ for (const id of ids) {
     if (def.id !== id) throw new Error(`${rel}: "id" is "${def.id}" but the file name says "${id}"`);
     const track = shared.buildTrack(def, tuning.track);
     const { issues, stats } = shared.checkTrack(track, tuning.track.minWidth);
-    const summary =
+    let summary =
       `${stats.length.toFixed(0)} m, ${stats.samples} samples, ` +
       `width ${stats.minWidth.toFixed(0)}–${stats.maxWidth.toFixed(0)} m, ` +
       `tightest radius ${stats.minRadius.toFixed(1)} m, ${def.zones.length} zones`;
     if (issues.length === 0) {
-      console.log(`track ${id}: OK — ${summary}; bot laps n/a until P1.4`);
+      const race = shared.runBotRace(track, tuning, { cars: 2, laps: 3, maxSeconds: 3 * 180 });
+      const respawns = race.cars.reduce((n, c) => n + c.respawns, 0);
+      const laps = race.cars.flatMap((c) => c.lapTimes);
+      if (!race.finished) issues.push('bots did not finish 3 laps (stuck or lost)');
+      if (respawns > 0) issues.push(`bots needed ${respawns} respawn(s): look for a stuck spot`);
+      if (laps.length > 0) {
+        summary += `; bot laps ${Math.min(...laps).toFixed(1)}–${Math.max(...laps).toFixed(1)} s`;
+      }
+    }
+    if (issues.length === 0) {
+      console.log(`track ${id}: OK — ${summary}`);
     } else {
       failed++;
       console.log(`track ${id}: FAILED — ${summary}`);

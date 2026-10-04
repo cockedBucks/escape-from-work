@@ -29,7 +29,9 @@ split-control networking end to end. Bots also fill empty cars in real races.
 
 - **Lap window**: the bot drives 3 laps on each track with each car; lap time must be inside
   the expected window, and the roster spread within ±3% of the median.
-- **Replay hash**: record seeded inputs for 30 s, re-run, compare the world hash.
+- **Replay hash**: record the bot inputs of a 2-car, 1-lap race (~37 s), replay them on a fresh
+  world and compare `hashWorld`; the hash of that race is also pinned. Tests live in
+  `packages/shared/src/bot/bot.test.ts`. Headless race by hand: `node scripts/bot-race.mjs --cars 4 --laps 3`.
 - Change expected values only for intended feel changes, and say so in the commit.
 
 ## 4. Shots (visual checks)

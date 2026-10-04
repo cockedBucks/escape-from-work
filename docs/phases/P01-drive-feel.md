@@ -22,7 +22,7 @@ Driving feel is the foundation of everything else, so it gets its own phase.
 - [x] **P1.3 Car physics v1.** Throttle, brake, reverse, drag, smoothed steering with speed
   curve, sideways grip, walls (bounce + speed loss), car height for ramps and landing, slick
   zones, respawn to last checkpoint. Events for wall hits and landings. Tests per behavior.
-- [ ] **P1.4 Bot driver + golden tests.** Look-ahead steering and curve-based speed, split into
+- [x] **P1.4 Bot driver + golden tests.** Look-ahead steering and curve-based speed, split into
   pilot half and engineer half. Golden lap window on the Test Loop, replay determinism hash.
   Add the short headless bot race (1 track, 2 cars, 1 lap) to `scripts/verify.mjs` (slot
   marked there; replace the "bot race n/a" summary text).

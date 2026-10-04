@@ -19,7 +19,8 @@ You build everything else, agentically, from these docs. Explain decisions in pl
   ticked, touched docs are updated, and it is committed.
 - Visual change (rendering, UI, camera, cars, tracks) → also run `/shots`.
 - End of phase → `reviewer` subagent on the phase diff, fix Critical items, `git tag pN-done`,
-  give the phase report, tell the human to run `/clear`.
+  give the phase report, then continue into the next phase (the human wants `/next` to keep
+  going and stop only for HUMAN GATEs or decisions).
 
 ## Commands
 
@@ -27,7 +28,7 @@ You build everything else, agentically, from these docs. Explain decisions in pl
 |---|---|
 | `npm run dev` | server (watch) + Vite client, hot reload |
 | `npm start` | production build, one process serves page + multiplayer on the LAN |
-| `npm run verify` | typecheck + all tests + short headless bot race (from P1.4). Terse output |
+| `npm run verify` | typecheck + all tests + short headless bot race. Terse output |
 | `npm run typecheck` | typecheck only (`verify.mjs --types-only`) |
 | `npm test` | Vitest only |
 | `npm run bots -- --cars 4 --seconds 60` | real WebSocket bot clients (split pilot/engineer) — from P2.5 |
