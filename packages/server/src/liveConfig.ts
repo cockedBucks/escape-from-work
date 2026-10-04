@@ -1,6 +1,6 @@
 import { renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { parseTuning, type CarsConfig, type Track, type Tuning } from '@escape/shared';
+import { ConfigError, checkTrack, parseTuning, type CarsConfig, type Track, type Tuning } from '@escape/shared';
 import { REPO_ROOT, loadCarsFile, loadTrackFile, loadTuningFile } from './config';
 
 export type ConfigChange =
@@ -70,7 +70,10 @@ export class LiveConfig {
   }
 
   reloadTrack(): void {
-    this.track = loadTrackFile(this.trackId, this.tuning, path.join(this.configDir, 'tracks'));
+    const track = loadTrackFile(this.trackId, this.tuning, path.join(this.configDir, 'tracks'));
+    const { issues } = checkTrack(track, this.tuning.track.minWidth);
+    if (issues.length > 0) throw new ConfigError(`track ${this.trackId}: ${issues.join('; ')}`);
+    this.track = track;
     this.emit({ kind: 'track', track: this.track });
   }
 }

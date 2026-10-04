@@ -11,6 +11,9 @@ import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 
+/** How often the live race re-measures ping for the F3 overlay (ms). */
+const PING_EVERY_MS = 2000;
+
 function el(id: string): HTMLElement {
   const found = document.getElementById(id);
   if (!found) throw new Error(`missing #${id} in index.html`);
@@ -81,7 +84,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     liveStats.pingMs = ms;
   });
   // Ping again now and then so the F3 overlay stays current.
-  setInterval(() => room.ping((ms) => (liveStats.pingMs = ms)), 2000);
+  const pingTimer = window.setInterval(() => room.ping((ms) => (liveStats.pingMs = ms)), PING_EVERY_MS);
 
   const source = new ServerCarSource(tuning.net.interpDelayMs);
   // Live tuning: the server sends the current values on join and after every change.
@@ -111,7 +114,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   game.start();
   game.setTuning(latestTuning);
   tuningListeners.push((t) => game.setTuning(t));
-  new KeyboardControls((msg) => room.send(MSG.input, msg));
+  const keyboard = new KeyboardControls((msg) => room.send(MSG.input, msg), latestTuning.net.inputResendMs);
   if (import.meta.env.DEV) {
     // Dev only: the F2 panel (lil-gui is not in production builds).
     const { TuningPanel } = await import('./ui/tuningPanel');
@@ -121,7 +124,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     });
     tuningListeners.push((t) => panel.serverTuning(t));
   }
-  room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
+  room.onLeave(() => {
+    window.clearInterval(pingTimer);
+    keyboard.dispose();
+    setStatus('Disconnected from the game server. Reload to rejoin.', true);
+  });
   void markReady(hooks);
 }
 

@@ -104,6 +104,12 @@ export class TuningPanel {
 
   /** The server sent tuning (on join, after any change, or a file edit): show it. */
   serverTuning(t: Tuning): void {
+    // Sections the panel does not show always follow the server, so Save never writes back
+    // stale copies of them (e.g. after a hand edit of tuning.json).
+    this.working.sim = structuredClone(t.sim);
+    this.working.track = structuredClone(t.track);
+    this.working.quality = structuredClone(t.quality);
+    this.working.net.port = t.net.port;
     if (performance.now() - this.lastLocalEdit < ECHO_GUARD_MS) return;
     for (const field of tuningFields()) {
       if (skipped(field.path)) continue;

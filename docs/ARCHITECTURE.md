@@ -234,6 +234,7 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | laggy | `net.patchRateMs`, `net.interpDelayMs` |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
 | controls ignored when mashing keys | `net.inputRatePerSec`, `net.inputBurst` |
+| a key seems stuck after a network hiccup | `net.inputResendMs` |
 | port already in use | `net.port` |
 | sim too coarse / too costly (rarely touch) | `sim.dt` |
 | walls look jagged / track lookups slow (rarely touch) | `track.sampleSpacing`, `track.gridCellSize` |

@@ -56,7 +56,7 @@ export class BoxCar {
   constructor(teamColor: number) {
     const a = getAssets();
     const C = BOX_CAR;
-    this.bodyMat = new THREE.MeshLambertMaterial({ color: teamColor, flatShading: true, transparent: true });
+    this.bodyMat = new THREE.MeshLambertMaterial({ color: teamColor, flatShading: true });
     this.body = new THREE.Mesh(a.body, this.bodyMat);
     this.body.castShadow = true;
     this.root.add(this.body);
@@ -89,7 +89,12 @@ export class BoxCar {
     }
     // Steer +1 = right = yaw goes down.
     for (const w of this.frontWheels) w.rotation.y = -steer * BOX_CAR.maxWheelTurn;
-    this.bodyMat.opacity = ghost ? BOX_CAR.ghostOpacity : 1;
+    // Transparent only while ghosted, so normal cars stay in the cheaper opaque pass.
+    if (this.bodyMat.transparent !== ghost) {
+      this.bodyMat.transparent = ghost;
+      this.bodyMat.opacity = ghost ? BOX_CAR.ghostOpacity : 1;
+      this.bodyMat.needsUpdate = true;
+    }
   }
 
   dispose(): void {

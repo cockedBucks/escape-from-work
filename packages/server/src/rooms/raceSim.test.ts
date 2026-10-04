@@ -55,3 +55,31 @@ describe('RaceSim live config', () => {
     expect(sim.world.cars[0]!.stats.speed).toBe(1.05);
   });
 });
+
+describe('RaceSim respawn and restart-only settings', () => {
+  it('respawn fires once per press, not on every tick while R is held or resent', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addCar('a');
+    sim.handleInput('a', { seq: 1, respawn: true });
+    const fade = Math.round(cfg.race.respawnFadeSeconds / cfg.sim.dt);
+    let starts = 0;
+    for (let i = 0; i < fade * 3; i++) {
+      sim.handleInput('a', { seq: 2 + i, respawn: true }); // still held, resent every tick
+      starts += sim.tick().filter((e) => e.type === 'respawnStart').length;
+    }
+    expect(starts).toBe(1);
+    sim.handleInput('a', { seq: 10_000, respawn: false });
+    sim.handleInput('a', { seq: 10_001, respawn: true });
+    for (let i = 0; i < fade + 2; i++) starts += sim.tick().filter((e) => e.type === 'respawnStart').length;
+    expect(starts).toBe(2);
+  });
+
+  it('keeps sim.dt and track settings until a restart', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    const next = structuredClone(cfg);
+    next.car.topSpeed = 31;
+    expect(sim.setConfig(next)).toBe(false);
+    next.sim.dt = 1 / 30;
+    expect(sim.setConfig(next)).toBe(true);
+  });
+});

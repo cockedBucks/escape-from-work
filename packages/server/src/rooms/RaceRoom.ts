@@ -7,6 +7,8 @@ import { RaceSim } from './raceSim';
 
 /** Weight of the newest tick in the smoothed tick cost shown by the F3 overlay. */
 const TICK_MS_SMOOTHING = 0.05;
+/** tickMs is sent in steps of 1/this ms (0.1 ms). */
+const TICK_MS_ROUND = 10;
 
 /** The one room of the server: players join, each drives a car solo on the Test Loop. */
 export class RaceRoom extends Room<{ state: RaceState }> {
@@ -18,6 +20,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   private tuning!: Tuning;
   private readonly limits = new Map<string, TokenBucket>();
   private unsubscribe: () => void = () => {};
+  private tickMsAvg = 0;
 
   override onCreate(): void {
     // Config comes from the server's files (live in dev), never from client options.
@@ -40,7 +43,9 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       const started = performance.now();
       const events = this.sim.tick();
       // Smoothed so the overlay number is readable (weight of the newest tick).
-      this.state.tickMs += (performance.now() - started - this.state.tickMs) * TICK_MS_SMOOTHING;
+      this.tickMsAvg += (performance.now() - started - this.tickMsAvg) * TICK_MS_SMOOTHING;
+      // Rounded, so an idle room does not send a patch every tick just for this number.
+      this.state.tickMs = Math.round(this.tickMsAvg * TICK_MS_ROUND) / TICK_MS_ROUND;
       this.syncState(this.sim.world);
       if (events.length > 0) this.broadcast(MSG.events, events);
     }, Math.round(1 / this.tuning.sim.dt));
@@ -50,7 +55,11 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   private onConfigChange(change: ConfigChange): void {
     if (change.kind === 'tuning') {
       this.tuning = change.tuning;
-      this.sim.setConfig(change.tuning);
+      if (this.sim.setConfig(change.tuning)) {
+        console.log('[config] sim/track settings changed: restart the server to apply them');
+      }
+      const { inputRatePerSec, inputBurst } = change.tuning.net;
+      for (const id of this.limits.keys()) this.limits.set(id, new TokenBucket(inputRatePerSec, inputBurst));
       this.setPatchRate(change.tuning.net.patchRateMs);
       this.broadcast(MSG.tuning, change.tuning);
     } else if (change.kind === 'cars') {

@@ -11,8 +11,8 @@ const fraction = () => z.number().min(0).max(1);
 const CarSchema = z.strictObject({
   /** Collision circle radius (m). */
   radius: pos(),
-  /** Forward top speed on gas (m/s). Scaled by car `stats.speed`. */
-  topSpeed: pos(),
+  /** Forward top speed on gas (m/s). Scaled by car `stats.speed`. Capped so cars cannot tunnel through walls. */
+  topSpeed: pos().max(100),
   /** Engine acceleration from standstill (m/s²). Scaled by car `stats.speed`. */
   accel: pos(),
   /** Braking deceleration while moving forward (m/s²). */
@@ -157,6 +157,8 @@ const NetSchema = z.strictObject({
   inputRatePerSec: z.number().positive(),
   /** Short bursts above the average rate that are still allowed (messages). */
   inputBurst: z.number().int().min(1),
+  /** Clients resend their held controls this often (ms), so a lost message never leaves a key stuck. */
+  inputResendMs: z.number().int().min(50),
 });
 
 export const TuningSchema = z.strictObject({

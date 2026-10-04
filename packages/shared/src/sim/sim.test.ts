@@ -94,7 +94,8 @@ describe('sim on the Test Loop', () => {
     c.x = 60;
     c.yaw = 0.3;
     run(w, { ...GAS, steer: -1 }, secs(3));
-    expect(Math.abs(c.lateral)).toBeLessThan(8);
+    // Half the road is 8 m here; the car's center can get no closer to a wall than its radius.
+    expect(Math.abs(c.lateral)).toBeLessThan(8 - cfg.car.radius + 0.05);
   });
 
   it('jumps off the ramp once and lands with an event', () => {

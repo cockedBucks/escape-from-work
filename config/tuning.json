@@ -52,7 +52,8 @@
     "interpDelayMs": 50,
     "reconnectSeconds": 30,
     "inputRatePerSec": 70,
-    "inputBurst": 20
+    "inputBurst": 20,
+    "inputResendMs": 250
   },
   "camera": {
     "fov": 70,

@@ -16,6 +16,10 @@ import {
 interface Seat {
   lastSeq: number;
   input: CarInput;
+  /** Was R held in the last message? Respawn fires once per press, not while held. */
+  respawnHeld: boolean;
+  /** A press arrived that the next tick should act on. */
+  respawnPending: boolean;
 }
 
 /**
@@ -36,9 +40,15 @@ export class RaceSim {
     this.stats = { ...stats };
   }
 
-  /** Swap in new tuning (live tuning in P1.7). */
-  setConfig(cfg: Tuning): void {
-    this.cfg = cfg;
+  /**
+   * Swap in new tuning (live tuning). `sim` and `track` keep their current values: the tick
+   * rate and the built track are fixed until a restart. Returns true when such a change was
+   * ignored, so the caller can say "restart needed".
+   */
+  setConfig(cfg: Tuning): boolean {
+    const ignored = JSON.stringify(cfg.sim) !== JSON.stringify(this.cfg.sim) || JSON.stringify(cfg.track) !== JSON.stringify(this.cfg.track);
+    this.cfg = { ...cfg, sim: this.cfg.sim, track: this.cfg.track };
+    return ignored;
   }
 
   /** New car stats (cars.json edited): applies to every car right away. */
@@ -64,7 +74,7 @@ export class RaceSim {
     const at = this.world.cars.findIndex((c) => c.id > id);
     if (at < 0) this.world.cars.push(car);
     else this.world.cars.splice(at, 0, car);
-    this.seats.set(id, { lastSeq: -1, input: { ...NO_INPUT } });
+    this.seats.set(id, { lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false });
   }
 
   removeCar(id: string): void {
@@ -83,13 +93,18 @@ export class RaceSim {
     if (!seat || !msg || msg.seq <= seat.lastSeq) return false;
     seat.lastSeq = msg.seq;
     seat.input = toCarInput(msg);
+    if (seat.input.respawn && !seat.respawnHeld) seat.respawnPending = true;
+    seat.respawnHeld = seat.input.respawn;
     return true;
   }
 
   /** One fixed sim tick. Each car uses its player's latest input. */
   tick(): SimEvent[] {
     const inputs: Record<string, CarInput> = {};
-    for (const [id, seat] of this.seats) inputs[id] = seat.input;
+    for (const [id, seat] of this.seats) {
+      inputs[id] = { ...seat.input, respawn: seat.respawnPending };
+      seat.respawnPending = false;
+    }
     return step(this.world, inputs, this.cfg);
   }
 }

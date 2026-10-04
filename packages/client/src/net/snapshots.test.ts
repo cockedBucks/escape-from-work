@@ -10,13 +10,13 @@ describe('SnapshotBuffer', () => {
   it('blends between the two snapshots around the render time', () => {
     const b = new SnapshotBuffer();
     b.push(0, snap([['a', car(0)]]));
-    b.push(100, snap([['a', car(10)]]));
-    b.push(200, snap([['a', car(30)]]));
+    b.push(100, snap([['a', car(1)]]));
+    b.push(200, snap([['a', car(3)]]));
     const out = new Map<string, CarSnap>();
     b.sample(50, out);
-    expect(out.get('a')!.x).toBeCloseTo(5);
+    expect(out.get('a')!.x).toBeCloseTo(0.5);
     b.sample(150, out);
-    expect(out.get('a')!.x).toBeCloseTo(20);
+    expect(out.get('a')!.x).toBeCloseTo(2);
   });
 
   it('holds the newest/oldest snapshot instead of guessing', () => {
@@ -58,5 +58,16 @@ describe('SnapshotBuffer', () => {
     b.push(100, snap([['a', car(1)]]));
     b.push(50, snap([['a', car(99)]]));
     expect(b.size).toBe(1);
+  });
+});
+
+describe('SnapshotBuffer teleports', () => {
+  it('does not slide a respawned car across the map', () => {
+    const b = new SnapshotBuffer();
+    b.push(0, snap([['a', car(0)]]));
+    b.push(100, snap([['a', car(200)]]));
+    const out = new Map<string, CarSnap>();
+    b.sample(50, out);
+    expect(out.get('a')!.x).toBe(200);
   });
 });

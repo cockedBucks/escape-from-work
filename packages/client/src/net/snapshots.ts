@@ -20,6 +20,9 @@ interface Snapshot {
 
 /** How many snapshots to keep: ~1 s at 30 patches/s is plenty for interpolation. */
 const CAPACITY = 32;
+/** A car that moved further than this between two snapshots (m) teleported (respawn,
+ *  track reset): draw it at the new spot instead of sliding it across the map. */
+const TELEPORT_DISTANCE = 15;
 
 /**
  * Keeps recent server snapshots and blends between the two around a render time in the
@@ -63,7 +66,8 @@ export class SnapshotBuffer {
 
     for (const id of out.keys()) if (!b.cars.has(id)) out.delete(id);
     for (const [id, cb] of b.cars) {
-      const ca = a.cars.get(id) ?? cb;
+      const prev = a.cars.get(id) ?? cb;
+      const ca = Math.hypot(cb.x - prev.x, cb.z - prev.z) > TELEPORT_DISTANCE ? cb : prev;
       let o = out.get(id);
       if (!o) {
         o = { ...cb };

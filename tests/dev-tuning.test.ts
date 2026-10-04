@@ -58,6 +58,25 @@ describe('dev tuning endpoints (real server)', () => {
 });
 
 describe('dev tuning endpoints are off without dev mode', () => {
+  it('returns 404 with dev: true when NODE_ENV=production', async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'efw-prod-'));
+    cpSync(path.join(REPO_ROOT, 'config'), dir, { recursive: true });
+    const before = process.env['NODE_ENV'];
+    process.env['NODE_ENV'] = 'production';
+    try {
+      const game = await startServer({ port: 0, host: '127.0.0.1', dev: true, configDir: dir });
+      try {
+        expect((await post(game.port, '/dev/tuning', { tuning: baseTuning, save: true })).status).toBe(404);
+      } finally {
+        await game.close();
+      }
+    } finally {
+      if (before === undefined) delete process.env['NODE_ENV'];
+      else process.env['NODE_ENV'] = before;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('returns 404', async () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'efw-prod-'));
     cpSync(path.join(REPO_ROOT, 'config'), dir, { recursive: true });

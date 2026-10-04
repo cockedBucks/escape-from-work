@@ -41,4 +41,4 @@ Driving feel is the foundation of everything else, so it gets its own phase.
   3. Tune anything you want live and press Save, or tell the agent with
      `/feedback steering too twitchy, car too slow…`.
   4. Reply: how it feels in a few words (and anything that annoyed you).
-- [ ] **P1.8 Phase end.** `/shots chase track-overview`, reviewer, fixes, `git tag p1-done`, report.
+- [x] **P1.8 Phase end.** `/shots chase track-overview`, reviewer, fixes, `git tag p1-done`, report.

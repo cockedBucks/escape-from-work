@@ -4,9 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
-- Next task: P1.8 (phase end)
-- Status: P1 gate passed ("all good"). `npm run verify` passes (138 tests + bot race).
+- Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
+- Next task: P2.1 (players, cars and seats)
+- Status: P1 done and tagged `p1-done`. `npm run verify` passes (142 tests + bot race); shots ok.
 
 ## Half-done
 - (nothing)
@@ -21,6 +21,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - Host LAN IP 192.168.0.105 (office Wi-Fi is a Public network; firewall rule D030 opens 2567 + 5173)
 
 ## Known issues
+- Snapshots are timed by arrival, not by server tick (slight jitter possible). Revisit in P2.6
+  (latency visibility) — `RaceState.tick` is already synced for it.
+- In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
+  playtests; it never exists with `npm start`.
 - A client could call `create('race')` and make a second room. Lock this down when the
   lobby is built (one lobby per server, D004).
 - `RaceRoom.maxClients` is unlimited. Cap it from config (e.g. 16 players) when the lobby is built.
@@ -34,13 +38,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
   live player count page, `npm run verify` (typecheck + tests incl. real-server test),
   `npm run shots`, docs pass, LAN gate passed. Review fixes: busy port no longer hangs, verify
   step timeout. Decisions D015–D030.
-- 2026-10-04: P1.1 shared basics — seeded RNG, XZ math helpers, ring buffer; tuning gains `car`, `race` (stub), `quality`; new `config/cars.json` (one Box Car) and track schema. D031.
-- 2026-10-04: P1.2 track system — spline sampling, walls, sector gates, grids, `locateOnTrack`/`zonesAt`, `checkTrack`; `config/tracks/test-loop.json` (931 m); `npm run track:check`. D032.
-- 2026-10-04: P1.3 car physics v1 — `sim/` (drive, air, walls, car, step): smoothed steer, gas/brake/reverse, drag, grip, slick, ramp jump + landing, wall bounce, ordered checkpoints, respawn (button + off-track). D033.
-- 2026-10-04: P1.4 bot driver (pilot look-ahead steer + engineer curve-speed pedals + stuck respawn), `runBotRace`, `hashWorld`, golden lap window + pinned replay hash, bot race in verify and track:check. D034. `/next` now keeps going until a HUMAN GATE (human request).
-- 2026-10-04: P1.5 server sim — `race` room runs the sim at 60 Hz (setFixedTimestep), zod `input` + token-bucket rate limit, synced `cars` map + `tick`, `events` broadcast; `RaceSim` unit tests + real-client integration test. D035.
-- 2026-10-04: P1.6 client rendering — greybox track mesh, box car, chase + overview cams, snapshot interpolation, WASD/arrows + R, F3 overlay, `chase`/`track-overview` scenarios; live drive smoke-tested in headless Chrome. D036.
-- 2026-10-04: P1.7 live tuning — LiveConfig + config watcher (dev), `/dev/tuning` live/save/revert, F2 lil-gui panel built from the schema, tuning pushed to clients; dev mode smoke-tested in headless Chrome. D037.
+- 2026-10-04: **P1 done** — shared RNG/math/ring buffer, full config schemas (car, sim, track,
+  bot, race, net, camera, quality; cars.json; track format), track system + `track:check`, car
+  physics v1 (steer, gas/brake/reverse, grip, slick, ramp, walls, checkpoints, respawn), bot
+  driver + golden lap/replay tests + bot race in verify, 60 Hz server sim with validated input,
+  greybox client (track, box car, chase cam, interpolation, F3), live tuning (F2 panel, Save,
+  config hot reload). Gate "drive it": all good. Review fixes D038. Decisions D031–D038.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
