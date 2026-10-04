@@ -53,9 +53,6 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | Scenario | Shows |
 |---|---|
 | `hello` | Phase 0 player-count page |
-
-Any scenario also takes `&quality=low|medium|high` (default `quality.default`).
-
 | `chase` | 4-bot race on the test track (or `&track=<id>`), run locally with the shared sim and frozen at 6 s; chase cam behind car 1 |
 | `cockpit` | same race, cockpit cam of car 1, teammate bobblehead visible |
 | `track-overview` | top-down camera over the whole track, cars on the start line |
@@ -65,6 +62,7 @@ Any scenario also takes `&quality=low|medium|high` (default `quality.default`).
 | `results` | results screen with fake times, awards and points |
 | `menu` | main menu |
 
+Any scenario also takes `&quality=low|medium|high` (default `quality.default`).
 New screens add a scenario in the same task.
 
 ### If WebGL fails headless
