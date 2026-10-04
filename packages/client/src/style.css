@@ -224,3 +224,41 @@ body {
   font-size: 1rem;
   color: var(--road);
 }
+
+/* Role badge (bottom-left): what you control right now. */
+.role-badge {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.8rem;
+  background: rgba(30, 34, 48, 0.82);
+  color: #fff;
+  font-size: 1rem;
+  pointer-events: none;
+  transition: transform 0.2s;
+}
+
+.role-badge strong {
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+.role-badge[data-role='pilot'] strong {
+  color: #8fd3ff;
+}
+
+.role-badge[data-role='engineer'] strong {
+  color: #ffd166;
+}
+
+.role-badge[data-role='solo'] strong {
+  color: #7ee2b8;
+}
+
+.role-badge.flash {
+  transform: scale(1.25) rotate(-3deg);
+  transform-origin: left bottom;
+}

@@ -198,6 +198,10 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | Partner disconnected | remaining player becomes solo until rejoin | |
 | Bot car | bot driver | bot driver |
 
+Code: `packages/shared/src/net/permissions.ts` (`ROLE_CONTROLS`, `mergeCarInput`). Each tick the
+server merges every connected occupant's latest input; a control from a role that may not use
+it is ignored (clients may send everything). Respawn: any player in the car.
+
 ### State (synced) vs events (broadcast)
 - Synced: race phase, settings, players (name, team, seat, connected, head angles),
   cars (transform, speed, heat, nitro, drift level, item, effects, lap, place), item boxes.

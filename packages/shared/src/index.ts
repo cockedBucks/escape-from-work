@@ -65,3 +65,4 @@ export {
   type SeatedPlayer,
 } from './race/seats';
 export { getTuningValue, tuningFields, type TuningField } from './config/tuningFields';
+export { ROLE_CONTROLS, mayUse, mergeCarInput, type Control, type InputPart } from './net/permissions';

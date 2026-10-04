@@ -1,0 +1,43 @@
+// Small DOM badge: which role you play right now and which keys that gives you.
+// It flashes when the role changes (partner joined/left; later: swap lane).
+
+const TEXT: Record<string, { title: string; keys: string }> = {
+  pilot: { title: 'PILOT', keys: 'A / D steer · R respawn' },
+  engineer: { title: 'ENGINEER', keys: 'W gas · S brake / reverse · R respawn' },
+  solo: { title: 'SOLO', keys: 'W/S pedals · A/D steer · R respawn' },
+  '': { title: 'WATCHING', keys: 'Esc to pick a seat' },
+};
+
+/** How long the "your role changed" flash lasts (ms). */
+const FLASH_MS = 1500;
+
+export class RoleBadge {
+  private readonly el = document.createElement('div');
+  private role: string | null = null;
+  private flashTimer = 0;
+
+  constructor(parent: HTMLElement) {
+    this.el.className = 'role-badge';
+    parent.appendChild(this.el);
+  }
+
+  /** `role` as synced: 'pilot' | 'engineer' | 'solo' | '' (not in a car). */
+  set(role: string): void {
+    if (role === this.role) return;
+    const changed = this.role !== null;
+    this.role = role;
+    const t = TEXT[role] ?? TEXT['']!;
+    this.el.dataset['role'] = role || 'none';
+    this.el.innerHTML = `<strong>${t.title}</strong><span>${t.keys}</span>`;
+    if (changed) {
+      this.el.classList.add('flash');
+      window.clearTimeout(this.flashTimer);
+      this.flashTimer = window.setTimeout(() => this.el.classList.remove('flash'), FLASH_MS);
+    }
+  }
+
+  dispose(): void {
+    window.clearTimeout(this.flashTimer);
+    this.el.remove();
+  }
+}

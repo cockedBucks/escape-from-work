@@ -11,6 +11,7 @@ import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { JoinScreen, type JoinPlayer } from './ui/joinScreen';
+import { RoleBadge } from './ui/roleBadge';
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
@@ -126,13 +127,16 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.show(true);
     join.showError(e.reason);
   });
+  const badge = new RoleBadge(container);
   let mySlot = -1;
   room.onStateChange((state) => {
     source.push(performance.now(), state);
     liveStats.tickMs = state.tickMs;
     const players: JoinPlayer[] = [];
     state.players.forEach((p, id) => players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected }));
-    mySlot = state.players.get(room.sessionId)?.slot ?? -1;
+    const me = state.players.get(room.sessionId);
+    mySlot = me?.slot ?? -1;
+    badge.set(me?.role ?? '');
     join.update(players, room.sessionId);
   });
 
@@ -163,6 +167,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     window.clearInterval(pingTimer);
     keyboard.dispose();
     join.dispose();
+    badge.dispose();
     setStatus('Disconnected from the game server. Reload to rejoin.', true);
   });
   void markReady(hooks);

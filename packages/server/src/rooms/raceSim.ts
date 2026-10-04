@@ -3,6 +3,8 @@ import {
   carIdForSlot,
   createCar,
   createWorld,
+  effectiveRole,
+  mergeCarInput,
   occupants,
   parseInputMessage,
   seatProblem,
@@ -11,6 +13,7 @@ import {
   usedSlots,
   type CarInput,
   type CarStats,
+  type InputPart,
   type Seat,
   type SeatedPlayer,
   type SimEvent,
@@ -146,18 +149,26 @@ export class RaceSim {
     return true;
   }
 
-  /** The input a car uses this tick. P2.1: its first occupant drives everything (P2.2 merges roles). */
-  private carInput(slot: number): CarInput {
-    const seated = occupants(this.seating(), slot).filter((s) => s.connected);
-    const driver = seated[0] ? this.players.get(seated[0].id) : undefined;
-    if (!driver) return NO_INPUT;
-    return { ...driver.input, respawn: driver.respawnPending };
+  /**
+   * The input a car uses this tick: each connected occupant contributes only the controls
+   * their role allows (a lone player is solo and has them all).
+   */
+  private carInput(slot: number, seating: SeatedPlayer[]): CarInput {
+    const parts: InputPart[] = [];
+    for (const s of occupants(seating, slot)) {
+      const p = this.players.get(s.id);
+      const role = effectiveRole(seating, s.id);
+      if (!p || !role || !s.connected) continue;
+      parts.push({ role, input: { ...p.input, respawn: p.respawnPending } });
+    }
+    return mergeCarInput(parts);
   }
 
   /** One fixed sim tick. */
   tick(): SimEvent[] {
     const inputs: Record<string, CarInput> = {};
-    for (const slot of usedSlots(this.seating())) inputs[carIdForSlot(slot)] = this.carInput(slot);
+    const seating = this.seating();
+    for (const slot of usedSlots(seating)) inputs[carIdForSlot(slot)] = this.carInput(slot, seating);
     for (const p of this.players.values()) p.respawnPending = false;
     return step(this.world, inputs, this.cfg);
   }

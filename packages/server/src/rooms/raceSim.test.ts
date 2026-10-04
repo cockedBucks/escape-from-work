@@ -119,3 +119,42 @@ describe('RaceSim respawn', () => {
     expect(starts).toBe(2);
   });
 });
+
+describe('RaceSim role permissions', () => {
+  function pair(): RaceSim {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('pilot');
+    sim.addPlayer('eng');
+    sim.setSeat('pilot', 0, 'pilot');
+    sim.setSeat('eng', 0, 'engineer');
+    return sim;
+  }
+
+  it('a Pilot pressing gas does not move the car; the Engineer does', () => {
+    const sim = pair();
+    sim.handleInput('pilot', { seq: 1, gas: true, steer: 0 });
+    for (let i = 0; i < 60; i++) sim.tick();
+    expect(car(sim, 'car0').x).toBeCloseTo(0);
+    sim.handleInput('eng', { seq: 1, gas: true });
+    for (let i = 0; i < 60; i++) sim.tick();
+    expect(car(sim, 'car0').x).toBeGreaterThan(5);
+  });
+
+  it('only the Pilot steers', () => {
+    const sim = pair();
+    sim.handleInput('eng', { seq: 1, gas: true, steer: 1 });
+    for (let i = 0; i < 60; i++) sim.tick();
+    expect(car(sim, 'car0').steer).toBe(0);
+    sim.handleInput('pilot', { seq: 1, steer: 1 });
+    for (let i = 0; i < 30; i++) sim.tick();
+    expect(car(sim, 'car0').steer).toBeGreaterThan(0.5);
+  });
+
+  it('when the Engineer leaves, the Pilot drives solo with the pedals too', () => {
+    const sim = pair();
+    sim.removePlayer('eng');
+    sim.handleInput('pilot', { seq: 1, gas: true });
+    for (let i = 0; i < 60; i++) sim.tick();
+    expect(car(sim, 'car0').x).toBeGreaterThan(5);
+  });
+});

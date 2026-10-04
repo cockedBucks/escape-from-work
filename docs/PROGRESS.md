@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.2 (input merge with permissions)
-- Status: P2.1 done. `npm run verify` passes (156 tests + bot race); shots join/chase ok.
+- Next task: P2.3 (multiple cars)
+- Status: P2.2 done. `npm run verify` passes (165 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -45,6 +45,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   config hot reload). Gate "drive it": all good. Review fixes D038. Decisions D031–D038.
 - 2026-10-04: P2.1 players, cars and seats — shared seat rules, lobby messages, players in state
   (name, slot, seat, role, connected), cars per slot, temporary join screen + `join` scenario. D039.
+- 2026-10-04: P2.2 input merge — shared role permission table + `mergeCarInput`, server merges per car
+  each tick, role badge (PILOT / ENGINEER / SOLO + keys, flashes on change). D040.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
