@@ -1,0 +1,17 @@
+{
+  "name": "@escape/client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@colyseus/sdk": "0.18.5",
+    "@escape/shared": "0.0.0",
+    "@fontsource/fredoka": "5.3.0",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "lil-gui": "0.21.0",
+    "vite": "8.3.2"
+  }
+}

@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: P0.3
-- Status: P0.1, P0.2 done. Repo on `main`, remote `origin` set, nothing pushed (human pushes).
+- Next task: P0.4
+- Status: P0.1–P0.3 done. Workspaces installed; `npm run typecheck` passes (placeholders only).
 
 ## Half-done
 - (nothing)
@@ -26,6 +26,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
 - 2026-10-04: P0.1 environment check passed (Node 24, npm 11, git 2.55, Chrome + Edge).
 - 2026-10-04: P0.2 git init on `main`, LF `.gitattributes`, GitHub remote added, kit committed.
+- 2026-10-04: P0.3 npm workspaces (shared/server/client), strict TS 7, deps pinned (D017–D020).
 
 ## Playtest log
 - (none yet)

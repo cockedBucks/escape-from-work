@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // shared runs in both Node and the browser: no DOM, no Node types
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src", "test"]
+}

@@ -16,7 +16,7 @@ checks and screenshot pipeline that let the agent prove its own work.
   Chrome or Edge. Record versions and OS in `docs/PROGRESS.md`. If anything is missing,
   stop and tell the human exactly what to install.
 - [x] **P0.2 Git.** `git init`, commit the kit as it is: `P0.2: project kit (docs, rules, skills)`.
-- [ ] **P0.3 Workspace scaffold.** Root `package.json` (private, npm workspaces `packages/*`),
+- [x] **P0.3 Workspace scaffold.** Root `package.json` (private, npm workspaces `packages/*`),
   `tsconfig.base.json` (strict), packages `shared`, `server`, `client` with their own
   `package.json`/`tsconfig`. Look up current versions of the approved dependencies and pin
   them. Record versions in `docs/DECISIONS.md`.

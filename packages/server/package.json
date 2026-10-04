@@ -1,0 +1,17 @@
+{
+  "name": "@escape/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@colyseus/core": "0.18.18",
+    "@colyseus/schema": "5.0.36",
+    "@colyseus/ws-transport": "0.18.4",
+    "@escape/shared": "0.0.0",
+    "express": "5.2.1",
+    "tsx": "4.23.15"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "escape-from-work",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/client"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "concurrently": "10.0.5",
+    "playwright-core": "1.63.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}

@@ -83,8 +83,8 @@ installed types for the API. Anything not on this list → ask the human first.
 | typescript, tsx | all | language; run TS on the server without a build step |
 | vitest | all | tests |
 | zod | shared | config and message validation |
-| colyseus (+ its schema package) | server | rooms, state sync, reconnection |
-| Colyseus client SDK (current official package name) | client, scripts | connect to the room |
+| colyseus as `@colyseus/core` + `@colyseus/ws-transport` + `@colyseus/schema` (D018) | server | rooms, state sync, reconnection |
+| Colyseus client SDK: `@colyseus/sdk` | client, scripts | connect to the room |
 | express | server | serve the client and dev endpoints |
 | three | client | rendering |
 | vite | client | dev server and production build |
