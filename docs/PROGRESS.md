@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: HUMAN GATE — first contact (then P0.9 phase end)
+- Next task: P0.9 phase end (gate passed)
 - Status: P0.1–P0.8 done. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
 
 ## Half-done
@@ -34,4 +34,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P0.8 docs pass: README game commands, CLAUDE.md command table, ARCHITECTURE folder map + LAN flags; `npm start` re-checked.
 
 ## Playtest log
-- (none yet)
+- 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
+  Second laptop on office Wi-Fi first got "site can't be reached": Wi-Fi is a Public network
+  and Node is only allowed on Private/Domain. Human added the game-ports firewall rule (D030)
+  → second laptop loaded `http://192.168.0.105:5173/`: **works**.
