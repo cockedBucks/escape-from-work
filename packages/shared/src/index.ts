@@ -33,7 +33,7 @@ export { lapProgress, locateOnTrack, zonesAt, type TrackLocation } from './track
 export { checkTrack, type TrackCheck, type TrackStats } from './track/validate';
 export { SpatialGrid } from './track/grid';
 export { NO_INPUT, type CarInput, type CarState, type CarStats, type SimEvent, type World } from './sim/types';
-export { createCar, createWorld, placeAtGate } from './sim/car';
+export { createCar, createCarOnGrid, createWorld, placeAtGate } from './sim/car';
 export { step, type InputsByCar } from './sim/step';
 export { hashWorld } from './sim/hash';
 export { botSteer, lookAheadPoint } from './bot/pilot';
@@ -66,3 +66,5 @@ export {
 } from './race/seats';
 export { getTuningValue, tuningFields, type TuningField } from './config/tuningFields';
 export { ROLE_CONTROLS, mayUse, mergeCarInput, type Control, type InputPart } from './net/permissions';
+export { gridSpot, type GridSpot } from './race/grid';
+export { collideCars } from './sim/carCollisions';

@@ -1,7 +1,7 @@
 import {
   NO_INPUT,
   carIdForSlot,
-  createCar,
+  createCarOnGrid,
   createWorld,
   effectiveRole,
   mergeCarInput,
@@ -21,6 +21,9 @@ import {
   type Tuning,
   type World,
 } from '@escape/shared';
+
+/** Grid position of a server car: its slot ("car3" → 3). */
+const slotOfCar = (id: string): number => Number(id.slice('car'.length));
 
 interface Player extends SeatedPlayer {
   lastSeq: number;
@@ -69,10 +72,12 @@ export class RaceSim {
     for (const car of this.world.cars) car.stats = { ...stats };
   }
 
-  /** New track (track file edited): every car goes back to the start line. */
+  /** New track (track file edited): every car goes back to its grid spot. */
   setTrack(track: Track): void {
     this.world.track = track;
-    for (const car of this.world.cars) Object.assign(car, createCar(car.id, car.stats, track));
+    for (const car of this.world.cars) {
+      Object.assign(car, createCarOnGrid(car.id, car.stats, track, slotOfCar(car.id), this.cfg.race));
+    }
   }
 
   /** Seat facts for every player, sorted by id (for state sync and rules). */
@@ -126,7 +131,7 @@ export class RaceSim {
     }
     for (const id of wanted) {
       if (this.world.cars.some((c) => c.id === id)) continue;
-      const car = createCar(id, this.stats, this.world.track);
+      const car = createCarOnGrid(id, this.stats, this.world.track, slotOfCar(id), this.cfg.race);
       // Keep cars sorted by id: the sim iterates them in this order (determinism).
       const at = this.world.cars.findIndex((c) => c.id > id);
       if (at < 0) this.world.cars.push(car);

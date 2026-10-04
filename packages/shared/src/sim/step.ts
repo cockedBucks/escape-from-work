@@ -2,6 +2,7 @@ import type { Tuning } from '../config/tuning';
 import { lapProgress, locateOnTrack, zonesAt } from '../track/locate';
 import { fall, isAirborne, launch } from './air';
 import { placeAtGate } from './car';
+import { collideCars } from './carCollisions';
 import { drive } from './drive';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { collideWalls } from './walls';
@@ -19,6 +20,7 @@ export function step(world: World, inputs: InputsByCar, cfg: Tuning): SimEvent[]
   const events: SimEvent[] = [];
   const now = world.tick + 1;
   for (const car of world.cars) stepCar(world, car, inputs[car.id] ?? NO_INPUT, cfg, now, events);
+  collideCars(world.cars, now, cfg.car, events);
   world.tick = now;
   return events;
 }

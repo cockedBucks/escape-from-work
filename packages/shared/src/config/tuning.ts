@@ -45,6 +45,10 @@ const CarSchema = z.strictObject({
   wallSpeedLoss: fraction(),
   /** Smallest speed into a wall that counts as a hit event (m/s). */
   wallHitMinSpeed: nonNeg(),
+  /** How bouncy car-vs-car bumps are (0 = cars stick, 1 = perfect bounce). */
+  carBounce: fraction(),
+  /** Smallest closing speed between two cars that counts as a bump event (m/s). */
+  carHitMinSpeed: nonNeg(),
   /** Downward pull while airborne (m/s²). Arcade: higher than real gravity. */
   gravity: pos(),
   /** Upward launch speed from a ramp at top speed, times the zone's `launch` (m/s). */
@@ -97,6 +101,10 @@ const RaceSchema = z.strictObject({
   respawnGhostSeconds: nonNeg(),
   /** A grounded car this far outside the road edge (m) respawns by itself. */
   offTrackRespawnDistance: pos(),
+  /** Starting grid: distance between rows of two cars, and first row behind the line (m). */
+  gridRowSpacing: pos(),
+  /** Starting grid: each car's sideways offset from the centerline (m, capped at half the road). */
+  gridLateral: nonNeg(),
   /** Car slots in the lobby (2 players each, so players = 2 × maxCars). Team colors cover 8. */
   maxCars: z.number().int().min(1).max(8),
 });

@@ -1,3 +1,5 @@
+import type { Tuning } from '../config/tuning';
+import { gridSpot } from '../race/grid';
 import type { SectorGate, Track } from '../track/build';
 import { lapProgress, locateOnTrack } from '../track/locate';
 import { right } from '../util/math';
@@ -48,6 +50,20 @@ export function createCar(id: string, stats: CarStats, track: Track, gateIndex =
     ghostUntilTick: 0,
   };
   placeAtGate(state, track, gate, lateral);
+  return state;
+}
+
+/** A new car on starting grid position `index` (0 = pole), stopped, facing along the track. */
+export function createCarOnGrid(id: string, stats: CarStats, track: Track, index: number, race: Tuning['race']): CarState {
+  const state = createCar(id, stats, track);
+  const spot = gridSpot(track, index, race);
+  state.x = spot.pos.x;
+  state.z = spot.pos.z;
+  state.yaw = spot.yaw;
+  const loc = locateOnTrack(track, spot.pos, spot.sample);
+  state.segment = loc.segment;
+  state.progress = lapProgress(track, loc.progress);
+  state.lateral = loc.lateral;
   return state;
 }
 

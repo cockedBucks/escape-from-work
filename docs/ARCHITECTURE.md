@@ -231,6 +231,9 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | rolls too far / stops too soon off the gas | `car.drag`, `car.rollingResistance` |
 | brakes weak / reverse useless | `car.brake`, `car.reverseTopSpeed`, `car.reverseAccel` |
 | walls too punishing | `car.wallBounce`, `car.wallSpeedLoss`, `car.radius` |
+| bumps too soft / too wild between cars | `car.carBounce`, car `stats.weight` (cars.json) |
+| too many / too few bump effects | `car.carHitMinSpeed` |
+| start grid too tight / too spread | `race.gridRowSpacing`, `race.gridLateral` |
 | slick patch too slippery / not slippery | `car.slickGrip` |
 | jumps too floaty / too small | `car.gravity`, `car.rampLaunch`, ramp zone `launch` (track file) |
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |

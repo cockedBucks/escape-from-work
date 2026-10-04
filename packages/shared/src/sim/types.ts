@@ -58,6 +58,7 @@ export interface CarState {
 /** Things that happened during a tick, for sound, effects, the HUD and the league. */
 export type SimEvent =
   | { type: 'wallHit'; car: string; speed: number }
+  | { type: 'carHit'; car: string; other: string; speed: number }
   | { type: 'jump'; car: string }
   | { type: 'land'; car: string; impact: number }
   | { type: 'checkpoint'; car: string; gate: number }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../config';
+import { gridSpot } from '@escape/shared';
 import { RaceSim } from './raceSim';
 
 const cfg = loadTuningFile();
@@ -17,6 +18,13 @@ function soloSim(...ids: string[]): RaceSim {
 }
 
 const car = (sim: RaceSim, id: string) => sim.world.cars.find((c) => c.id === id)!;
+
+/** How far a car is from its starting grid spot (m). */
+function moved(sim: RaceSim, id: string): number {
+  const c = car(sim, id);
+  const spot = gridSpot(track, Number(id.slice(3)), cfg.race);
+  return Math.hypot(c.x - spot.pos.x, c.z - spot.pos.z);
+}
 
 describe('RaceSim players and cars', () => {
   it('a car appears when someone sits in its slot and goes when they leave', () => {
@@ -56,8 +64,8 @@ describe('RaceSim players and cars', () => {
     const sim = soloSim('a', 'b');
     expect(sim.handleInput('a', { seq: 1, gas: true })).toBe(true);
     for (let i = 0; i < 60; i++) sim.tick();
-    expect(car(sim, 'car0').x).toBeGreaterThan(5);
-    expect(car(sim, 'car1').x).toBeCloseTo(0);
+    expect(moved(sim, 'car0')).toBeGreaterThan(5);
+    expect(moved(sim, 'car1')).toBeCloseTo(0);
   });
 
   it('drops malformed, stale and unknown-player inputs', () => {
@@ -68,7 +76,7 @@ describe('RaceSim players and cars', () => {
     expect(sim.handleInput('a', { seq: 6, x: 999 })).toBe(false); // positions are never accepted
     expect(sim.handleInput('ghost', { seq: 1, gas: true })).toBe(false);
     for (let i = 0; i < 30; i++) sim.tick();
-    expect(car(sim, 'car0').x).toBeGreaterThan(1); // still on gas from seq 5
+    expect(moved(sim, 'car0')).toBeGreaterThan(1); // still on gas from seq 5
   });
 
   it('removes the car when its only player leaves', () => {
@@ -85,9 +93,9 @@ describe('RaceSim live config', () => {
     const sim = soloSim('a');
     sim.handleInput('a', { seq: 1, gas: true });
     for (let i = 0; i < 60; i++) sim.tick();
-    expect(car(sim, 'car0').x).toBeGreaterThan(5);
+    expect(moved(sim, 'car0')).toBeGreaterThan(5);
     sim.setTrack(loadTrackFile('test-loop', cfg));
-    expect(car(sim, 'car0').x).toBeCloseTo(0);
+    expect(moved(sim, 'car0')).toBeCloseTo(0);
     sim.setStats({ speed: 1.05, grip: 1, weight: 1 });
     expect(car(sim, 'car0').stats.speed).toBe(1.05);
   });
@@ -134,10 +142,10 @@ describe('RaceSim role permissions', () => {
     const sim = pair();
     sim.handleInput('pilot', { seq: 1, gas: true, steer: 0 });
     for (let i = 0; i < 60; i++) sim.tick();
-    expect(car(sim, 'car0').x).toBeCloseTo(0);
+    expect(moved(sim, 'car0')).toBeCloseTo(0);
     sim.handleInput('eng', { seq: 1, gas: true });
     for (let i = 0; i < 60; i++) sim.tick();
-    expect(car(sim, 'car0').x).toBeGreaterThan(5);
+    expect(moved(sim, 'car0')).toBeGreaterThan(5);
   });
 
   it('only the Pilot steers', () => {
@@ -155,6 +163,6 @@ describe('RaceSim role permissions', () => {
     sim.removePlayer('eng');
     sim.handleInput('pilot', { seq: 1, gas: true });
     for (let i = 0; i < 60; i++) sim.tick();
-    expect(car(sim, 'car0').x).toBeGreaterThan(5);
+    expect(moved(sim, 'car0')).toBeGreaterThan(5);
   });
 });

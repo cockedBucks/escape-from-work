@@ -18,6 +18,8 @@
     "wallBounce": 0.35,
     "wallSpeedLoss": 0.3,
     "wallHitMinSpeed": 3,
+    "carBounce": 0.4,
+    "carHitMinSpeed": 3,
     "gravity": 25,
     "rampLaunch": 9,
     "landingMinSpeed": 4
@@ -45,6 +47,8 @@
     "respawnFadeSeconds": 1,
     "respawnGhostSeconds": 1,
     "offTrackRespawnDistance": 4,
+    "gridRowSpacing": 7,
+    "gridLateral": 3,
     "maxCars": 8
   },
   "net": {

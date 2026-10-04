@@ -19,7 +19,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
 - [x] **P2.2 Input merge with permissions.** Shared `net/` role permission table and merge
   function (see `docs/ARCHITECTURE.md` input merge table). Server applies it each tick.
   Tests: Pilot cannot throttle, Engineer cannot steer, solo gets all.
-- [ ] **P2.3 Multiple cars.** Spawn grid from the track start, car-to-car collisions by weight,
+- [x] **P2.3 Multiple cars.** Spawn grid from the track start, car-to-car collisions by weight,
   per-car chase cam (each client follows its own car). Tests.
 - [ ] **P2.4 Disconnect and rejoin.** Reconnection window from config; remaining partner becomes
   solo; rejoin restores seats. Integration tests.

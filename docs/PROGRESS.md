@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.3 (multiple cars)
-- Status: P2.2 done. `npm run verify` passes (165 tests + bot race).
+- Next task: P2.4 (disconnect and rejoin)
+- Status: P2.3 done. `npm run verify` passes (173 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -47,6 +47,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   (name, slot, seat, role, connected), cars per slot, temporary join screen + `join` scenario. D039.
 - 2026-10-04: P2.2 input merge — shared role permission table + `mergeCarInput`, server merges per car
   each tick, role badge (PILOT / ENGINEER / SOLO + keys, flashes on change). D040.
+- 2026-10-04: P2.3 multiple cars — starting grid (rows of two behind the line), car-to-car bumps by
+  weight (`carHit` event), cars spawn on their slot's grid spot. Golden hash a71bcb87 → 27703279. D041.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
