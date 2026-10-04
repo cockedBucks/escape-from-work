@@ -24,6 +24,11 @@
   "sim": {
     "dt": 0.016666666666666666
   },
+  "track": {
+    "sampleSpacing": 2,
+    "gridCellSize": 16,
+    "minWidth": 10
+  },
   "race": {
     "respawnFadeSeconds": 1,
     "respawnGhostSeconds": 1

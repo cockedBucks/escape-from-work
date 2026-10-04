@@ -17,7 +17,8 @@
     "test": "vitest run",
     "typecheck": "node scripts/verify.mjs --types-only",
     "verify": "node scripts/verify.mjs",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "track:check": "node scripts/track-check.mjs"
   },
   "devDependencies": {
     "@types/node": "24.19.1",

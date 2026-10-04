@@ -56,6 +56,16 @@ const SimSchema = z.strictObject({
   dt: z.number().positive().max(0.1),
 });
 
+/** How track files are turned into geometry, and the limits `track:check` enforces. */
+const TrackBuildSchema = z.strictObject({
+  /** Distance between centerline samples (m). Smaller = smoother walls, more segments. */
+  sampleSpacing: z.number().min(0.25).max(10),
+  /** Spatial grid cell size for track and wall lookups (m). */
+  gridCellSize: pos(),
+  /** Narrowest road `track:check` accepts (m). */
+  minWidth: pos(),
+});
+
 /** Race rules. A stub for now; P3 adds countdown, finish and results. */
 const RaceSchema = z.strictObject({
   /** Fade-out time before a respawned car reappears (s). */
@@ -107,6 +117,7 @@ const NetSchema = z.strictObject({
 export const TuningSchema = z.strictObject({
   car: CarSchema,
   sim: SimSchema,
+  track: TrackBuildSchema,
   race: RaceSchema,
   net: NetSchema,
   quality: QualitySchema,

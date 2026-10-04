@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { parseConfig } from './parse';
 
-// Track data format (docs/ARCHITECTURE.md §5). Zone positions are fractions of lap progress
-// (0–1) so they survive layout edits. A zone may not cross the start line (from < to);
-// split it into two zones if it has to.
+// Track data format (docs/ARCHITECTURE.md §5). Zone positions and `start.at` are fractions
+// (0–1) of the loop length measured from control point 0, so they survive layout edits.
+// A zone may not wrap past control point 0 (from < to); split it into two if it has to.
 
 const progress = () => z.number().min(0).max(1);
 

@@ -1,0 +1,31 @@
+{
+  "id": "test-loop",
+  "name": "Test Loop",
+  "theme": "greybox",
+  "laps": 3,
+  "points": [
+    { "x": 0, "z": 0, "width": 16 },
+    { "x": 120, "z": 0, "width": 16 },
+    { "x": 175, "z": 25, "width": 15 },
+    { "x": 190, "z": 85, "width": 14 },
+    { "x": 150, "z": 135, "width": 14 },
+    { "x": 100, "z": 140, "width": 14 },
+    { "x": 85, "z": 80, "width": 13 },
+    { "x": 70, "z": 55, "width": 12 },
+    { "x": 50, "z": 55, "width": 12 },
+    { "x": 35, "z": 80, "width": 13 },
+    { "x": 20, "z": 140, "width": 14 },
+    { "x": -40, "z": 150, "width": 14 },
+    { "x": -100, "z": 130, "width": 14 },
+    { "x": -130, "z": 80, "width": 14 },
+    { "x": -110, "z": 25, "width": 15 },
+    { "x": -60, "z": 2, "width": 16 }
+  ],
+  "sectors": 6,
+  "zones": [
+    { "type": "ramp", "from": 0.07, "to": 0.08, "launch": 1 },
+    { "type": "slick", "from": 0.21, "to": 0.25, "side": "both" }
+  ],
+  "props": [],
+  "start": { "at": 0 }
+}

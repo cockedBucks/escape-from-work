@@ -58,7 +58,8 @@ once first.
 | `npm run verify` | typecheck + all tests, one summary line (Claude runs this before every commit) |
 | `npm test` | tests only |
 | `npm run shots -- hello` | screenshots in your Chrome/Edge → `artifacts/shots/` |
-| `npm run bots`, `npm run track:check`, `npm run faces` | arrive in P2, P1 and P4 |
+| `npm run track:check` | checks every track file (or `-- test-loop` for one): shape, width, tight curves, crossing walls |
+| `npm run bots`, `npm run faces` | arrive in P2 and P4 |
 
 Stop a running server with **Ctrl+C**. The game port is `net.port` in `config/tuning.json`.
 

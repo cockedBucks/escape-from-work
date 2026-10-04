@@ -31,7 +31,7 @@ escape-from-work/
   CLAUDE.md  README.md  package.json (npm workspaces)  tsconfig.base.json
   vitest.config.ts (test projects)  .npmrc (exact versions)  .gitattributes (LF)
   config/
-    tuning.json        sim, car, heat, drift, nitro, solo, net, race, league, quality
+    tuning.json        car, sim, track, heat, drift, nitro, solo, race, net, league, quality
     cars.json          roster: stats, visual spec, horn preset
     items.json         item params + roll weights
     tracks/<id>.json   track data
@@ -139,13 +139,18 @@ installed types for the API. Anything not on this list → ask the human first.
 }
 ```
 
-- `points` form a closed Catmull-Rom spline (clockwise). Zone positions use `from`/`to`
-  as fractions of lap progress (0–1), so they survive layout edits.
-- The builder samples the spline into a centerline table, left/right wall segments,
-  sector gates and a spatial grid for fast "where am I on the track" lookups.
+- `points` form a closed centripetal Catmull-Rom spline (centripetal = no loops or cusps when
+  points are unevenly spaced). Zone `from`/`to` and `start.at` are fractions (0–1) of the loop
+  length measured from control point 0, so they survive layout edits. A zone may not wrap past
+  point 0. Lap progress for the race = that fraction minus `start.at`, wrapped.
+- The builder samples the spline every `track.sampleSpacing` m into a centerline table, left/right
+  wall segments, sector gates (gate 0 = start line) and spatial grids (`track.gridCellSize`) for
+  fast "where am I on the track" and "which walls are near" lookups. `locateOnTrack` takes last
+  tick's segment as a hint so a car stays on its own part of the track where it passes close.
 - Shortcuts (later tracks) are extra branch splines that rejoin the main loop; progress on a
   branch maps to the main loop.
-- `npm run track:check -- <id>` validates geometry and runs bot laps.
+- `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, no curve
+  tighter than half the road width, no crossing walls); bot laps join in P1.4.
 
 ## 6. Networking
 
@@ -213,6 +218,8 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
 | port already in use | `net.port` |
 | sim too coarse / too costly (rarely touch) | `sim.dt` |
+| walls look jagged / track lookups slow (rarely touch) | `track.sampleSpacing`, `track.gridCellSize` |
+| track:check too strict about narrow roads | `track.minWidth` |
 
 ## 8. Persistence
 

@@ -20,3 +20,15 @@ export {
 export { Rng } from './util/rng';
 export { RingBuffer } from './util/ringBuffer';
 export * from './util/math';
+export {
+  buildTrack,
+  wallsNear,
+  type SectorGate,
+  type Track,
+  type TrackBuildConfig,
+  type TrackSample,
+  type WallSegment,
+} from './track/build';
+export { lapProgress, locateOnTrack, zonesAt, type TrackLocation } from './track/locate';
+export { checkTrack, type TrackCheck, type TrackStats } from './track/validate';
+export { SpatialGrid } from './track/grid';
