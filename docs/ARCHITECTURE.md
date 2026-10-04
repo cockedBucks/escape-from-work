@@ -29,6 +29,7 @@
 ```
 escape-from-work/
   CLAUDE.md  README.md  package.json (npm workspaces)  tsconfig.base.json
+  vitest.config.ts (test projects)  .npmrc (exact versions)  .gitattributes (LF)
   config/
     tuning.json        sim, car, heat, drift, nitro, solo, net, race, league, quality
     cars.json          roster: stats, visual spec, horn preset
@@ -50,7 +51,10 @@ escape-from-work/
       net/             message schemas, role permissions, input merge
       league/          scoring, awards
     server/src/
-      index.ts         express + colyseus bootstrap, LAN URL print, static serving
+      index.ts         entry: CLI flags (--prod, --port), LAN URL print
+      app.ts           startServer(): express + colyseus bootstrap, static serving (also used by tests)
+      config.ts        reads config/*.json from disk, validates with shared schemas
+      lan.ts           LAN address list (skips virtual adapters)
       rooms/RaceRoom.ts
       schema/          Colyseus state classes (mirrors shared world for sync)
       lobby/           teams, seats, host, shuffle, bots
@@ -68,7 +72,7 @@ escape-from-work/
       debug/           F3 overlay, F2 tuning panel (dev)
       test-hooks.ts    ?scenario= handling + window.__game
   scripts/             shots.mjs, bots.mjs, track-check.mjs, faces.mjs, verify.mjs
-  tests/               integration tests (server + real clients in-process)
+  tests/               integration tests (server + real clients in-process), helpers.ts
   artifacts/           generated (gitignored)
   data/                league data on the host (gitignored)
 ```
@@ -214,12 +218,14 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
   (scenario list in `docs/TESTING.md`).
 - `window.__game.ready` becomes `true` once the scene has rendered stable frames.
 - `window.__game.stats()` returns `{ fps, drawCalls, triangles, geometries, textures, cars,
-  tickMs, pingMs }`.
+  tickMs, pingMs }` (`tickMs`/`pingMs` are `null` until measured).
+- `window.__game.error` is set when a scenario cannot be shown (e.g. unknown name).
 
 ## 10. Running on the LAN
 
-- `npm start` builds the client and starts the server on `cfg.net.port` (default 2567),
-  listening on `0.0.0.0`, printing every LAN URL.
-- `npm run dev`: server with watch + Vite dev server; the client connects to the game server
-  port on the same hostname.
+- `npm start` builds the client and starts the server (`--prod`) on `cfg.net.port`
+  (default 2567), listening on `0.0.0.0`, printing every reachable LAN URL. `--port <n>`
+  overrides the port (0 = any free port; used by `npm run shots`).
+- `npm run dev`: server with watch + Vite dev server (port 5173, also on the LAN); the
+  client connects to the game server port on the same hostname.
 - Windows firewall and troubleshooting go in `docs/LAN.md` (written in Phase 2).

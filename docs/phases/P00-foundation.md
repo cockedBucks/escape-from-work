@@ -33,7 +33,7 @@ checks and screenshot pipeline that let the agent prove its own work.
   failure).
 - [x] **P0.7 Shots pipeline.** `scripts/shots.mjs` + `npm run shots` per `docs/TESTING.md`,
   with the `hello` scenario, `window.__game.ready` and `stats()`. Run `/shots hello`.
-- [ ] **P0.8 Docs pass.** README commands section confirmed, PROGRESS updated, anything that
+- [x] **P0.8 Docs pass.** README commands section confirmed, PROGRESS updated, anything that
   differs from `docs/ARCHITECTURE.md` fixed there.
 - [ ] **HUMAN GATE — first contact.**
   1. Run `npm run dev`. Open the printed URL in two tabs: you should see 2 players.

@@ -46,6 +46,22 @@ you saw, and it continues.
 If you hit your usage limit mid-task, nothing is lost: next time just type `/next`. It reads
 `docs/PROGRESS.md` and the uncommitted changes and carries on.
 
+## 3b. Game commands
+
+Run these in a terminal in the project folder. After cloning on a new PC, run `npm install`
+once first.
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | game server + Vite page with hot reload. Open Vite's **Network** URL (port 5173) |
+| `npm start` | builds the page and starts one server for the office; open the printed **LAN** URL (port 2567) |
+| `npm run verify` | typecheck + all tests, one summary line (Claude runs this before every commit) |
+| `npm test` | tests only |
+| `npm run shots -- hello` | screenshots in your Chrome/Edge → `artifacts/shots/` |
+| `npm run bots`, `npm run track:check`, `npm run faces` | arrive in P2, P1 and P4 |
+
+Stop a running server with **Ctrl+C**. The game port is `net.port` in `config/tuning.json`.
+
 ## 4. The plan (11 phases)
 
 P0 skeleton → P1 driving feel → **P2 two laptops, one car (fun gate)** → P3 lobby and races →
@@ -59,7 +75,7 @@ P10 more tracks and v1.0. Details: `docs/ROADMAP.md`.
 - Tune feel live: in dev builds, **F2** opens the tuning panel, **F3** shows FPS and lag.
 - Add coworker faces to `assets/faces/` (only people who agreed) and company images to
   `assets/menu/`. Both folders stay on your PC and are never committed.
-- Answer the open questions when Claude asks (final game name, fixed vs shuffled teams).
+- Answer the open questions when Claude asks (for example fixed vs shuffled teams).
 
 ## 6. Saving your usage (Pro plan)
 

@@ -21,17 +21,18 @@ You build everything else, agentically, from these docs. Explain decisions in pl
 - End of phase → `reviewer` subagent on the phase diff, fix Critical items, `git tag pN-done`,
   give the phase report, tell the human to run `/clear`.
 
-## Commands (exist after Phase 0)
+## Commands
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | server (watch) + Vite client, hot reload |
 | `npm start` | production build, one process serves page + multiplayer on the LAN |
-| `npm run verify` | typecheck + all tests + short headless bot race. Terse output |
+| `npm run verify` | typecheck + all tests + short headless bot race (from P1.4). Terse output |
+| `npm run typecheck` | typecheck only (`verify.mjs --types-only`) |
 | `npm test` | Vitest only |
-| `npm run bots -- --cars 4 --seconds 60` | real WebSocket bot clients (split pilot/engineer) |
+| `npm run bots -- --cars 4 --seconds 60` | real WebSocket bot clients (split pilot/engineer) — from P2.5 |
 | `npm run shots -- chase lobby` | Playwright screenshots + render stats → `artifacts/shots/` |
-| `npm run track:check -- office` | validate a track file and run bot laps on it |
+| `npm run track:check -- office` | validate a track file and run bot laps on it — from P1 |
 
 ## Folder map
 

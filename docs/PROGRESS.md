@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P0 — Foundation (`docs/phases/P00-foundation.md`)
-- Next task: P0.8
-- Status: P0.1–P0.7 done. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
+- Next task: HUMAN GATE — first contact (then P0.9 phase end)
+- Status: P0.1–P0.8 done. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
 
 ## Half-done
 - (nothing)
@@ -31,6 +31,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-04: P0.5 Express+Colyseus `race` room, LAN URLs, Vite page with live count; 2 Chrome tabs → 2, close one → 1 (D023–D027).
 - 2026-10-04: P0.6 Vitest projects, `tests/race-room.test.ts` (2 clients → 2 → 1), `npm run verify` (D028). Bot race step added to P1.4.
 - 2026-10-04: P0.7 `npm run shots` + `window.__game` hooks; `/shots hello` PASS (D029).
+- 2026-10-04: P0.8 docs pass: README game commands, CLAUDE.md command table, ARCHITECTURE folder map + LAN flags; `npm start` re-checked.
 
 ## Playtest log
 - (none yet)
