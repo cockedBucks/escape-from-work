@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.5 (bot clients)
-- Status: P2.4 done. `npm run verify` passes (176 tests + bot race).
+- Next task: P2.6 (latency visibility)
+- Status: P2.5 done. `npm run verify` passes (177 tests + bot race, ~1 min).
 
 ## Half-done
 - (nothing)
@@ -51,6 +51,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   weight (`carHit` event), cars spawn on their slot's grid spot. Golden hash a71bcb87 → 27703279. D041.
 - 2026-10-04: P2.4 disconnect and rejoin — seat held `net.reconnectSeconds` on drop (partner solo),
   SDK auto-reconnect + saved token for reopened tabs; integration tests + browser reload smoke. D042.
+- 2026-10-04: P2.5 bot clients — `npm run bots` (pilot + engineer bot per car over WebSockets),
+  `carStateFromView` adapter, integration lap test; 4 cars lapped in 36.9–37.3 s. D043.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -59,7 +59,8 @@ once first.
 | `npm test` | tests only |
 | `npm run shots -- hello` | screenshots in your Chrome/Edge → `artifacts/shots/` |
 | `npm run track:check` | checks every track file (or `-- test-loop` for one): shape, width, tight curves, crossing walls |
-| `npm run bots`, `npm run faces` | arrive in P2 and P4 |
+| `npm run bots -- --cars 4 --seconds 60` | bot players join your running game: per car a Pilot bot and an Engineer bot (`--url http://<ip>:<port>` for another PC) |
+| `npm run faces` | arrives in P4 |
 
 Driving (from P1.6): open the page and you join the race at once. **W/S** or **↑/↓** gas and
 brake (hold S when stopped to reverse), **A/D** or **←/→** steer, **R** respawn, **F3** debug overlay

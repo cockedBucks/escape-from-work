@@ -68,3 +68,4 @@ export { getTuningValue, tuningFields, type TuningField } from './config/tuningF
 export { ROLE_CONTROLS, mayUse, mergeCarInput, type Control, type InputPart } from './net/permissions';
 export { gridSpot, type GridSpot } from './race/grid';
 export { collideCars } from './sim/carCollisions';
+export { carStateFromView, type CarViewLike } from './bot/fromView';

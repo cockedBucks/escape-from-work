@@ -18,7 +18,8 @@
     "typecheck": "node scripts/verify.mjs --types-only",
     "verify": "node scripts/verify.mjs",
     "shots": "node scripts/shots.mjs",
-    "track:check": "node scripts/track-check.mjs"
+    "track:check": "node scripts/track-check.mjs",
+    "bots": "node scripts/bots.mjs"
   },
   "devDependencies": {
     "@types/node": "24.19.1",

@@ -10,7 +10,7 @@ The human should only need to test **feel and fun**. Everything else is checked 
 | Unit | shared sim, track math, race rules, items, scoring, schemas | `npm test` |
 | Golden | bot lap-time windows per track and car; replay determinism hash | `npm test` |
 | Integration | server room + real Colyseus clients in-process: join, roles, merge, disconnect, full race | `npm test` |
-| Bot race | real WebSocket bot clients against a running server (split pilot/engineer bots) | `npm run bots` |
+| Bot race | real WebSocket bot clients against a running server (split pilot/engineer bots); `tests/bot-clients.test.ts` runs 2 cars × 2 clients for one real-time lap (~40 s) in every verify | `npm run bots` |
 | Visual | Playwright screenshots + render stats per scenario | `npm run shots` |
 | Human | feel, fun, real-laptop FPS, real LAN | HUMAN GATEs in the phase files |
 

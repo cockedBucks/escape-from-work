@@ -23,7 +23,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
   per-car chase cam (each client follows its own car). Tests.
 - [x] **P2.4 Disconnect and rejoin.** Reconnection window from config; remaining partner becomes
   solo; rejoin restores seats. Integration tests.
-- [ ] **P2.5 Bot clients.** `scripts/bots.mjs` + `npm run bots -- --cars N --seconds S [--url]`:
+- [x] **P2.5 Bot clients.** `scripts/bots.mjs` + `npm run bots -- --cars N --seconds S [--url]`:
   for each car, one pilot-bot client and one engineer-bot client over real WebSockets.
   Integration test version in `tests/`: 2 cars, 4 clients, 1 lap completes.
 - [ ] **P2.6 Latency visibility.** Overlay shows ping, snapshot age, and measured

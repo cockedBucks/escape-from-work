@@ -37,6 +37,8 @@ async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
   el('hello').hidden = false;
   const room = await joinRace(tuning);
   setStatus('Connected');
+  // This page only shows the player count; ignore the race broadcasts.
+  for (const type of [MSG.events, MSG.tuning, MSG.reload]) room.onMessage(type, () => {});
   room.ping((ms) => {
     liveStats.pingMs = ms;
   });
@@ -121,6 +123,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   room.onMessage(MSG.reload, () => {
     if (import.meta.env.DEV) window.location.reload();
   });
+  // Sim events (bumps, jumps, …) drive sounds and effects later (P7). Listening now keeps the
+  // SDK from warning about every unhandled one.
+  room.onMessage(MSG.events, () => {});
   const join = new JoinScreen(container, latestTuning.race.maxCars, {
     setName: (name) => room.send(MSG.setName, { name }),
     setSeat: (slot, seat) => room.send(MSG.setSeat, { slot, seat }),

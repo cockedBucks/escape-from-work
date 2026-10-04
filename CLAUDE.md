@@ -31,7 +31,7 @@ You build everything else, agentically, from these docs. Explain decisions in pl
 | `npm run verify` | typecheck + all tests + short headless bot race. Terse output |
 | `npm run typecheck` | typecheck only (`verify.mjs --types-only`) |
 | `npm test` | Vitest only |
-| `npm run bots -- --cars 4 --seconds 60` | real WebSocket bot clients (split pilot/engineer) — from P2.5 |
+| `npm run bots -- --cars 4 --seconds 60` | real WebSocket bot clients (split pilot/engineer) against a running server (`--url`) |
 | `npm run shots -- chase lobby` | Playwright screenshots + render stats → `artifacts/shots/` |
 | `npm run track:check -- office` | validate a track file and run bot laps on it — from P1 |
 
