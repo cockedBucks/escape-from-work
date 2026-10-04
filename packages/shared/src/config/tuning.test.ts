@@ -51,6 +51,27 @@ describe('tuning config', () => {
     expect(errorOf(raw).message).toContain('patchRateMS');
   });
 
+  it('has the P1 sections with sane car numbers', () => {
+    const t = parseTuning(realTuning);
+    expect(t.car.reverseTopSpeed).toBeLessThan(t.car.topSpeed);
+    expect(t.car.steerFullSpeed).toBeLessThan(t.car.topSpeed);
+    expect(t.quality.presets[t.quality.default]).toBeDefined();
+    expect(t.race.respawnFadeSeconds).toBeGreaterThanOrEqual(0);
+  });
+
+  it('rejects bad car and quality values', () => {
+    const raw = copy();
+    raw['car']!['grip'] = -1;
+    raw['car']!['slickGrip'] = 1.5;
+    (raw['quality']!['presets'] as Record<string, Record<string, unknown>>)['low']!['shadows'] = 'soft';
+    raw['quality']!['default'] = 'ultra';
+    const msg = errorOf(raw).message;
+    expect(msg).toContain('car.grip');
+    expect(msg).toContain('car.slickGrip');
+    expect(msg).toContain('quality.presets.low.shadows');
+    expect(msg).toContain('quality.default');
+  });
+
   it('says which file was bad', () => {
     expect(() => parseTuning(null, 'my/file.json')).toThrow(/my\/file\.json/);
   });

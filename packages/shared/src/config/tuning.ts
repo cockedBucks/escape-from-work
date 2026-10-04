@@ -3,9 +3,94 @@ import { parseConfig } from './parse';
 
 // Strict objects: an unknown key (usually a typo) is an error, not silently ignored.
 
+const pos = () => z.number().positive();
+const nonNeg = () => z.number().nonnegative();
+const fraction = () => z.number().min(0).max(1);
+
+/** Base car handling. Per-car `stats` in cars.json multiply some of these (around 1.0). */
+const CarSchema = z.strictObject({
+  /** Collision circle radius (m). */
+  radius: pos(),
+  /** Forward top speed on gas (m/s). Scaled by car `stats.speed`. */
+  topSpeed: pos(),
+  /** Engine acceleration from standstill (m/s²). Scaled by car `stats.speed`. */
+  accel: pos(),
+  /** Braking deceleration while moving forward (m/s²). */
+  brake: pos(),
+  /** Top speed in reverse (m/s). */
+  reverseTopSpeed: pos(),
+  /** Acceleration in reverse (m/s²). */
+  reverseAccel: pos(),
+  /** Coasting slowdown: fraction of speed lost per second with no gas or brake (1/s). */
+  drag: nonNeg(),
+  /** How fast sideways sliding is removed (1/s). Higher = stickier. Scaled by `stats.grip`. */
+  grip: pos(),
+  /** Grip multiplier on slick zones (0–1). */
+  slickGrip: fraction(),
+  /** How fast steering moves toward the pressed direction (full lock per second). */
+  steerRiseRate: pos(),
+  /** How fast steering returns to center when released (full lock per second). */
+  steerFallRate: pos(),
+  /** Turn rate at full lock (rad/s). */
+  maxYawRate: pos(),
+  /** Turn-rate multiplier at top speed (0–1): lower = calmer steering when fast. */
+  steerAtTopSpeed: fraction(),
+  /** Below this speed the car turns less, down to nothing when stopped (m/s). */
+  steerFullSpeed: pos(),
+  /** How much speed into a wall bounces back out (0 = stick, 1 = perfect bounce). */
+  wallBounce: fraction(),
+  /** Fraction of along-wall speed lost on a wall hit (0–1). */
+  wallSpeedLoss: fraction(),
+  /** Smallest speed into a wall that counts as a hit event (m/s). */
+  wallHitMinSpeed: nonNeg(),
+  /** Downward pull while airborne (m/s²). Arcade: higher than real gravity. */
+  gravity: pos(),
+  /** Upward launch speed from a ramp at top speed, times the zone's `launch` (m/s). */
+  rampLaunch: pos(),
+  /** Smallest falling speed that counts as a landing event (m/s). */
+  landingMinSpeed: nonNeg(),
+});
+
 const SimSchema = z.strictObject({
   /** Fixed sim timestep in seconds (1/60). */
   dt: z.number().positive().max(0.1),
+});
+
+/** Race rules. A stub for now; P3 adds countdown, finish and results. */
+const RaceSchema = z.strictObject({
+  /** Fade-out time before a respawned car reappears (s). */
+  respawnFadeSeconds: nonNeg(),
+  /** Time a respawned car is ghosted: no collisions with other cars (s). */
+  respawnGhostSeconds: nonNeg(),
+});
+
+const QualityPresetSchema = z.strictObject({
+  /** Highest devicePixelRatio the renderer uses. */
+  pixelRatioCap: z.number().min(0.5).max(3),
+  /** "blob" = cheap fake shadows under cars, "map" = one real shadow map. */
+  shadows: z.enum(['blob', 'map']),
+  /** Shadow map size in pixels, used when `shadows` is "map". */
+  shadowMapSize: z.number().int().min(256).max(4096),
+  /** Rear-view mirror: off, every 2nd frame, or every frame. */
+  mirror: z.enum(['off', 'half', 'full']),
+  particles: z.enum(['reduced', 'normal']),
+  /** Performance budget checked by /shots: draw calls in view. */
+  maxDrawCalls: z.number().int().positive(),
+  /** Performance budget checked by /shots: triangles in view. */
+  maxTriangles: z.number().int().positive(),
+});
+
+const QualitySchema = z.strictObject({
+  /** Preset used when the player has not picked one. */
+  default: z.enum(['low', 'medium', 'high']),
+  presets: z.strictObject({
+    low: QualityPresetSchema,
+    medium: QualityPresetSchema,
+    high: QualityPresetSchema,
+  }),
+  /** Per-car model budget (all presets). */
+  carMaxTriangles: z.number().int().positive(),
+  carMaxDrawCalls: z.number().int().positive(),
 });
 
 const NetSchema = z.strictObject({
@@ -20,11 +105,17 @@ const NetSchema = z.strictObject({
 });
 
 export const TuningSchema = z.strictObject({
+  car: CarSchema,
   sim: SimSchema,
+  race: RaceSchema,
   net: NetSchema,
+  quality: QualitySchema,
 });
 
 export type Tuning = z.infer<typeof TuningSchema>;
+export type CarTuning = Tuning['car'];
+export type QualityLevel = Tuning['quality']['default'];
+export type QualityPreset = Tuning['quality']['presets'][QualityLevel];
 
 /** Validate the contents of `config/tuning.json`. Throws `ConfigError` listing every problem. */
 export function parseTuning(raw: unknown, source = 'config/tuning.json'): Tuning {

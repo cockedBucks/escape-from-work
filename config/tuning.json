@@ -1,11 +1,71 @@
 {
+  "car": {
+    "radius": 1.1,
+    "topSpeed": 30,
+    "accel": 22,
+    "brake": 38,
+    "reverseTopSpeed": 9,
+    "reverseAccel": 14,
+    "drag": 0.6,
+    "grip": 9,
+    "slickGrip": 0.2,
+    "steerRiseRate": 5,
+    "steerFallRate": 8,
+    "maxYawRate": 2.6,
+    "steerAtTopSpeed": 0.55,
+    "steerFullSpeed": 6,
+    "wallBounce": 0.35,
+    "wallSpeedLoss": 0.3,
+    "wallHitMinSpeed": 3,
+    "gravity": 25,
+    "rampLaunch": 9,
+    "landingMinSpeed": 4
+  },
   "sim": {
     "dt": 0.016666666666666666
+  },
+  "race": {
+    "respawnFadeSeconds": 1,
+    "respawnGhostSeconds": 1
   },
   "net": {
     "port": 2567,
     "patchRateMs": 33,
     "interpDelayMs": 50,
     "reconnectSeconds": 30
+  },
+  "quality": {
+    "default": "medium",
+    "presets": {
+      "low": {
+        "pixelRatioCap": 1,
+        "shadows": "blob",
+        "shadowMapSize": 1024,
+        "mirror": "off",
+        "particles": "reduced",
+        "maxDrawCalls": 100,
+        "maxTriangles": 150000
+      },
+      "medium": {
+        "pixelRatioCap": 1.25,
+        "shadows": "blob",
+        "shadowMapSize": 1024,
+        "mirror": "half",
+        "particles": "normal",
+        "maxDrawCalls": 150,
+        "maxTriangles": 250000
+      },
+      "high": {
+        "pixelRatioCap": 1.5,
+        "shadows": "map",
+        "shadowMapSize": 1024,
+        "mirror": "full",
+        "particles": "normal",
+        "maxDrawCalls": 200,
+        "maxTriangles": 400000
+      }
+    },
+    "carMaxTriangles": 1500,
+    "carMaxDrawCalls": 6
   }
 }

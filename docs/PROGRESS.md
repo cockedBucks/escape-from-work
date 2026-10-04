@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P1 — Drive feel (`docs/phases/P01-drive-feel.md`)
-- Next task: P1.1
-- Status: P0 done and tagged `p0-done`. `npm run verify` (17 tests) and `npm run shots -- hello` pass.
+- Next task: P1.2 (track system)
+- Status: P1.1 done. `npm run verify` passes (48 tests).
 
 ## Half-done
 - (nothing)
@@ -34,6 +34,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   live player count page, `npm run verify` (typecheck + tests incl. real-server test),
   `npm run shots`, docs pass, LAN gate passed. Review fixes: busy port no longer hangs, verify
   step timeout. Decisions D015–D030.
+- 2026-10-04: P1.1 shared basics — seeded RNG, XZ math helpers, ring buffer; tuning gains `car`, `race` (stub), `quality`; new `config/cars.json` (one Box Car) and track schema. D031.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

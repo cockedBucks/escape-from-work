@@ -12,7 +12,7 @@ Driving feel is the foundation of everything else, so it gets its own phase.
 
 ## Tasks
 
-- [ ] **P1.1 Shared basics.** Seeded RNG, small vector/math helpers, ring buffer. Full config
+- [x] **P1.1 Shared basics.** Seeded RNG, small vector/math helpers, ring buffer. Full config
   schemas: `tuning.json` sections `car`, `sim`, `race` (stub), `quality`; `cars.json` with one
   placeholder car; track schema. Tests.
 - [ ] **P1.2 Track system.** Closed Catmull-Rom spline, sampling, widths, wall segments,

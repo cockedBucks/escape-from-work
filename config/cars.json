@@ -1,0 +1,10 @@
+{
+  "statRange": { "min": 0.92, "max": 1.08 },
+  "cars": [
+    {
+      "id": "boxcar",
+      "name": "Box Car",
+      "stats": { "speed": 1, "grip": 1, "weight": 1 }
+    }
+  ]
+}
