@@ -47,7 +47,8 @@ export class KeyboardControls {
 
   private readonly onDown = (e: KeyboardEvent): void => {
     const action = ACTION_BY_CODE.get(e.code);
-    if (!action) return;
+    // Typing a name in a text field must not drive the car.
+    if (!action || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
     e.preventDefault(); // arrow keys must not scroll the page
     if (this.held.has(action)) return; // key repeat
     this.held.add(action);

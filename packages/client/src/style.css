@@ -99,3 +99,128 @@ body {
 .status.error {
   color: var(--red);
 }
+
+/* Temporary join screen (P2.1). The real lobby replaces it in P8. */
+.join {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(30, 34, 48, 0.55);
+}
+
+.join-panel {
+  width: min(64rem, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 1.25rem 1.5rem;
+  border-radius: 1.25rem;
+  background: var(--sand);
+  box-shadow: 0 0.5rem 0 var(--ui-dark);
+}
+
+.join-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 2rem;
+  color: var(--red);
+  transform: rotate(-1.5deg);
+}
+
+.join-name {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.2rem;
+}
+
+.join-name input {
+  font: inherit;
+  padding: 0.35rem 0.7rem;
+  border: 3px solid var(--ui-dark);
+  border-radius: 0.6rem;
+  width: 14rem;
+}
+
+.join-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.join-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border-radius: 0.9rem;
+  border: 4px solid var(--team);
+  background: #fff;
+}
+
+.join-card-head {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--team);
+}
+
+.join-card .seat,
+.join .watch {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #eef0f4;
+  color: var(--ui-dark);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.join-card .seat:hover:not(:disabled),
+.join .watch:hover {
+  transform: rotate(-2deg) scale(1.04);
+}
+
+.join-card .seat:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.join-card .seat.mine {
+  background: var(--team);
+  color: #fff;
+}
+
+.seat-role {
+  font-weight: 600;
+}
+
+.seat-who {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.join .watch {
+  grid-column: 1 / -1;
+  justify-content: center;
+}
+
+.join-error {
+  min-height: 1.4em;
+  margin: 0.25rem 0;
+  font-size: 1.1rem;
+  color: var(--red);
+}
+
+.join-help {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--road);
+}

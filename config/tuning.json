@@ -44,7 +44,8 @@
   "race": {
     "respawnFadeSeconds": 1,
     "respawnGhostSeconds": 1,
-    "offTrackRespawnDistance": 4
+    "offTrackRespawnDistance": 4,
+    "maxCars": 8
   },
   "net": {
     "port": 2567,
@@ -53,6 +54,8 @@
     "reconnectSeconds": 30,
     "inputRatePerSec": 70,
     "inputBurst": 20,
+    "lobbyRatePerSec": 5,
+    "lobbyBurst": 5,
     "inputResendMs": 250
   },
   "camera": {

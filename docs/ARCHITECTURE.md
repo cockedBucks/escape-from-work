@@ -170,7 +170,7 @@ installed types for the API. Anything not on this list → ask the human first.
 | `input` | seq, gas, brake, nitro, fire | Engineer / Solo |
 | `input` | honk, respawn, mash | anyone in a car |
 | `head` | yaw, pitch (about 20/s) | anyone in a car |
-| `lobby:*` | setName, joinTeam, setSeat, setTeamName, ready | anyone |
+| `lobby:*` | setName, joinTeam, setSeat, leaveSeat, setTeamName, ready | anyone |
 | `host:*` | shuffle, bots, chaos, track, laps, start, kick | host only |
 
 Schemas live in `packages/shared/src/net/messages.ts` (`MSG` names the message types). Until P2
@@ -179,6 +179,12 @@ mean "not pressed", steer is clamped to -1..1, stale `seq` and malformed message
 and each client is rate-limited by a token bucket (`net.inputRatePerSec`, `net.inputBurst`).
 The room runs the sim with Colyseus `setFixedTimestep` at 1/`sim.dt` Hz, copies cars into the
 synced `cars` map after each tick, and broadcasts that tick's `SimEvent[]` as `events`.
+Seats (P2.1): `lobby:setName {name}`, `lobby:setSeat {slot, seat}` (seat = pilot | engineer |
+solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules live in
+`packages/shared/src/race/seats.ts`: two seats per car or one Solo; a player whose teammate is
+missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
+slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
+`maxClients` = 2 × `race.maxCars`.
 The server keeps only the fields the sender's current role allows. Items like Control Swap
 and Lag Spike change the role mapping or add an input delay queue on the server.
 
@@ -224,6 +230,8 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 | slick patch too slippery / not slippery | `car.slickGrip` |
 | jumps too floaty / too small | `car.gravity`, `car.rampLaunch`, ramp zone `launch` (track file) |
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |
+| room too small / too big | `race.maxCars` (players = 2 × cars; colors exist for 8) |
+| name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |
 | respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds`, `race.offTrackRespawnDistance` |
 | low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots); try `?quality=low` in the URL |
 | chase cam too close / too far / too stiff / floaty | `camera.chaseDistance`, `camera.chaseHeight`, `camera.followRate` |

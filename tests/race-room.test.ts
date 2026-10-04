@@ -1,13 +1,20 @@
 import { Client, type EndpointSettings } from '@colyseus/sdk';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { MSG, ROOM_NAME } from '@escape/shared';
+import { MSG, ROOM_NAME, carIdForSlot, type LobbyError } from '@escape/shared';
 import { startServer, type GameServer } from '../packages/server/src/app';
 import { waitForState } from './helpers';
 
+interface PlayerView {
+  name: string;
+  slot: number;
+  seat: string;
+  role: string;
+}
+
 interface StateView {
   /** Missing until the first full state arrives (join can resolve before it). */
-  players?: { size: number };
-  cars?: { get(id: string): { x: number } | undefined };
+  players?: { size: number; get(id: string): PlayerView | undefined };
+  cars?: { get(id: string): { x: number } | undefined; size: number };
 }
 
 describe('race room (real server, real clients)', () => {
@@ -36,9 +43,32 @@ describe('race room (real server, real clients)', () => {
     await a.leave();
   });
 
-  it('a client holding gas drives its car forward; junk messages are ignored', async () => {
+  it('players name themselves, share a car as Pilot + Engineer, and bad seats are refused', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    a.send(MSG.setName, { name: '  Alice  ' });
+    a.send(MSG.setSeat, { slot: 1, seat: 'pilot' });
+    await waitForState(a, (s) => s.players?.get(a.sessionId)?.role === 'solo', 'A alone in car 1 drives solo');
+    expect(a.state.players!.get(a.sessionId)!.name).toBe('Alice');
+
+    const refused = new Promise<LobbyError>((resolve) => b.onMessage(MSG.lobbyError, resolve));
+    b.send(MSG.setSeat, { slot: 1, seat: 'pilot' });
+    expect((await refused).reason).toMatch(/taken/);
+
+    b.send(MSG.setSeat, { slot: 1, seat: 'engineer' });
+    await waitForState(a, (s) => s.players?.get(a.sessionId)?.role === 'pilot', 'A becomes Pilot');
+    await waitForState(a, (s) => s.players?.get(b.sessionId)?.role === 'engineer', 'B is Engineer');
+    expect(a.state.cars!.size).toBe(1);
+
+    await b.leave();
+    await waitForState(a, (s) => s.players?.get(a.sessionId)?.role === 'solo', 'A solo again after B leaves');
+    await a.leave();
+  });
+
+  it('a seated client holding gas drives its car forward; junk messages are ignored', async () => {
     const room = await new Client(endpoint).join<StateView>(ROOM_NAME);
-    const myX = (s: StateView): number | undefined => s.cars?.get(room.sessionId)?.x;
+    room.send(MSG.setSeat, { slot: 0, seat: 'solo' });
+    const myX = (s: StateView): number | undefined => s.cars?.get(carIdForSlot(0))?.x;
     await waitForState(room, (s) => myX(s) !== undefined, 'my car appears');
     const startX = myX(room.state)!;
 

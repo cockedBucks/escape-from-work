@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { clamp } from '../util/math';
+import { SEATS } from '../race/seats';
 import type { CarInput } from '../sim/types';
 
 /** Message type names, shared by client and server so they cannot drift apart. */
@@ -12,6 +13,14 @@ export const MSG = {
   tuning: 'tuning',
   /** server → clients (dev): a track or car file changed; reload the page to rebuild it. */
   reload: 'reload',
+  /** client → server: `{ name }`. */
+  setName: 'lobby:setName',
+  /** client → server: `{ slot, seat }`. */
+  setSeat: 'lobby:setSeat',
+  /** client → server: leave your seat and watch. */
+  leaveSeat: 'lobby:leaveSeat',
+  /** server → one client: `{ reason }` when a lobby request was refused. */
+  lobbyError: 'lobby:error',
 } as const;
 
 /**
@@ -52,3 +61,22 @@ export const TuningPostSchema = z.strictObject({
   /** true = also write config/tuning.json; false = live preview only. */
   save: z.boolean(),
 });
+
+/** Longest player name shown in the join screen and HUD. */
+export const NAME_MAX_LENGTH = 16;
+
+/** `lobby:setName` (client → server). Whitespace is trimmed; empty names are refused. */
+export const SetNameSchema = z.strictObject({
+  name: z.string().trim().min(1).max(NAME_MAX_LENGTH),
+});
+
+/** `lobby:setSeat` (client → server): take a seat in a car slot (rules in race/seats.ts). */
+export const SetSeatSchema = z.strictObject({
+  slot: z.number().int().nonnegative(),
+  seat: z.enum(SEATS),
+});
+
+/** `lobby:error` (server → one client): why a lobby request was refused. */
+export interface LobbyError {
+  reason: string;
+}

@@ -97,6 +97,8 @@ const RaceSchema = z.strictObject({
   respawnGhostSeconds: nonNeg(),
   /** A grounded car this far outside the road edge (m) respawns by itself. */
   offTrackRespawnDistance: pos(),
+  /** Car slots in the lobby (2 players each, so players = 2 × maxCars). Team colors cover 8. */
+  maxCars: z.number().int().min(1).max(8),
 });
 
 /** Chase camera feel (client only, but tuned live like everything else). */
@@ -157,6 +159,9 @@ const NetSchema = z.strictObject({
   inputRatePerSec: z.number().positive(),
   /** Short bursts above the average rate that are still allowed (messages). */
   inputBurst: z.number().int().min(1),
+  /** Lobby messages (name, seat) a client may send per second on average, and the burst. */
+  lobbyRatePerSec: z.number().positive(),
+  lobbyBurst: z.number().int().min(1),
   /** Clients resend their held controls this often (ms), so a lost message never leaves a key stuck. */
   inputResendMs: z.number().int().min(50),
 });

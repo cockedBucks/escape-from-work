@@ -5,6 +5,14 @@ import { schema, t, type SchemaType } from '@colyseus/schema';
 export const PlayerState = schema(
   {
     name: t.string().default(''),
+    /** Car slot (0-based), or -1 when watching. */
+    slot: t.int8().default(-1),
+    /** Chosen seat: 'pilot' | 'engineer' | 'solo', or '' when not in a car. */
+    seat: t.string().default(''),
+    /** What they control right now ('solo' when alone in the car), '' when not in a car. */
+    role: t.string().default(''),
+    /** False while disconnected and their seat is held (P2.4). */
+    connected: t.boolean().default(true),
   },
   'PlayerState',
 );

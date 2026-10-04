@@ -14,7 +14,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
 
 ## Tasks
 
-- [ ] **P2.1 Players, cars and seats.** State for players (name, car slot, seat, connected) and
+- [x] **P2.1 Players, cars and seats.** State for players (name, car slot, seat, connected) and
   cars. Temporary join screen: name, car slot, seat. Shared seat rules + tests.
 - [ ] **P2.2 Input merge with permissions.** Shared `net/` role permission table and merge
   function (see `docs/ARCHITECTURE.md` input merge table). Server applies it each tick.

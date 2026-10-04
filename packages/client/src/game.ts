@@ -27,6 +27,13 @@ export interface GameOptions {
   focus: () => string | null;
 }
 
+/** Team color: by car slot for server cars ("car3" → slot 3), else by arrival order (scenario bots). */
+function teamColor(id: string, index: number): number {
+  const slot = /^car(\d+)$/.exec(id);
+  const i = slot ? Number(slot[1]) : index;
+  return TEAM_COLORS[i % TEAM_COLORS.length] ?? TEAM_COLORS[0]!;
+}
+
 /** Longest frame step the camera smoothing accepts (s), so a hitch doesn't fling it. */
 const MAX_FRAME_DT = 0.1;
 
@@ -104,7 +111,7 @@ export class Game {
     for (const [id, s] of this.snaps) {
       let mesh = this.cars.get(id);
       if (!mesh) {
-        mesh = new BoxCar(TEAM_COLORS[this.cars.size % TEAM_COLORS.length] ?? TEAM_COLORS[0]!);
+        mesh = new BoxCar(teamColor(id, this.cars.size));
         this.cars.set(id, mesh);
         this.stage.scene.add(mesh.root);
       }

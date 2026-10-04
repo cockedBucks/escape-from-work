@@ -2,7 +2,7 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, carIdForSlot, type LobbyError, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadTrack, loadTuning } from './content';
 import { Game } from './game';
 import { KeyboardControls } from './input/keyboard';
@@ -10,6 +10,7 @@ import { ServerCarSource, joinRace } from './net/connection';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
+import { JoinScreen, type JoinPlayer } from './ui/joinScreen';
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
@@ -52,7 +53,7 @@ async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
 }
 
 /** A frozen local bot race, for screenshots (`chase`, `track-overview`). */
-async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScenario): Promise<void> {
+async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScenario, overlay?: () => void): Promise<void> {
   const trackId = new URLSearchParams(window.location.search).get('track') ?? DEFAULT_TRACK;
   const track = loadTrack(trackId, tuning);
   const world = frozenBotRace(track, tuning, scenario);
@@ -70,10 +71,29 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   game.renderFrame(performance.now(), true);
   game.start();
   setStatus('');
+  overlay?.();
   await markReady(hooks);
 }
 
-/** The real thing: join the server's race and drive solo. */
+/** Join screen with made-up players over the track (scenario `join`, for screenshots). */
+async function showJoinScenario(hooks: GameHooks, tuning: Tuning): Promise<void> {
+  await showScenario(hooks, tuning, 'track-overview', () => {
+    const join = new JoinScreen(el('game'), tuning.race.maxCars, { setName: () => {}, setSeat: () => {}, leaveSeat: () => {} });
+    join.update(fake, 'me');
+  });
+}
+
+/** Made-up players for the `join` scenario: a full car, a lone pilot, a solo car, one away. */
+const fake: JoinPlayer[] = [
+    { id: 'me', name: 'You', slot: -1, seat: '', connected: true },
+    { id: 'a', name: 'Dina', slot: 0, seat: 'pilot', connected: true },
+    { id: 'b', name: 'Omar', slot: 0, seat: 'engineer', connected: true },
+    { id: 'c', name: 'Karim', slot: 1, seat: 'pilot', connected: true },
+    { id: 'd', name: 'Sara', slot: 2, seat: 'solo', connected: true },
+  { id: 'e', name: 'Youssef', slot: 3, seat: 'engineer', connected: false },
+];
+
+/** The real thing: join the server's race, pick a seat, drive. */
 async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const container = el('game');
   container.hidden = false;
@@ -97,9 +117,23 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   room.onMessage(MSG.reload, () => {
     if (import.meta.env.DEV) window.location.reload();
   });
+  const join = new JoinScreen(container, latestTuning.race.maxCars, {
+    setName: (name) => room.send(MSG.setName, { name }),
+    setSeat: (slot, seat) => room.send(MSG.setSeat, { slot, seat }),
+    leaveSeat: () => room.send(MSG.leaveSeat, {}),
+  });
+  room.onMessage(MSG.lobbyError, (e: LobbyError) => {
+    join.show(true);
+    join.showError(e.reason);
+  });
+  let mySlot = -1;
   room.onStateChange((state) => {
     source.push(performance.now(), state);
     liveStats.tickMs = state.tickMs;
+    const players: JoinPlayer[] = [];
+    state.players.forEach((p, id) => players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected }));
+    mySlot = state.players.get(room.sessionId)?.slot ?? -1;
+    join.update(players, room.sessionId);
   });
 
   const game = new Game({
@@ -109,7 +143,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     quality: pickQuality(window.location.search, tuning).preset,
     source,
     view: 'chase',
-    focus: () => room.sessionId,
+    // Follow your own car; while watching, follow the first car.
+    focus: () => (mySlot >= 0 ? carIdForSlot(mySlot) : null),
   });
   game.start();
   game.setTuning(latestTuning);
@@ -127,6 +162,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   room.onLeave(() => {
     window.clearInterval(pingTimer);
     keyboard.dispose();
+    join.dispose();
     setStatus('Disconnected from the game server. Reload to rejoin.', true);
   });
   void markReady(hooks);
@@ -140,7 +176,9 @@ if (hooks.error !== null) {
   const run =
     hooks.scenario === 'hello'
       ? showHello(hooks, tuning)
-      : isRaceScenario(hooks.scenario)
+      : hooks.scenario === 'join'
+        ? showJoinScenario(hooks, tuning)
+        : isRaceScenario(hooks.scenario)
         ? showScenario(hooks, tuning, hooks.scenario)
         : showRace(hooks, tuning);
   run.catch((err: unknown) => {

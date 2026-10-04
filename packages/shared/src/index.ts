@@ -40,5 +40,28 @@ export { botSteer, lookAheadPoint } from './bot/pilot';
 export { botPedals, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
 export { botInput } from './bot/driver';
 export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';
-export { MSG, InputMessageSchema, TuningPostSchema, parseInputMessage, toCarInput, type InputMessage } from './net/messages';
+export {
+  MSG,
+  InputMessageSchema,
+  NAME_MAX_LENGTH,
+  SetNameSchema,
+  SetSeatSchema,
+  TuningPostSchema,
+  parseInputMessage,
+  toCarInput,
+  type InputMessage,
+  type LobbyError,
+} from './net/messages';
+export {
+  SEATS,
+  carIdForSlot,
+  effectiveRole,
+  occupants,
+  seatProblem,
+  suggestSeat,
+  usedSlots,
+  type Role,
+  type Seat,
+  type SeatedPlayer,
+} from './race/seats';
 export { getTuningValue, tuningFields, type TuningField } from './config/tuningFields';

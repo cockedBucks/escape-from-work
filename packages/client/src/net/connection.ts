@@ -16,9 +16,18 @@ export interface CarViewState {
   ghost: boolean;
 }
 
+/** One synced player (see PlayerState on the server). */
+export interface PlayerViewState {
+  name: string;
+  slot: number;
+  seat: string;
+  role: string;
+  connected: boolean;
+}
+
 /** What the client reads from the synced room state (decoded by reflection). */
 export interface RaceStateView {
-  players: { size: number };
+  players: { size: number; forEach(cb: (p: PlayerViewState, id: string) => void): void; get(id: string): PlayerViewState | undefined };
   cars: { forEach(cb: (car: CarViewState, id: string) => void): void; size: number };
   tick: number;
   tickMs: number;
