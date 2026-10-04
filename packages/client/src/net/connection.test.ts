@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { serverEndpoint } from './connection';
+import { serverEndpoint, usableSession } from './connection';
 
 describe('serverEndpoint', () => {
   it('dev: same hostname, game port (Vite serves the page on another port)', () => {
@@ -19,5 +19,15 @@ describe('serverEndpoint', () => {
       secure: true,
       port: 443,
     });
+  });
+});
+
+describe('usableSession', () => {
+  it('uses a token only inside the reconnect window', () => {
+    const saved = { token: 't1', leftAt: 1_000 };
+    expect(usableSession(saved, 1_000 + 29_000, 30)).toBe('t1');
+    expect(usableSession(saved, 1_000 + 31_000, 30)).toBeNull();
+    expect(usableSession(null, 0, 30)).toBeNull();
+    expect(usableSession({ token: 5, leftAt: 0 } as unknown as { token: string; leftAt: number }, 0, 30)).toBeNull();
   });
 });

@@ -21,7 +21,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
   Tests: Pilot cannot throttle, Engineer cannot steer, solo gets all.
 - [x] **P2.3 Multiple cars.** Spawn grid from the track start, car-to-car collisions by weight,
   per-car chase cam (each client follows its own car). Tests.
-- [ ] **P2.4 Disconnect and rejoin.** Reconnection window from config; remaining partner becomes
+- [x] **P2.4 Disconnect and rejoin.** Reconnection window from config; remaining partner becomes
   solo; rejoin restores seats. Integration tests.
 - [ ] **P2.5 Bot clients.** `scripts/bots.mjs` + `npm run bots -- --cars N --seconds S [--url]`:
   for each car, one pilot-bot client and one engineer-bot client over real WebSockets.

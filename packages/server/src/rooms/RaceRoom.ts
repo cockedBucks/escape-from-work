@@ -133,6 +133,23 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     console.log(`[room] join  ${client.sessionId} (${this.state.players.size} connected)`);
   }
 
+  /** Connection lost without saying goodbye (Wi-Fi blip, tab closed): hold the seat for a while. */
+  override onDrop(client: Client): void {
+    this.sim.setConnected(client.sessionId, false);
+    this.syncPlayers();
+    console.log(`[room] drop  ${client.sessionId} (seat held ${this.tuning.net.reconnectSeconds}s)`);
+    // Resolves on reconnect (onReconnect). On timeout it rejects and Colyseus calls onLeave,
+    // so the rejection itself needs no handling beyond not crashing the process.
+    this.allowReconnection(client, this.tuning.net.reconnectSeconds).catch(() => {});
+  }
+
+  override onReconnect(client: Client): void {
+    this.sim.setConnected(client.sessionId, true);
+    this.syncPlayers();
+    client.send(MSG.tuning, this.tuning);
+    console.log(`[room] back  ${client.sessionId}`);
+  }
+
   override onLeave(client: Client): void {
     this.state.players.delete(client.sessionId);
     this.limits.delete(client.sessionId);

@@ -6,7 +6,7 @@ import { GAME_TITLE, MSG, carIdForSlot, type LobbyError, type Tuning } from '@es
 import { DEFAULT_TRACK, loadTrack, loadTuning } from './content';
 import { Game } from './game';
 import { KeyboardControls } from './input/keyboard';
-import { ServerCarSource, joinRace } from './net/connection';
+import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
@@ -99,8 +99,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const container = el('game');
   container.hidden = false;
   setStatus('Connecting…');
-  const room = await joinRace(tuning);
+  const room = await joinOrReconnect(tuning);
   setStatus('');
+  // Wi-Fi blip: the SDK reconnects by itself while the server holds our seat.
+  room.onDrop(() => setStatus('Connection lost — reconnecting…', true));
+  room.onReconnect(() => setStatus(''));
   room.ping((ms) => {
     liveStats.pingMs = ms;
   });

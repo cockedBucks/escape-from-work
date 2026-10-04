@@ -54,6 +54,58 @@ export function joinRace(tuning: Tuning): Promise<Room<unknown, RaceStateView>> 
   return new Client(endpoint).join<RaceStateView>(ROOM_NAME);
 }
 
+const SESSION_KEY = 'efw.session';
+
+interface SavedSession {
+  token: string;
+  /** When the page was left (ms since epoch): the server holds the seat from about then. */
+  leftAt: number;
+}
+
+/** A saved session is worth trying while the server may still hold the seat. */
+export function usableSession(saved: SavedSession | null, now: number, reconnectSeconds: number): string | null {
+  if (!saved || typeof saved.token !== 'string' || typeof saved.leftAt !== 'number') return null;
+  return now - saved.leftAt < reconnectSeconds * 1000 ? saved.token : null;
+}
+
+function readSession(): SavedSession | null {
+  try {
+    return JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? 'null') as SavedSession | null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(token: string): void {
+  try {
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify({ token, leftAt: Date.now() } satisfies SavedSession));
+  } catch {
+    // Storage blocked: a reopened tab simply joins as a new player.
+  }
+}
+
+/**
+ * Join the race, or take back your seat: if this browser left the race a moment ago (tab
+ * closed or reloaded), reconnect with the saved token so the server restores your seat.
+ */
+export async function joinOrReconnect(tuning: Tuning): Promise<Room<unknown, RaceStateView>> {
+  const endpoint = serverEndpoint(window.location, import.meta.env.DEV, tuning.net.port);
+  const token = usableSession(readSession(), Date.now(), tuning.net.reconnectSeconds);
+  let room: Room<unknown, RaceStateView> | null = null;
+  if (token) {
+    try {
+      room = await new Client(endpoint).reconnect<RaceStateView>(token);
+    } catch {
+      room = null; // seat no longer held (or still in use by another tab): join fresh
+    }
+  }
+  room ??= await new Client(endpoint).join<RaceStateView>(ROOM_NAME);
+  const joined = room;
+  // Remember the latest token when the page goes away, with the time it left.
+  window.addEventListener('pagehide', () => writeSession(joined.reconnectionToken));
+  return joined;
+}
+
 /**
  * Cars from the server: every state patch becomes a snapshot stamped with the arrival
  * time, and the game draws `net.interpDelayMs` in the past, blending between snapshots.

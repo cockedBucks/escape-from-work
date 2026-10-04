@@ -96,6 +96,19 @@ export class RaceSim {
     });
   }
 
+  /**
+   * Connection lost (seat held) or back. While a player is away their partner drives solo;
+   * coming back restores the roles. Inputs reset so a stale "gas held" never sticks.
+   */
+  setConnected(id: string, connected: boolean): void {
+    const p = this.players.get(id);
+    if (!p) return;
+    p.connected = connected;
+    p.input = { ...NO_INPUT };
+    p.respawnHeld = false;
+    p.respawnPending = false;
+  }
+
   removePlayer(id: string): void {
     this.players.delete(id);
     this.syncCars();

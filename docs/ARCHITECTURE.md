@@ -185,6 +185,11 @@ solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules li
 missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
 slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
 `maxClients` = 2 × `race.maxCars`.
+Disconnects (P2.4): an unplanned drop (`onDrop`: Wi-Fi blip, closed or reloaded tab) keeps the
+seat for `net.reconnectSeconds`; the player shows as away and their partner drives solo. The
+SDK reconnects by itself after a blip; a reopened tab reconnects with the token saved in
+localStorage on `pagehide`. Back in time = same session, same seat, roles restored; too late =
+`onLeave` frees the seat. A deliberate leave frees it at once.
 The server keeps only the fields the sender's current role allows. Items like Control Swap
 and Lag Spike change the role mapping or add an input delay queue on the server.
 
