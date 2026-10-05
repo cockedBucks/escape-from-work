@@ -46,9 +46,9 @@ export class Sparks {
         this.lastDrift.set(id, now);
         this.wheels(car);
       }
-      if (car.boosting && now - (this.lastBoost.get(id) ?? -Infinity) >= SPARKS.boostEveryMs * this.every) {
+      if ((car.boosting || car.nitroOn) && now - (this.lastBoost.get(id) ?? -Infinity) >= SPARKS.boostEveryMs * this.every) {
         this.lastBoost.set(id, now);
-        this.flame(car);
+        this.flame(car, car.nitroOn ? SPARKS.nitroFlameScale : 1);
       }
     }
     let highest = 0;
@@ -88,14 +88,14 @@ export class Sparks {
     }
   }
 
-  /** A flame puff out of the back of the car. */
-  private flame(car: CarSnap): void {
+  /** A flame puff out of the back of the car (`scale` > 1 = nitro's bigger flames). */
+  private flame(car: CarSnap, scale: number): void {
     const fx = Math.sin(car.yaw);
     const fz = Math.cos(car.yaw);
     const color = SPARKS.flames[Math.random() < 0.5 ? 0 : 1]!;
     this.emit(car.x - fx * SPARKS.rearBack, car.y + SPARKS.rearHeight * 2, car.z - fz * SPARKS.rearBack,
       -fx * SPARKS.flameBack, 0.5, -fz * SPARKS.flameBack,
-      SPARKS.flameSize * (0.7 + Math.random() * 0.6), SPARKS.flameLife, 0, color);
+      SPARKS.flameSize * scale * (0.7 + Math.random() * 0.6), SPARKS.flameLife * scale, 0, color);
   }
 
   private emit(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, life: number, fall: number, color: number): void {

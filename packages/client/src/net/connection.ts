@@ -25,6 +25,8 @@ export interface CarViewState {
   driftCharge: number;
   boostLeft: number;
   nitro: number;
+  nitroOn: boolean;
+  inNitro: boolean;
   vx: number;
   vz: number;
   vy: number;
@@ -172,7 +174,7 @@ export class ServerCarSource implements CarSource {
     const cars = new Map<string, CarSnap>();
     state.cars.forEach((c, id) => {
       cars.set(id, { x: c.x, y: c.y, z: c.z, yaw: c.yaw, speed: c.speed, steer: c.steer, respawning: c.respawning, ghost: c.ghost, stalled: c.stallLeft > 0,
-        drift: c.drift, driftLevel: c.driftLevel, boosting: c.boostLeft > 0 });
+        drift: c.drift, driftLevel: c.driftLevel, boosting: c.boostLeft > 0, nitroOn: c.nitroOn });
     });
     this.lastArrival = now;
     this.lastTime = this.timeline.timeOf(state.tick, now);

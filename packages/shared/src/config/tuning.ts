@@ -146,6 +146,17 @@ const HeatSchema = z.strictObject({
   stallSeconds: nonNeg(),
   /** ...then restarts at this heat (0–1). */
   restartHeat: z.number().min(0).max(1),
+  /** Extra heat per second while burning nitro (on top of `risePerSec`). */
+  nitroRisePerSec: nonNeg(),
+});
+
+/** Nitro (GAME_DESIGN §5): the Engineer burns the meter that drifts fill. */
+const NitroSchema = z.strictObject({
+  /** Meter used per second of burning (0.4 = a full meter lasts 2.5 s). */
+  burnPerSec: pos(),
+  /** Push (m/s²) up to `topSpeed` × the car's top speed. */
+  accel: pos(),
+  topSpeed: z.number().min(1).max(3),
 });
 
 /** Race rules. A stub for now; P3 adds countdown, finish and results. */
@@ -277,6 +288,7 @@ export const TuningSchema = z.strictObject({
   bot: BotSchema,
   heat: HeatSchema,
   drift: DriftSchema,
+  nitro: NitroSchema,
   race: RaceSchema,
   net: NetSchema,
   camera: CameraSchema,

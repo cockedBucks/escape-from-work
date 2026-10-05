@@ -1,4 +1,4 @@
-import type { CarTuning, DriftTuning } from '../config/tuning';
+import type { CarTuning, DriftTuning, Tuning } from '../config/tuning';
 import { clamp, dot, forward, lerp, moveToward, right, wrapAngle } from '../util/math';
 import type { CarInput, CarState } from './types';
 
@@ -51,11 +51,15 @@ export function driftSteer(dir: number, steer: number, drift: DriftTuning): numb
   return dir * (drift.steerBase + drift.steerRange * clamp(steer * dir, -1, 1));
 }
 
+/** An extra push (m/s²) up to `cap` (m/s); above the cap it does nothing (speed settles back). */
+const push = (vF: number, accel: number, cap: number, dt: number): number => (vF < cap ? Math.min(cap, vF + accel * dt) : vF);
+
 /**
- * One tick of ground driving: steering, engine, brakes, grip, drift and boost. Changes
- * `steer`, `yaw`, `vx` and `vz` only. Position, height and walls are handled elsewhere.
+ * One tick of ground driving: steering, engine, brakes, grip, drift, drift boost and nitro.
+ * Changes `steer`, `yaw`, `vx` and `vz` only. Position, height and walls are handled elsewhere.
  */
-export function drive(state: CarState, input: CarInput, car: CarTuning, drift: DriftTuning, dt: number): void {
+export function drive(state: CarState, input: CarInput, car: CarTuning, boosts: Pick<Tuning, 'drift' | 'nitro'>, dt: number): void {
+  const { drift, nitro } = boosts;
   const top = car.topSpeed * state.stats.speed;
   const accel = car.accel * state.stats.speed;
 
@@ -68,9 +72,9 @@ export function drive(state: CarState, input: CarInput, car: CarTuning, drift: D
   let vS = dot(v, r);
 
   vF = longitudinal(vF, input, top, accel, car, dt);
-  // Drift boost: an extra push, up to a bit above top speed (it settles back afterwards).
-  const boostTop = top * drift.boostTopSpeed;
-  if (state.boostTicks > 0 && vF < boostTop) vF = Math.min(boostTop, vF + drift.boostAccel * dt);
+  // Drift boost and nitro: extra pushes above top speed (speed settles back afterwards).
+  if (state.boostTicks > 0) vF = push(vF, drift.boostAccel, top * drift.boostTopSpeed, dt);
+  if (state.nitroOn) vF = push(vF, nitro.accel, top * nitro.topSpeed, dt);
 
   const drifting = state.driftDir !== 0;
   // Grip removes sideways sliding (less while drifting). exp() keeps it the same at any tick rate.

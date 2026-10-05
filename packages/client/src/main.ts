@@ -170,7 +170,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   });
   // Cockpit shot: turn your head right toward your teammate's bobblehead.
   if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
-  if (scenario === 'stall' || scenario === 'drift') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
+  if (scenario === 'stall' || scenario === 'drift' || scenario === 'nitro') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
   game.renderFrame(performance.now(), true);
   game.start();
   setStatus('');
@@ -461,8 +461,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         if (ding && e.car === myCarId) horns.playSound(ding, 0);
         continue;
       }
-      if (e.type === 'boost') {
-        horns.playSound(DRIFT_SOUNDS.boost, heardFrom(e.car));
+      if (e.type === 'boost' || e.type === 'nitro') {
+        horns.playSound(DRIFT_SOUNDS[e.type], heardFrom(e.car));
         continue;
       }
       const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);

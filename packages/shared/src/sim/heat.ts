@@ -7,7 +7,7 @@ export const isStalled = (car: CarState, tick: number): boolean => car.stallUnti
 
 /**
  * Engine heat for one tick (GAME_DESIGN §5). Full gas at speed heats the engine, off the gas
- * or braking cools it, gas at low speed holds it. At full heat the engine stalls for
+ * or braking cools it, gas at low speed holds it; burning nitro always adds heat. At full heat the engine stalls for
  * `heat.stallSeconds`, then restarts at `heat.restartHeat`. Returns the input to drive with:
  * no gas while stalled (brake and steering still work).
  */
@@ -23,6 +23,7 @@ export function stepHeat(car: CarState, input: CarInput, speed: number, cfg: Tun
   const top = cfg.car.topSpeed * car.stats.speed;
   if (!input.gas || input.brake) car.heat -= h.coolPerSec * dt;
   else if (speed >= h.hotSpeedFraction * top) car.heat += h.risePerSec * dt;
+  if (car.nitroOn) car.heat += h.nitroRisePerSec * dt;
   car.heat = clamp(car.heat, 0, 1);
   if (car.heat >= 1) {
     car.stallUntilTick = now + Math.round(h.stallSeconds / dt);

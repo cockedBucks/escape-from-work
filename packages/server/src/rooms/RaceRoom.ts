@@ -372,6 +372,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.inSteer = input?.steer ?? 0;
       view.inGas = input?.gas ?? false;
       view.inBrake = input?.brake ?? false;
+      view.inNitro = input?.nitro ?? false;
       view.respawning = car.respawnAtTick >= 0;
       view.ghost = car.ghostUntilTick > world.tick;
       view.heat = car.heat;
@@ -381,6 +382,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.driftCharge = car.driftCharge;
       view.boostLeft = car.boostTicks * this.tuning.sim.dt;
       view.nitro = car.nitro;
+      view.nitroOn = car.nitroOn;
     }
   }
 }

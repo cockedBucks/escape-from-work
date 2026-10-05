@@ -6,7 +6,7 @@ import { Sparks } from './sparks';
 
 const snap = (over: Partial<CarSnap>): CarSnap => ({
   x: 0, y: 0, z: 0, yaw: 0, speed: 20, steer: 0, respawning: false, ghost: false, stalled: false,
-  drift: 0, driftLevel: 0, boosting: false, ...over,
+  drift: 0, driftLevel: 0, boosting: false, nitroOn: false, ...over,
 });
 
 const colorOf = (s: Sparks, i: number): number => {

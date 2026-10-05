@@ -323,7 +323,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | drift too slidey / too grippy / turns too little | `car.driftGrip`, `drift.turnRate`, `drift.steerBase`, `drift.steerRange`, `drift.carve` |
 | drift ends too easily / never ends | `drift.releaseSteer`, `drift.exitSpeedRatio` |
 | spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
-| overheating too fast / never (P5) | `heat.risePerSec`, `heat.hotSpeedFraction` (heats only above this share of top speed), `heat.coolPerSec`, `heat.nitroRisePerSec` (P5.3) |
+| overheating too fast / never (P5) | `heat.risePerSec`, `heat.hotSpeedFraction` (heats only above this share of top speed), `heat.coolPerSec`, `heat.nitroRisePerSec` (extra heat while burning nitro) |
+| nitro too weak / too strong / runs out too fast | `nitro.accel`, `nitro.topSpeed`, `nitro.burnPerSec` |
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
 | bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt` |
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |

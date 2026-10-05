@@ -44,7 +44,9 @@ export const DRIFT_SOUNDS = {
     { voices: [{ type: 'triangle', from: 784, to: 784 }, { type: 'triangle', from: 1568, to: 1568 }], duration: 0.18, vibrato: 0, vibratoRate: 0, gain: 0.18 },
   ],
   boost: { voices: [{ type: 'sawtooth', from: 160, to: 620 }], duration: 0.4, vibrato: 12, vibratoRate: 30, gain: 0.14 },
-} as const satisfies { levels: readonly HornPreset[]; boost: HornPreset };
+  /** Nitro lights: a low roaring whoosh. */
+  nitro: { voices: [{ type: 'sawtooth', from: 90, to: 260 }, { type: 'square', from: 45, to: 130 }], duration: 0.6, vibrato: 20, vibratoRate: 40, gain: 0.16 },
+} as const satisfies { levels: readonly HornPreset[]; boost: HornPreset; nitro: HornPreset };
 
 /** Distance (m) at which a horn is at half volume. */
 const HALF_VOLUME_DISTANCE = 40;

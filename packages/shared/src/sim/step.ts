@@ -6,6 +6,7 @@ import { collideCars } from './carCollisions';
 import { drive } from './drive';
 import { resetDrift, stepDrift } from './drift';
 import { stepHeat } from './heat';
+import { stepNitro } from './nitro';
 import { dot, forward } from '../util/math';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { collideWalls } from './walls';
@@ -55,11 +56,12 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     input = NO_INPUT;
   }
 
-  // 2. Engine heat (a stalled engine gives no gas), drift (a tap does not brake), then drive
+  // 2. Nitro, engine heat (a stalled engine gives no gas), drift (a tap does not brake), then drive
   // (on the ground only), move, fall, hit walls.
+  stepNitro(car, input, cfg, now, events);
   input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
   input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), cfg, events);
-  if (!isAirborne(car)) drive(car, input, cfg.car, cfg.drift, dt);
+  if (!isAirborne(car)) drive(car, input, cfg.car, cfg, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;
   const impact = fall(car, cfg.car, dt);

@@ -35,7 +35,7 @@ function run(c: CarState, input: CarInput, n: number): SimEvent[] {
   const events: SimEvent[] = [];
   for (let i = 0; i < n; i++) {
     const used = stepDrift(c, input, vF(c), cfg, events);
-    drive(c, used, cfg.car, d, dt);
+    drive(c, used, cfg.car, cfg, dt);
   }
   return events;
 }

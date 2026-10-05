@@ -4,7 +4,7 @@ import { SMOKE } from './look';
 import { Smoke, puffSize } from './smoke';
 
 const snap = (stalled: boolean): CarSnap => ({
-  x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, respawning: false, ghost: false, stalled, drift: 0, driftLevel: 0, boosting: false,
+  x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, respawning: false, ghost: false, stalled, drift: 0, driftLevel: 0, boosting: false, nitroOn: false,
 });
 
 describe('smoke', () => {

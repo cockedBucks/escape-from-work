@@ -38,10 +38,12 @@ export interface OwnCarView {
   /** Seconds of drift boost left. */
   boostLeft: number;
   nitro: number;
+  nitroOn: boolean;
   /** Merged input the server applied (your partner's half comes from here). */
   inSteer: number;
   inGas: boolean;
   inBrake: boolean;
+  inNitro: boolean;
 }
 
 /** A server update this far (m) from the last one is a teleport: do not reuse the track hint. */
@@ -116,6 +118,7 @@ export class OwnCarPredictor {
     car.driftLevel = view.driftLevel;
     car.driftCharge = view.driftCharge;
     car.nitro = view.nitro;
+    car.nitroOn = view.nitroOn;
     // The brake as the server last applied it: held = no fresh press to start a drift with.
     car.brakeTicks = view.inBrake ? 1 : 0;
     this.baseBoostLeft = view.boostLeft;
@@ -128,6 +131,7 @@ export class OwnCarPredictor {
     this.serverInput.steer = view.inSteer;
     this.serverInput.gas = view.inGas;
     this.serverInput.brake = view.inBrake;
+    this.serverInput.nitro = view.inNitro;
     this.needOffset = this.shown.valid;
   }
 
@@ -146,6 +150,7 @@ export class OwnCarPredictor {
     input.steer = mayUse(role, 'steer') ? local.steer : this.serverInput.steer;
     input.gas = mayUse(role, 'gas') ? local.gas : this.serverInput.gas;
     input.brake = mayUse(role, 'brake') ? local.brake : this.serverInput.brake;
+    input.nitro = mayUse(role, 'nitro') ? (local.nitro ?? false) : (this.serverInput.nitro ?? false);
     input.respawn = false;
 
     const dtMs = cfg.sim.dt * 1000;

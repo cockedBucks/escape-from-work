@@ -56,6 +56,7 @@ export function createCar(id: string, stats: CarStats, track: Track, gateIndex =
     brakeTicks: 0,
     boostTicks: 0,
     nitro: 0,
+    nitroOn: false,
     nextHonkTick: 0,
   };
   placeAtGate(state, track, gate, lateral);

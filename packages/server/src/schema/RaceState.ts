@@ -62,6 +62,7 @@ export const CarView = schema(
     inSteer: t.float32().default(0),
     inGas: t.boolean().default(false),
     inBrake: t.boolean().default(false),
+    inNitro: t.boolean().default(false),
     /** Fading out before a respawn. */
     respawning: t.boolean().default(false),
     /** Ghosted after a respawn (drawn see-through). */
@@ -75,6 +76,8 @@ export const CarView = schema(
     driftCharge: t.float32().default(0),
     boostLeft: t.float32().default(0),
     nitro: t.float32().default(0),
+    /** Burning nitro now (flames). */
+    nitroOn: t.boolean().default(false),
   },
   'CarView',
 );

@@ -11,6 +11,8 @@ export interface CarInput {
   respawn: boolean;
   /** Honk the horn (anyone in the car; once per press). */
   honk?: boolean;
+  /** Burn nitro while held (Engineer or solo). */
+  nitro?: boolean;
 }
 
 export const NO_INPUT: Readonly<CarInput> = { steer: 0, gas: false, brake: false, respawn: false };
@@ -64,8 +66,10 @@ export interface CarState {
   brakeTicks: number;
   /** Ticks of drift boost left (0 = none). */
   boostTicks: number;
-  /** Nitro meter 0–1 (filled by drifts; P5.3 burns it). */
+  /** Nitro meter 0–1 (filled by drifts, burned by holding nitro). */
   nitro: number;
+  /** Burning nitro this tick (speed push, extra heat, flames). */
+  nitroOn: boolean;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
@@ -87,6 +91,7 @@ export type SimEvent =
   | { type: 'stall'; car: string }
   | { type: 'driftLevel'; car: string; level: number }
   | { type: 'boost'; car: string; level: number }
+  | { type: 'nitro'; car: string }
   | { type: 'restart'; car: string };
 
 export interface World {

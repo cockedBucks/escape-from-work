@@ -218,5 +218,7 @@ export const SPARKS = {
   throwBack: 3,
   kickUp: 4,
   flameBack: 7,
+  /** Nitro flames are this much bigger and longer than a drift boost's. */
+  nitroFlameScale: 1.8,
   gravity: 14,
 } as const;

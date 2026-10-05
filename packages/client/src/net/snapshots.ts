@@ -16,6 +16,8 @@ export interface CarSnap {
   drift: number;
   driftLevel: number;
   boosting: boolean;
+  /** Burning nitro (big flames). */
+  nitroOn: boolean;
 }
 
 interface Snapshot {
@@ -91,6 +93,7 @@ export class SnapshotBuffer {
       o.drift = cb.drift;
       o.driftLevel = cb.driftLevel;
       o.boosting = cb.boosting;
+      o.nitroOn = cb.nitroOn;
     }
   }
 

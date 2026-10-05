@@ -62,6 +62,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `cockpit` | same frozen race from car 1's Pilot seat, head turned right at the teammate's bobblehead (placeholder face) |
 | `stall` | same frozen race in chase view, car 1's engine just stalled: smoke puffing from the hood (P5.1) |
 | `drift` | same frozen race in chase view, car 1 mid-drift with orange (level 2) sparks at the rear wheels (P5.2) |
+| `nitro` | same frozen race in chase view, car 1 burning nitro: big flames out the back (P5.3) |
 | `track-overview` | top-down camera over the whole track, cars on the start line |
 | `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview |
 | `garage` | all roster cars side by side in team colors |

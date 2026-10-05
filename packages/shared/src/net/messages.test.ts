@@ -5,7 +5,7 @@ describe('input message', () => {
   it('accepts a full message and fills missing keys with "not pressed"', () => {
     const msg = parseInputMessage({ seq: 3, gas: true });
     expect(msg).not.toBeNull();
-    expect(toCarInput(msg!)).toEqual({ steer: 0, gas: true, brake: false, respawn: false, honk: false });
+    expect(toCarInput(msg!)).toEqual({ steer: 0, gas: true, brake: false, respawn: false, honk: false, nitro: false });
   });
 
   it('clamps steer instead of rejecting it', () => {

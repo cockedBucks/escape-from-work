@@ -68,7 +68,13 @@
     "risePerSec": 0.25,
     "coolPerSec": 0.35,
     "stallSeconds": 2,
-    "restartHeat": 0.6
+    "restartHeat": 0.6,
+    "nitroRisePerSec": 0.3
+  },
+  "nitro": {
+    "burnPerSec": 0.4,
+    "accel": 26,
+    "topSpeed": 1.35
   },
   "race": {
     "honkCooldownSeconds": 0.3,
