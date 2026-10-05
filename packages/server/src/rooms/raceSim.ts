@@ -6,6 +6,7 @@ import {
   newBotMemory,
   type BotMemory,
   dropCar,
+  gapTicks,
   gridOrder,
   isWrongWay,
   newRun,
@@ -232,10 +233,16 @@ export class RaceSim {
   }
 
   /** Race info for one car (null outside a race). */
-  carRace(id: string): { run: CarRun; place: number; wrongWay: boolean } | null {
+  carRace(id: string): { run: CarRun; place: number; wrongWay: boolean; gapTicks: number } | null {
     const r = this.run?.cars.get(id);
-    if (!r) return null;
-    return { run: r, place: this.places.get(id) ?? 0, wrongWay: isWrongWay(r, this.cfg.race, this.cfg.sim.dt) };
+    if (!r || !this.run) return null;
+    const leader = [...this.places].find(([, place]) => place === 1)?.[0];
+    return {
+      run: r,
+      place: this.places.get(id) ?? 0,
+      wrongWay: isWrongWay(r, this.cfg.race, this.cfg.sim.dt),
+      gapTicks: leader === undefined ? 0 : gapTicks(this.run, leader, id),
+    };
   }
 
   /** Ready (or not) in the lobby. */

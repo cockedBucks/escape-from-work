@@ -5,7 +5,7 @@ const TEXT: Record<string, { title: string; keys: string }> = {
   pilot: { title: 'PILOT', keys: 'A / D steer · R respawn' },
   engineer: { title: 'ENGINEER', keys: 'W gas · S brake / reverse · R respawn' },
   solo: { title: 'SOLO', keys: 'W/S pedals · A/D steer · R respawn' },
-  '': { title: 'WATCHING', keys: 'Esc to pick a seat' },
+  '': { title: 'WATCHING', keys: 'pick a seat in the lobby between races (Esc)' },
 };
 
 /** How long the "your role changed" flash lasts (ms). */

@@ -23,6 +23,8 @@ export interface CarRun {
   dnf: boolean;
   /** Ticks in a row spent driving against the track direction. */
   wrongWayTicks: number;
+  /** Tick each sector was passed: sectorTicks[k] = when sectorsDone became k + 1 (for gaps). */
+  sectorTicks: number[];
 }
 
 export interface RaceRun {
@@ -51,10 +53,26 @@ export function newRun(carIds: readonly string[], laps: number, startTick: numbe
   for (const id of [...carIds].sort()) {
     cars.set(id, {
       id, sectorsDone: 0, lapsDone: 0, lapStartTick: startTick, bestLapTicks: null,
-      finishTick: null, dnf: false, wrongWayTicks: 0,
+      finishTick: null, dnf: false, wrongWayTicks: 0, sectorTicks: [],
     });
   }
   return { laps, startTick, winnerTick: null, finishOrder: [], cars };
+}
+
+/**
+ * Time gap to the leader (ticks): when this car passed its latest sector minus when the
+ * leader passed that same sector. Finishers compare finish times. 0 for the leader or
+ * before the first sector.
+ */
+export function gapTicks(run: RaceRun, leaderId: string, id: string): number {
+  const me = run.cars.get(id);
+  const leader = run.cars.get(leaderId);
+  if (!me || !leader || id === leaderId) return 0;
+  if (me.finishTick !== null && leader.finishTick !== null) return me.finishTick - leader.finishTick;
+  const k = me.sectorsDone - 1;
+  const mine = me.sectorTicks[k];
+  const theirs = leader.sectorTicks[k];
+  return mine === undefined || theirs === undefined ? 0 : Math.max(0, mine - theirs);
 }
 
 /** A car left mid-race (its last player went away): it simply stops counting. */
@@ -72,6 +90,7 @@ export function applyEvents(run: RaceRun, events: readonly SimEvent[], tick: num
     const car = run.cars.get(e.car);
     if (!car || car.finishTick !== null || car.dnf) continue;
     car.sectorsDone++;
+    car.sectorTicks.push(tick);
     if (e.gate !== 0) continue;
     car.lapsDone++;
     const lap = tick - car.lapStartTick;

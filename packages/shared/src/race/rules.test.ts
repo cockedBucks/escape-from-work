@@ -10,7 +10,7 @@ import { step } from '../sim/step';
 import type { CarInput, SimEvent, World } from '../sim/types';
 import { buildTrack } from '../track/build';
 import { Rng } from '../util/rng';
-import { applyEvents, gridOrder, isWrongWay, newRun, raceOver, results, standings, updateWrongWay, type RaceRun } from './rules';
+import { applyEvents, gapTicks, gridOrder, isWrongWay, newRun, raceOver, results, standings, updateWrongWay, type RaceRun } from './rules';
 
 const cfg = parseTuning(realTuning);
 const track = buildTrack(parseTrack(testLoopJson, 'test-loop'), cfg.track);
@@ -115,5 +115,18 @@ describe('grid order', () => {
     const prev = ['car2', 'car0', 'car1'].map((id, i) => ({ id, place: i + 1, timeTicks: 1, bestLapTicks: 1, lapsDone: 1, dnf: false }));
     const order = gridOrder(['car0', 'car1', 'car2', 'car5'], prev, new Rng(1));
     expect(order).toEqual(['car5', 'car1', 'car0', 'car2']);
+  });
+});
+
+describe('gaps', () => {
+  it('measures the time split at the last sector both cars passed', () => {
+    const run = newRun(['a', 'b'], 3, 0);
+    const cp = (car: string, gate: number): SimEvent => ({ type: 'checkpoint', car, gate });
+    applyEvents(run, [cp('a', 1)], 100);
+    applyEvents(run, [cp('b', 1)], 160);
+    applyEvents(run, [cp('a', 2)], 200);
+    expect(gapTicks(run, 'a', 'b')).toBe(60); // b passed sector 1 sixty ticks after a
+    expect(gapTicks(run, 'a', 'a')).toBe(0);
+    expect(gapTicks(newRun(['x', 'y'], 1, 0), 'x', 'y')).toBe(0); // nobody passed anything yet
   });
 });

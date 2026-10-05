@@ -94,6 +94,7 @@ export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby
 export {
   applyEvents,
   dropCar,
+  gapTicks,
   gridOrder,
   isWrongWay,
   newRun,

@@ -50,6 +50,8 @@ export const CarView = schema(
     wrongWay: t.boolean().default(false),
     /** Race time at the finish and best lap (ms, 0 = none yet). */
     finishMs: t.uint32().default(0),
+    /** Time behind the leader at the last sector both passed (ms). */
+    gapMs: t.uint32().default(0),
     bestLapMs: t.uint32().default(0),
     /** The merged input the server applied this tick (prediction uses the partner's half). */
     inSteer: t.float32().default(0),

@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P3 — Race loop (`docs/phases/P03-race-loop.md`)
-- Next task: P3.5 (spectators and scoreboard)
-- Status: P3.4 done. `npm run verify` passes (241 tests + bot race).
+- Next task: P3.6 (results screen)
+- Status: P3.5 done. `npm run verify` passes (248 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -55,6 +55,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   order (random, then reversed results), countdown + lap/place HUD. D052.
 - 2026-10-05: P3.4 bot cars — server bots fill empty cars up to race.botFillCars when the host turns
   bots on; people take over bot cars; bots-only races allowed. D053.
+- 2026-10-05: P3.5 spectators + scoreboard — spectator cam (auto-cycle, A/D), late joiners watch,
+  hold-Tab scoreboard with time-split gaps. Live check passed. D054.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

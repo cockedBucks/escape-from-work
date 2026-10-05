@@ -31,6 +31,7 @@ export interface CarViewState {
   dnf: boolean;
   wrongWay: boolean;
   finishMs: number;
+  gapMs: number;
   bestLapMs: number;
 }
 

@@ -14,6 +14,8 @@ import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from '
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { RaceHud, hudText } from './ui/raceHud';
+import { Scoreboard, boardRows, type BoardCar } from './ui/scoreboard';
+import { Spectator } from './ui/spectator';
 import { RoleBadge } from './ui/roleBadge';
 
 /** Car slots driven by server bots (car ids are "car<slot>"). */
@@ -166,6 +168,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   });
   const badge = new RoleBadge(container);
   const hud = new RaceHud(container);
+  const board = new Scoreboard(container);
+  let teamNames: string[] = [];
+  const spectator = new Spectator(container, (carId) => teamNames[Number(carId.slice('car'.length))] ?? carId);
   let mySlot = -1;
   let myRole: Role | null = null;
   let phase: RacePhase = 'lobby';
@@ -208,6 +213,18 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
+    teamNames = [...state.teams];
+    const boardCars: BoardCar[] = [];
+    state.cars.forEach((c, id) => {
+      boardCars.push({
+        slot: Number(id.slice('car'.length)), place: c.place, lapsDone: c.lapsDone, finished: c.finished,
+        dnf: c.dnf, gapMs: c.gapMs, finishMs: c.finishMs, bot: c.bot,
+      });
+    });
+    board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase));
+    // Watching (not in a car): cycle through the cars, leader first during a race.
+    const byPlace = [...boardCars].sort((a, b) => (a.place || 99) - (b.place || 99) || a.slot - b.slot);
+    spectator.update(mySlot < 0, byPlace.map((c) => carIdForSlot(c.slot)), now);
     hud.set(
       hudText({
         phase: state.phase,
@@ -239,8 +256,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     quality: pickQuality(window.location.search, tuning).preset,
     source: carSource,
     view: 'chase',
-    // Follow your own car; while watching, follow the first car.
-    focus: () => (mySlot >= 0 ? carIdForSlot(mySlot) : null),
+    // Follow your own car; while watching, the spectator cam picks the car.
+    focus: () => myCarId ?? spectator.target,
     onFrame: (now) => {
       liveStats.snapshotAgeMs = source.lastArrival < 0 ? null : now - source.lastArrival;
       liveStats.interpDelayMs = source.interpDelayMs;
@@ -269,6 +286,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.dispose();
     badge.dispose();
     hud.dispose();
+    board.dispose();
+    spectator.dispose();
     setStatus('Disconnected from the game server. Reload to rejoin.', true);
   });
   void markReady(hooks);

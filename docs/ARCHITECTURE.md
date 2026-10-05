@@ -195,6 +195,11 @@ solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules li
 missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
 slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
 `maxClients` = 2 × `race.maxCars`.
+Spectators and scoreboard (P3.5): anyone not in a car (including late joiners, since seats lock
+during a race) gets a spectator cam that follows the leader first, cycles every 8 s, and A/D or
+←/→ switch. Hold Tab for the scoreboard (place, team, players, lap, gap). Gaps are time splits:
+the race rules store when each car passed each sector; gap = this car's latest sector time minus
+the leader's time at the same sector (synced as `gapMs`).
 Bot cars (P3.4): with the host's bots switch on, `RaceSim` adds server-driven cars in the lowest
 empty slots until there are `race.botFillCars` cars; the bot driver gives both halves of the input.
 A person sitting in a bot car takes it over. The switch only changes between races. Cars sync

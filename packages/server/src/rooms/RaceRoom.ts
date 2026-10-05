@@ -280,6 +280,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.wrongWay = race?.wrongWay ?? false;
       const start = this.sim.run?.startTick ?? 0;
       view.finishMs = race && race.run.finishTick !== null ? Math.round((race.run.finishTick - start) * tickMs) : 0;
+      view.gapMs = race ? Math.round(race.gapTicks * tickMs) : 0;
       view.bestLapMs = race && race.run.bestLapTicks !== null ? Math.round(race.run.bestLapTicks * tickMs) : 0;
       const input = this.sim.lastInputs[car.id];
       view.inSteer = input?.steer ?? 0;
