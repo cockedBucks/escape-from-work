@@ -5,13 +5,16 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P4 — Cockpit cam and bobbleheads (`docs/phases/P04-cockpit.md`)
-- Next task: P4.7 (shots)
-- Status: P4.6 done. `npm run verify` passes (279 tests + bot race).
+- Next task: HUMAN GATE — cockpit fun (then P4.8)
+- Status: P4.7 done. `npm run verify` passes (279 tests + bot race). Shots: cockpit 13 / chase 12 /
+  overview 34 draw calls, ≤ 10.2k triangles. Waiting on the human.
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
+- P4 HUMAN GATE "cockpit fun": faces in assets/faces + npm run faces, two players in one car in
+  cockpit cam; reply funny? motion sickness? dashboard readable? mirror useful?
 - Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
 
 ## Environment
@@ -66,6 +69,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-05: P4.5 rear-view mirror — low-res render target, rate by quality preset, framed panel. D062.
 - 2026-10-05: P4.6 honk — H by either player (once per press, cooldown), sim honk event, per-car
   procedural Web Audio horn (cars.json `horn`), HONK! bubble for everyone. D063.
+- 2026-10-05: P4.7 shots — cockpit/chase/overview/lobby/results all ok and far inside the budget.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

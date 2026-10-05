@@ -29,7 +29,7 @@ a dashboard HUD, a rear-view mirror, and a goofy horn.
 - [x] **P4.5 Rear-view mirror.** Low-res render target, rate by quality preset, off on Low.
 - [x] **P4.6 Honk.** H by either player; per-car horn preset from `cars.json`, procedural Web
   Audio; "HONK!" bubble over the car for everyone.
-- [ ] **P4.7 Shots.** Scenario `cockpit` (teammate visible). `/shots cockpit chase`.
+- [x] **P4.7 Shots.** Scenario `cockpit` (teammate visible). `/shots cockpit chase`.
 - [ ] **HUMAN GATE — cockpit fun.**
   1. Put a few face images in `assets/faces/` (only people who agreed), run `npm run faces`.
   2. Two players in one car, both in cockpit cam. Look at each other while driving.
