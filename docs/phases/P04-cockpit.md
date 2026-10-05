@@ -23,7 +23,7 @@ a dashboard HUD, a rear-view mirror, and a goofy horn.
   Players choose their face in the lobby (or a placeholder). Head sphere with the face on the
   front, spring wobble driven by car acceleration. Solo cars show a rubber duck in the empty
   seat.
-- [ ] **P4.4 Dashboard HUD.** Speedometer, lap/place, and slots for heat, nitro and item (filled
+- [x] **P4.4 Dashboard HUD.** Speedometer, lap/place, and slots for heat, nitro and item (filled
   in later phases), drawn to a small canvas texture on the dashboard. The chase-cam DOM HUD
   shows the same info.
 - [ ] **P4.5 Rear-view mirror.** Low-res render target, rate by quality preset, off on Low.

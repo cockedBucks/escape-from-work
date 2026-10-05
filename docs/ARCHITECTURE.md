@@ -215,6 +215,9 @@ Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:rea
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
 Esc hides it to drive around; never redraws under a focused text field.
+Dashboard (P4.4): `ui/gauges.ts` (speed km/h, lap, place, heat/nitro bars, item slot; heat, nitro and
+item stay empty until P5/P6) drawn twice: a canvas screen on your cockpit dashboard
+(`render/dashboard.ts`, redrawn ≤ 10/s and only on change) and a DOM panel bottom-right in chase view.
 Bobbleheads (P4.3): `npm run faces` writes `assets/faces/faces.json` (`packages/server/src/faces.ts`);
 the game server serves `/faces/*` (Vite proxies it in dev). `lobby:setFace {face}` is accepted
 only for files that exist; `players.face` syncs. Each seat shows a sphere head (face painted on

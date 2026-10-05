@@ -15,8 +15,9 @@ import { OwnCarPredictor } from './net/predictor';
 import { seatSideFor } from './render/cockpitCam';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
-import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
+import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
+import { GaugePanel, type GaugeValues } from './ui/gauges';
 import { RaceHud, hudText } from './ui/raceHud';
 import { ResultsScreen } from './ui/resultsScreen';
 import { Scoreboard, boardRows, type BoardCar } from './ui/scoreboard';
@@ -264,6 +265,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   });
   const badge = new RoleBadge(container);
   const hud = new RaceHud(container);
+  const gaugePanel = new GaugePanel(container);
+  let gauges: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, nitro: null, item: null };
   // Host only, during a race: the way out of a race nobody finishes.
   const endRace = document.createElement('button');
   endRace.className = 'end-race';
@@ -346,8 +349,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     // Watching (not in a car): cycle through the cars, leader first during a race.
     const byPlace = [...boardCars].sort((a, b) => (a.place || 99) - (b.place || 99) || a.slot - b.slot);
     spectator.update(mySlot < 0, byPlace.map((c) => carIdForSlot(c.slot)), now);
-    hud.set(
-      hudText({
+    const hudNow = hudText({
         phase: state.phase,
         tick: state.tick,
         phaseTick: state.phaseTick,
@@ -356,8 +358,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         laps: state.laps,
         cars: state.cars.size,
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
-      }),
-    );
+      });
+    hud.set(hudNow);
+    // Heat, nitro and item arrive in P5/P6; the gauges already have their slots.
+    gauges = { lap: hudNow.lap, place: hudNow.place, heat: null, nitro: null, item: null };
     join.update({
       players,
       myId: room.sessionId,
@@ -383,7 +387,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     occupants: (carId) => seatsByCar.get(carId) ?? null,
     seatSide: () => seatSideFor(mySeat),
     mouseLocked: () => mouseLook.locked,
+    gauges: () => gauges,
     onFrame: (now) => {
+      // Chase-cam gauges for your car (the cockpit has its dashboard screen instead).
+      gaugePanel.update(game.view === 'chase' && myCarId !== null && focusPose.set, { speed: focusPose.speed, ...gauges });
       // Share where you look (your teammate sees your bobblehead turn).
       const h = game.head;
       const send = headSender.next(now, h.yaw, h.pitch, latestTuning.net.headSendMs);
@@ -435,6 +442,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.dispose();
     badge.dispose();
     hud.dispose();
+    gaugePanel.dispose();
     cameraToggle.dispose();
     mouseLook.dispose();
     endRace.remove();

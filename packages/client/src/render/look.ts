@@ -98,6 +98,18 @@ export const COCKPIT = {
   dashColor: 0x2b2b2b,
 } as const;
 
+/** The cockpit dashboard screen (a tilted panel on top of the dashboard). */
+export const DASH_SCREEN = {
+  /** Panel width (m); height is a quarter of it. */
+  width: 0.9,
+  /** Canvas resolution across (px). */
+  pixelsWide: 512,
+  /** Lean back toward the driver (rad). */
+  tilt: 0.9,
+  /** Lift above the dashboard top (m). */
+  raise: 0.06,
+} as const;
+
 /** Bobbleheads (ART_STYLE §4: heads ~1.6× scale, on a spring, wobbling). */
 export const HEAD = {
   radius: 0.36,
@@ -119,8 +131,8 @@ export const HEAD = {
 export const DUCK = {
   bodyRadius: 0.26,
   headRadius: 0.15,
-  /** Sits on the seat, lower than a head. */
-  y: 1.15,
+  /** Sits on the roof above its seat, like the heads (center height, m). */
+  y: 1.72,
   yellow: 0xffd23f,
   orange: 0xfb8500,
 } as const;

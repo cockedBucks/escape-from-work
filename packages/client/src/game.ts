@@ -3,7 +3,9 @@ import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
 import { BoxCar, type SeatContent } from './render/carMesh';
+import { DashboardScreen } from './render/dashboard';
 import { FaceMaterials } from './render/faceTexture';
+import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
 import { TEAM_COLORS } from './render/look';
 import { createStage, type Stage } from './render/renderer';
@@ -28,6 +30,8 @@ export interface GameOptions {
   view: View;
   /** Car the chase cam follows (null = first car). */
   focus: () => string | null;
+  /** Race info for the cockpit dashboard (speed comes from the car itself). */
+  gauges?: () => Omit<GaugeValues, 'speed'>;
   /** Who sits in each car (for bobbleheads); null/undefined = empty seats. */
   occupants?: (carId: string) => CarSeats | null;
   /** Cockpit cam: which seat you sit in (default left). */
@@ -59,6 +63,8 @@ function teamColor(id: string, index: number): number {
   return TEAM_COLORS[i % TEAM_COLORS.length] ?? TEAM_COLORS[0]!;
 }
 
+const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, nitro: null, item: null };
+
 /** Longest frame step the camera smoothing accepts (s), so a hitch doesn't fling it. */
 const MAX_FRAME_DT = 0.1;
 
@@ -72,6 +78,8 @@ export class Game {
   private readonly heads = new HeadSmoother();
   /** Last frame's speed and heading per car, to work out acceleration for the wobble. */
   private readonly motion = new Map<string, { speed: number; yaw: number }>();
+  /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
+  private dashScreen: DashboardScreen | null = null;
   /** Car currently showing its dashboard (your car in cockpit view). */
   private dashCar: string | null = null;
   private readonly overlay: DebugOverlay;
@@ -165,6 +173,10 @@ export class Game {
         this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera);
       }
       this.showDash(view === 'cockpit' && id !== null ? id : null);
+      if (view === 'cockpit' && car && this.dashScreen) {
+        this.dashScreen.mesh.position.y = car.y;
+        this.dashScreen.update(now, { speed: car.speed, ...(this.opts.gauges?.() ?? NO_GAUGES) });
+      }
       focusPose.set = car !== undefined;
       if (car) {
         focusPose.x = car.x;
@@ -185,15 +197,21 @@ export class Game {
     this.overlay.update(now);
   }
 
-  /** Only your own car, only in the cockpit, shows its dashboard. */
+  /** Only your own car, only in the cockpit, shows its dashboard (block + screen). */
   private showDash(id: string | null): void {
     if (id === this.dashCar) {
       if (id) this.cars.get(id)?.setCockpit(true); // keep it on the car (height follows jumps)
       return;
     }
     if (this.dashCar) this.cars.get(this.dashCar)?.setCockpit(false);
+    this.dashScreen?.mesh.removeFromParent();
     this.dashCar = id;
-    if (id) this.cars.get(id)?.setCockpit(true);
+    const car = id ? this.cars.get(id) : undefined;
+    if (car) {
+      car.setCockpit(true);
+      this.dashScreen ??= new DashboardScreen();
+      car.root.add(this.dashScreen.mesh);
+    }
   }
 
   /** Bobbleheads / duck for one car, wobbling with its acceleration. */
@@ -248,6 +266,7 @@ export class Game {
     this.cars.clear();
     this.overlay.dispose();
     this.faces.dispose();
+    this.dashScreen?.dispose();
     this.trackMeshes.dispose();
     this.stage.dispose();
   }
