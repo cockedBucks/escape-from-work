@@ -460,3 +460,58 @@ describe('RaceSim tandem drift (needs both players, or one solo)', () => {
     expect(car(sim, 'car0').driftDir).toBe(1);
   });
 });
+
+describe('RaceSim swap lane and solo flag', () => {
+  /** Put car0 just before the swap lane, on its side, on the lap the lane opens. */
+  function toLane(sim: RaceSim): void {
+    const lane = track.rangedZones.find((z) => z.type === 'swap')!;
+    const i = Math.round((lane.from - 0.005) * track.samples.length);
+    const s = track.samples[i]!;
+    const c = car(sim, 'car0');
+    const side = lane.side === 'right' ? 3 : -3;
+    c.x = s.pos.x + s.right.x * side;
+    c.z = s.pos.z + s.right.z * side;
+    c.yaw = Math.atan2(s.dir.x, s.dir.z);
+    c.vx = s.dir.x * 20;
+    c.vz = s.dir.z * 20;
+    c.segment = i;
+    c.lap = lane.minLap;
+    c.heat = 0.8;
+  }
+
+  it('driving into the open lane swaps Pilot and Engineer and cools the engine', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('p');
+    sim.addPlayer('e');
+    sim.setSeat('p', 0, 'pilot');
+    sim.setSeat('e', 0, 'engineer');
+    toLane(sim);
+    let swapped = false;
+    for (let i = 0; i < 60 && !swapped; i++) swapped = sim.tick().some((ev) => ev.type === 'swap');
+    expect(swapped).toBe(true);
+    expect(sim.seatsSwapped).toBe(true);
+    const seats = Object.fromEntries(sim.seating().map((s) => [s.id, s.seat]));
+    expect(seats).toEqual({ p: 'engineer', e: 'pilot' });
+    expect(car(sim, 'car0').heat).toBeLessThan(0.1);
+  });
+
+  it('a solo car only gets the cooled engine; the solo flag follows who is in the car', () => {
+    const sim = soloSim('s');
+    sim.tick();
+    expect(car(sim, 'car0').solo).toBe(true);
+    toLane(sim);
+    let swapped = false;
+    for (let i = 0; i < 60 && !swapped; i++) swapped = sim.tick().some((ev) => ev.type === 'swap');
+    expect(swapped).toBe(true);
+    expect(sim.seatsSwapped).toBe(false);
+    expect(sim.seating().find((s) => s.id === 's')!.seat).toBe('solo');
+
+    const duo = new RaceSim(track, cfg, stats);
+    duo.addPlayer('p');
+    duo.addPlayer('e');
+    duo.setSeat('p', 0, 'pilot');
+    duo.setSeat('e', 0, 'engineer');
+    duo.tick();
+    expect(car(duo, 'car0').solo).toBe(false);
+  });
+});

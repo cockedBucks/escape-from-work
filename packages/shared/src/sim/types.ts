@@ -70,6 +70,13 @@ export interface CarState {
   nitro: number;
   /** Burning nitro this tick (speed push, extra heat, flames). */
   nitroOn: boolean;
+  /** The lap this car is on, counted by the sim (1 = first lap; +1 at each finish-line crossing). */
+  lap: number;
+  /** Inside a swap lane (slower), and the lap of the last swap (0 = none; one swap per lap). */
+  onSwap: boolean;
+  swappedLap: number;
+  /** One player drives alone (set by the server each tick): `solo.speedMultiplier` applies. */
+  solo: boolean;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
@@ -92,6 +99,7 @@ export type SimEvent =
   | { type: 'driftLevel'; car: string; level: number }
   | { type: 'boost'; car: string; level: number }
   | { type: 'nitro'; car: string }
+  | { type: 'swap'; car: string }
   | { type: 'restart'; car: string };
 
 export interface World {

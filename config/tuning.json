@@ -25,7 +25,8 @@
     "carHitMinSpeed": 3,
     "gravity": 25,
     "rampLaunch": 9,
-    "landingMinSpeed": 4
+    "landingMinSpeed": 4,
+    "swapLaneSpeed": 0.8
   },
   "sim": {
     "dt": 0.016666666666666666
@@ -70,6 +71,9 @@
     "stallSeconds": 2,
     "restartHeat": 0.6,
     "nitroRisePerSec": 0.3
+  },
+  "solo": {
+    "speedMultiplier": 1
   },
   "nitro": {
     "burnPerSec": 0.4,

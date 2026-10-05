@@ -24,7 +24,8 @@
   "sectors": 6,
   "zones": [
     { "type": "ramp", "from": 0.07, "to": 0.08, "launch": 1 },
-    { "type": "slick", "from": 0.21, "to": 0.25, "side": "both" }
+    { "type": "slick", "from": 0.21, "to": 0.25, "side": "both" },
+    { "type": "swap", "from": 0.93, "to": 0.97, "side": "right", "minLap": 2 }
   ],
   "props": [],
   "start": { "at": 0 }

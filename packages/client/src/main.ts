@@ -21,6 +21,8 @@ import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from '
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
+import { swappedRole } from './ui/roleKeys';
+import { SwapFlash } from './ui/swapFlash';
 import { RaceHud, hudText } from './ui/raceHud';
 import { ResultsScreen } from './ui/resultsScreen';
 import { Scoreboard, boardRows, type BoardCar } from './ui/scoreboard';
@@ -281,6 +283,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.showError(e.reason);
   });
   const badge = new RoleBadge(container);
+  const swapFlash = new SwapFlash(container);
   const hud = new RaceHud(container);
   const gaugePanel = new GaugePanel(container);
   const gauges: GaugeValues = { speed: 0, lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
@@ -459,6 +462,15 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       if (e.type === 'driftLevel') {
         const ding = DRIFT_SOUNDS.levels[e.level - 1];
         if (ding && e.car === myCarId) horns.playSound(ding, 0);
+        continue;
+      }
+      if (e.type === 'swap') {
+        // Seats swap on the server; the new role arrives with the next state patch, so work it
+        // out here to flash it right away.
+        if (e.car === myCarId) {
+          swapFlash.show(swappedRole(myRole ?? ''));
+          horns.playSound(DRIFT_SOUNDS.swap, 0);
+        }
         continue;
       }
       if (e.type === 'boost' || e.type === 'nitro') {

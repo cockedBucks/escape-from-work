@@ -81,6 +81,7 @@ describe('bot engineer', () => {
 describe('golden: bot laps on the Test Loop', () => {
   // GOLDEN: change these windows only for an intended feel change, and say so in the commit.
   // Measured at P5.1 (engine heat: the bot lifts at bot.heatLiftAt): lap 1 37.15 s, flying 36.87 s.
+  // P5.4 (swap lane on the last straight; it cools the engine from lap 2): 37.27 / 36.82 / 36.38 s.
   // (P2.8 without heat: 35.57 s / 34.60 s.)
   const race = runBotRace(track, cfg, { cars: 1, laps: 3, maxSeconds: 300 });
 
@@ -118,7 +119,7 @@ describe('golden: replay determinism', () => {
     // GOLDEN: any change to physics, bot or Test Loop changes this. Update it only when the
     // change is intended, and say so in the commit message.
     const race = runBotRace(track, cfg, { cars: 2, laps: 1, maxSeconds: 120 });
-    expect(race.hash).toBe('55951d12');
+    expect(race.hash).toBe('2c20169a');
   });
 
   it('hash notices a tiny difference', () => {

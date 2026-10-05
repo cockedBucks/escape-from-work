@@ -51,6 +51,10 @@ export const TRACK_LOOK = {
   /** Slick patch tint and opacity. */
   slickColor: 0x7fc8e8,
   slickOpacity: 0.65,
+  /** Swap lane: purple/white stripes over its half of the road, this many samples per stripe. */
+  swapColors: [0x9b5de5, 0xffffff],
+  swapStripeSamples: 2,
+  swapOpacity: 0.7,
   /** Ground plane extends this far past the track bounds (m). */
   groundMargin: 400,
   /** Small lift so flat decals never z-fight with the road (m). */

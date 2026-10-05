@@ -109,6 +109,8 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   // Ramps: a wedge rising over the zone, then a vertical drop at its end.
   const ramps = new RibbonBuilder();
   const slicks = new RibbonBuilder();
+  const swaps = new RibbonBuilder();
+  const swapColors = TRACK_LOOK.swapColors.map((c) => new THREE.Color(c));
   for (const zone of track.rangedZones) {
     const [i0, i1] = zoneSamples(track, zone.from, zone.to);
     if (zone.type === 'ramp') {
@@ -126,6 +128,18 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
       // Back face of the wedge (faces forward, toward the landing).
       ramps.quad(v3(e.pos, top, e.right, e.width / 2), v3(e.pos, top, e.right, -e.width / 2),
         v3(e.pos, 0, e.right, e.width / 2), v3(e.pos, 0, e.right, -e.width / 2));
+    } else if (zone.type === 'swap') {
+      // Its half of the road, striped so it reads as a lane from far away.
+      for (let i = i0; i < i1; i++) {
+        const a = sample(i);
+        const b = sample(i + 1);
+        const lo = (w: number) => (zone.side === 'right' ? 0 : -w / 2);
+        const hi = (w: number) => (zone.side === 'right' ? w / 2 : 0);
+        const y = L.decalLift * 3;
+        const color = swapColors[Math.floor((i - i0) / TRACK_LOOK.swapStripeSamples) % swapColors.length]!;
+        upQuad(swaps, v3(a.pos, y, a.right, lo(a.width)), v3(a.pos, y, a.right, hi(a.width)),
+          v3(b.pos, y, b.right, lo(b.width)), v3(b.pos, y, b.right, hi(b.width)), color);
+      }
     } else if (zone.type === 'slick') {
       for (let i = i0; i < i1; i++) {
         const a = sample(i);
@@ -189,6 +203,12 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     add(slicks.build(), new THREE.MeshLambertMaterial({
       color: TRACK_LOOK.slickColor, transparent: true, opacity: TRACK_LOOK.slickOpacity, depthWrite: false, ...DECAL,
     }), 'slicks');
+  }
+
+  if (swaps.indices.length > 0) {
+    add(swaps.build(), new THREE.MeshLambertMaterial({
+      vertexColors: true, transparent: true, opacity: TRACK_LOOK.swapOpacity, depthWrite: false, ...DECAL,
+    }), 'swapLanes');
   }
 
   return {

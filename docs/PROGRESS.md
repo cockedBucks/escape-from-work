@@ -5,9 +5,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.4 Swap lane
-- Status: P5.3 done. `npm run verify` passes (324 tests + bot race, best lap 37.13 s).
-  Shots: cockpit 39 / chase 12 / stall 13 / drift 13 / nitro 13 draw calls.
+- Next task: P5.5 Bot skills + balance
+- Status: P5.4 done. `npm run verify` passes (334 tests + bot race, best lap 37.25 s).
+  Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
 
 ## Half-done
 - (nothing)
@@ -71,6 +71,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-05: P5.3 nitro — Shift (Engineer/solo) burns the drift-filled meter: push to 1.35× top
   speed, +30%/s heat, big flames, roar; synced + predicted; `nitro` scenario. D069.
+
+- 2026-10-05: P5.4 swap lane — sim counts laps; entering an open `swap` zone (lap ≥ minLap, once
+  per lap) cools the engine fully and the server swaps Pilot/Engineer; lane is slower
+  (`car.swapLaneSpeed` 0.8); striped lane on the Test Loop's last straight; SWAP! flash with your
+  new keys; role texts in one place (`ui/roleKeys.ts`, keys now list drift/nitro/honk); solo
+  handicap `solo.speedMultiplier` (default 1). D070.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

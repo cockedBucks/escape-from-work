@@ -58,10 +58,12 @@ const push = (vF: number, accel: number, cap: number, dt: number): number => (vF
  * One tick of ground driving: steering, engine, brakes, grip, drift, drift boost and nitro.
  * Changes `steer`, `yaw`, `vx` and `vz` only. Position, height and walls are handled elsewhere.
  */
-export function drive(state: CarState, input: CarInput, car: CarTuning, boosts: Pick<Tuning, 'drift' | 'nitro'>, dt: number): void {
+export function drive(state: CarState, input: CarInput, car: CarTuning, boosts: Pick<Tuning, 'drift' | 'nitro' | 'solo'>, dt: number): void {
   const { drift, nitro } = boosts;
-  const top = car.topSpeed * state.stats.speed;
-  const accel = car.accel * state.stats.speed;
+  // Slower in a swap lane; a solo car may get a handicap (solo.speedMultiplier, 1 = none).
+  const scale = state.stats.speed * (state.onSwap ? car.swapLaneSpeed : 1) * (state.solo ? boosts.solo.speedMultiplier : 1);
+  const top = car.topSpeed * scale;
+  const accel = car.accel * (state.solo ? boosts.solo.speedMultiplier : 1) * state.stats.speed;
 
   state.steer = smoothSteer(state.steer, input.steer, car, dt);
 

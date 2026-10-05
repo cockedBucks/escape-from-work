@@ -61,6 +61,14 @@ const CarSchema = z.strictObject({
   rampLaunch: pos(),
   /** Smallest falling speed that counts as a landing event (m/s). */
   landingMinSpeed: nonNeg(),
+  /** Top-speed multiplier inside a swap lane (< 1: the lane costs a little time). */
+  swapLaneSpeed: z.number().min(0.1).max(1),
+});
+
+/** Solo players (GAME_DESIGN §3): an optional handicap for a car with one player. */
+const SoloSchema = z.strictObject({
+  /** Top-speed and engine multiplier for solo cars (1 = no handicap). */
+  speedMultiplier: z.number().min(0.5).max(1.5),
 });
 
 const SimSchema = z.strictObject({
@@ -289,6 +297,7 @@ export const TuningSchema = z.strictObject({
   heat: HeatSchema,
   drift: DriftSchema,
   nitro: NitroSchema,
+  solo: SoloSchema,
   race: RaceSchema,
   net: NetSchema,
   camera: CameraSchema,

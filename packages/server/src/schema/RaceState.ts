@@ -78,6 +78,8 @@ export const CarView = schema(
     nitro: t.float32().default(0),
     /** Burning nitro now (flames). */
     nitroOn: t.boolean().default(false),
+    /** One player drives alone (the optional solo handicap applies). */
+    solo: t.boolean().default(false),
   },
   'CarView',
 );

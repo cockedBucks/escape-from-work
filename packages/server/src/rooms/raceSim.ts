@@ -422,6 +422,27 @@ export class RaceSim {
     return mergeCarInput(parts);
   }
 
+  /**
+   * Swap lane: the car's Pilot and Engineer trade seats (each laptop just switches role).
+   * A car with one player (or a bot) only gets the cooled engine.
+   */
+  private swapSeats(slot: number): void {
+    let pilot: Player | undefined;
+    let engineer: Player | undefined;
+    for (const p of this.players.values()) {
+      if (p.slot !== slot) continue;
+      if (p.seat === 'pilot') pilot = p;
+      else if (p.seat === 'engineer') engineer = p;
+    }
+    if (!pilot || !engineer) return;
+    pilot.seat = 'engineer';
+    engineer.seat = 'pilot';
+    this.seatsSwapped = true;
+  }
+
+  /** Set when a swap lane changed seats this tick (the room re-syncs players). */
+  seatsSwapped = false;
+
   /** The merged input each car used in the last tick (by car id). */
   lastInputs: Readonly<Record<string, CarInput>> = {};
 
@@ -431,7 +452,12 @@ export class RaceSim {
     const seating = this.seating();
     // During the countdown everyone waits on the grid: controls are ignored.
     const live = inputsAllowed(this.flow.phase);
-    for (const slot of usedSlots(seating)) inputs[carIdForSlot(slot)] = live ? this.carInput(slot, seating) : NO_INPUT;
+    for (const slot of usedSlots(seating)) {
+      inputs[carIdForSlot(slot)] = live ? this.carInput(slot, seating) : NO_INPUT;
+      // One player driving alone: the optional solo handicap applies (solo.speedMultiplier).
+      const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
+      if (car) car.solo = occupants(seating, slot).some((s) => s.connected && effectiveRole(seating, s.id) === 'solo');
+    }
     for (const slot of this.botSlots) {
       const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
       const memory = this.botMemory.get(slot);
@@ -443,6 +469,7 @@ export class RaceSim {
     }
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);
+    for (const e of events) if (e.type === 'swap') this.swapSeats(slotOfCar(e.car));
     const { race, sim } = this.cfg;
     const tick = this.world.tick;
     let over = false;

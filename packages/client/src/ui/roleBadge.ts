@@ -1,12 +1,6 @@
 // Small DOM badge: which role you play right now and which keys that gives you.
-// It flashes when the role changes (partner joined/left; later: swap lane).
-
-const TEXT: Record<string, { title: string; keys: string }> = {
-  pilot: { title: 'PILOT', keys: 'A / D steer · R respawn' },
-  engineer: { title: 'ENGINEER', keys: 'W gas · S brake / reverse · R respawn' },
-  solo: { title: 'SOLO', keys: 'W/S pedals · A/D steer · R respawn' },
-  '': { title: 'WATCHING', keys: 'pick a seat in the lobby between races (Esc)' },
-};
+// It flashes when the role changes (partner joined/left, swap lane).
+import { roleText } from './roleKeys';
 
 /** How long the "your role changed" flash lasts (ms). */
 const FLASH_MS = 1500;
@@ -26,7 +20,7 @@ export class RoleBadge {
     if (role === this.role) return;
     const changed = this.role !== null;
     this.role = role;
-    const t = TEXT[role] ?? TEXT['']!;
+    const t = roleText(role);
     this.el.dataset['role'] = role || 'none';
     this.el.innerHTML = `<strong>${t.title}</strong><span>${t.keys}</span>`;
     if (changed) {

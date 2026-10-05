@@ -325,6 +325,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
 | overheating too fast / never (P5) | `heat.risePerSec`, `heat.hotSpeedFraction` (heats only above this share of top speed), `heat.coolPerSec`, `heat.nitroRisePerSec` (extra heat while burning nitro) |
 | nitro too weak / too strong / runs out too fast | `nitro.accel`, `nitro.topSpeed`, `nitro.burnPerSec` |
+| swap lane never worth it / always worth it | `car.swapLaneSpeed` (top-speed share inside the lane), zone `minLap`, `from`/`to` (track file) |
+| solo players too strong / too weak vs duos | `solo.speedMultiplier` (1 = no handicap) |
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
 | bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt` |
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |

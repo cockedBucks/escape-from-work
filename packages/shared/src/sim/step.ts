@@ -90,8 +90,20 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
   const next = (car.lastGate + 1) % sectors;
   if (sector === next) {
     car.lastGate = next;
+    if (next === 0) car.lap++;
     events.push({ type: 'checkpoint', car: car.id, gate: next });
   }
+
+  // Swap lane: entering it (once per lap, from its `minLap`) swaps the seats (the server
+  // does that on the event) and fully cools the engine. Inside it the car is slower (drive).
+  const swap = zones.find((z) => z.type === 'swap');
+  if (swap && !car.onSwap && car.lap >= swap.minLap && car.swappedLap !== car.lap) {
+    car.swappedLap = car.lap;
+    car.heat = 0;
+    car.stallUntilTick = -1;
+    events.push({ type: 'swap', car: car.id });
+  }
+  car.onSwap = swap !== undefined;
 
   // Horn: a cosmetic event (sound + bubble on every client; the league counts them later).
   if (rawInput.honk && now >= car.nextHonkTick) {

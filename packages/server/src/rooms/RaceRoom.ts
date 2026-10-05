@@ -186,6 +186,10 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       // Rounded, so an idle room does not send a patch every tick just for this number.
       this.state.tickMs = Math.round(this.tickMsAvg * TICK_MS_ROUND) / TICK_MS_ROUND;
       this.syncCars(this.sim.world);
+      if (this.sim.seatsSwapped) {
+        this.sim.seatsSwapped = false;
+        this.syncPlayers(); // new roles after a swap lane
+      }
       if (events.length > 0) this.broadcast(MSG.events, events);
     }, Math.round(1 / this.tuning.sim.dt));
   }
@@ -383,6 +387,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.boostLeft = car.boostTicks * this.tuning.sim.dt;
       view.nitro = car.nitro;
       view.nitroOn = car.nitroOn;
+      view.solo = car.solo;
     }
   }
 }

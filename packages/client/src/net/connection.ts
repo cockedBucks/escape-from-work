@@ -26,6 +26,7 @@ export interface CarViewState {
   boostLeft: number;
   nitro: number;
   nitroOn: boolean;
+  solo: boolean;
   inNitro: boolean;
   vx: number;
   vz: number;

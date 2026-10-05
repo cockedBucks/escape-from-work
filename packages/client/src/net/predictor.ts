@@ -39,6 +39,7 @@ export interface OwnCarView {
   boostLeft: number;
   nitro: number;
   nitroOn: boolean;
+  solo: boolean;
   /** Merged input the server applied (your partner's half comes from here). */
   inSteer: number;
   inGas: boolean;
@@ -119,6 +120,7 @@ export class OwnCarPredictor {
     car.driftCharge = view.driftCharge;
     car.nitro = view.nitro;
     car.nitroOn = view.nitroOn;
+    car.solo = view.solo;
     // The brake as the server last applied it: held = no fresh press to start a drift with.
     car.brakeTicks = view.inBrake ? 1 : 0;
     this.baseBoostLeft = view.boostLeft;
