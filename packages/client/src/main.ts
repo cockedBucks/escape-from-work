@@ -280,7 +280,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const badge = new RoleBadge(container);
   const hud = new RaceHud(container);
   const gaugePanel = new GaugePanel(container);
-  let gauges: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, nitro: null, item: null };
+  const gauges: GaugeValues = { speed: 0, lap: null, place: null, heat: null, nitro: null, item: null };
   // Host only, during a race: the way out of a race nobody finishes.
   const endRace = document.createElement('button');
   endRace.className = 'end-race';
@@ -375,7 +375,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       });
     hud.set(hudNow);
     // Heat, nitro and item arrive in P5/P6; the gauges already have their slots.
-    gauges = { lap: hudNow.lap, place: hudNow.place, heat: null, nitro: null, item: null };
+    gauges.lap = hudNow.lap;
+    gauges.place = hudNow.place;
     join.update({
       players,
       myId: room.sessionId,
@@ -404,7 +405,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     gauges: () => gauges,
     onFrame: (now) => {
       // Chase-cam gauges for your car (the cockpit has its dashboard screen instead).
-      gaugePanel.update(game.view === 'chase' && myCarId !== null && focusPose.set, { speed: focusPose.speed, ...gauges });
+      gauges.speed = focusPose.speed;
+      gaugePanel.update(game.view === 'chase' && myCarId !== null && focusPose.set, gauges);
       // Share where you look (your teammate sees your bobblehead turn).
       const h = game.head;
       const send = headSender.next(now, h.yaw, h.pitch, latestTuning.net.headSendMs);
@@ -423,17 +425,20 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       game.setView(want);
       if (want === 'chase') mouseLook.release();
     }
+    // Results and lobby screens need the mouse pointer back.
+    if (room.state.phase !== 'countdown' && room.state.phase !== 'racing') mouseLook.release();
   };
   room.onStateChange(applyView);
   const horns = new HornPlayer();
-  const hornOf = (): Horn => loadCars().cars[0]?.horn ?? 'toot';
+  // Every car is cars[0] until a car roster exists (the server does the same), so one horn.
+  const horn: Horn = loadCars().cars[0]?.horn ?? 'toot';
   onEvents = (events) => {
     for (const e of events) {
       if (e.type === 'honk') {
         game.say(e.car, 'HONK!');
         const p = game.carPosition(e.car);
         const cam = game.cameraPosition;
-        horns.play(hornOf(), p ? Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z) : 0);
+        horns.play(horn, p ? Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z) : 0);
         continue;
       }
       const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);

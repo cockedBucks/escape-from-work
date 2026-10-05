@@ -25,3 +25,17 @@ describe('HeadSmoother', () => {
     expect(yaw).toBeCloseTo(1, 3);
   });
 });
+
+describe('HeadSmoother.sweep', () => {
+  it('forgets heads that were not drawn in the last frame', () => {
+    const h = new HeadSmoother();
+    h.step('a', 0, 0, 0.016);
+    h.step('b', 0, 0, 0.016);
+    h.sweep();
+    h.step('a', 0, 0, 0.016);
+    h.sweep();
+    expect(h.size).toBe(1);
+    h.sweep();
+    expect(h.size).toBe(0);
+  });
+});

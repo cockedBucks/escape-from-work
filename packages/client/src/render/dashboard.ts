@@ -36,9 +36,10 @@ export class DashboardScreen {
 
   /** Redraw when the shown values changed (and at most every REDRAW_MS). */
   update(now: number, v: GaugeValues): void {
+    if (now - this.lastDraw < REDRAW_MS) return;
     const t = gaugeText(v);
     const key = JSON.stringify(t);
-    if (key === this.last || now - this.lastDraw < REDRAW_MS) return;
+    if (key === this.last) return;
     this.last = key;
     this.lastDraw = now;
     const { ctx } = this;

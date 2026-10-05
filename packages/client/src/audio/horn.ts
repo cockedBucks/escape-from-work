@@ -84,6 +84,11 @@ export class HornPlayer {
       osc.connect(out);
       osc.start(t0);
       osc.stop(t0 + p.duration);
+      // Free the nodes once the sound is over (the output gain goes with the last voice).
+      osc.onended = () => {
+        osc.disconnect();
+        out.disconnect();
+      };
     }
   }
 

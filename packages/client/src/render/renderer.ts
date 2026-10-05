@@ -26,6 +26,8 @@ export function createStage(container: HTMLElement, tuning: Tuning, quality: Qua
   const renderer = new THREE.WebGLRenderer({ antialias: quality.pixelRatioCap > 1 });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality.pixelRatioCap));
   renderer.setSize(container.clientWidth, container.clientHeight);
+  // Game.renderFrame resets the stats once per frame, so they include the mirror pass.
+  renderer.info.autoReset = false;
   renderer.shadowMap.enabled = quality.shadows === 'map';
   container.appendChild(renderer.domElement);
 

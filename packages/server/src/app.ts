@@ -59,7 +59,11 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
     gracefullyShutdown: opts.handleSignals ?? false,
     express: (app) => {
       // Bobblehead faces (coworker photos on this PC) for the page, dev and production.
-      app.use('/faces', express.static(FACES_DIR, { fallthrough: false, index: false }));
+      app.use('/faces', express.static(FACES_DIR, { index: false }));
+      // A short 404/403, never Express's default error page (it shows local paths in dev).
+      app.use('/faces', (_req, res) => {
+        res.status(404).type('text').send('no such face');
+      });
       if (dev) installTuningRoutes(app, live);
       const dir = opts.clientDir;
       if (dir !== undefined && existsSync(dir)) {

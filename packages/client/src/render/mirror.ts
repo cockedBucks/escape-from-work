@@ -47,7 +47,11 @@ export class RearMirror {
     this.mesh.visible = false; // never show the mirror in itself
     const before = renderer.getRenderTarget();
     renderer.setRenderTarget(this.target);
+    // The main pass updates the shadow map; drawing it twice a frame would double that cost.
+    const shadows = renderer.shadowMap.autoUpdate;
+    renderer.shadowMap.autoUpdate = false;
     renderer.render(scene, this.camera);
+    renderer.shadowMap.autoUpdate = shadows;
     renderer.setRenderTarget(before);
     this.mesh.visible = true;
   }

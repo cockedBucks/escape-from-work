@@ -68,6 +68,8 @@ function teamColor(id: string, index: number): number {
 }
 
 const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, nitro: null, item: null };
+const SIDES = ['left', 'right'] as const;
+const DUCK_SEAT: SeatContent = { kind: 'duck' };
 
 /** Longest frame step the camera smoothing accepts (s), so a hitch doesn't fling it. */
 const MAX_FRAME_DT = 0.1;
@@ -79,6 +81,10 @@ export class Game {
   private readonly chase: ChaseCam;
   private readonly cockpit: CockpitCam;
   private readonly faces = new FaceMaterials();
+  // Reused every frame (no per-frame allocations).
+  private readonly headOut = { yaw: 0, pitch: 0 };
+  private readonly dashValues: GaugeValues = { speed: 0, ...NO_GAUGES };
+  private readonly seatHead: Extract<SeatContent, { kind: 'head' }>[] = SIDES.map(() => ({ kind: 'head' as const, material: this.faces.get(''), yaw: 0, pitch: 0, hidden: false }));
   private readonly heads = new HeadSmoother();
   /** Last frame's speed and heading per car, to work out acceleration for the wobble. */
   private readonly motion = new Map<string, { speed: number; yaw: number }>();
@@ -127,8 +133,11 @@ export class Game {
   }
 
   /** Your head angles in the cockpit (0, 0 in other views), to share with your teammate. */
-  get head(): { yaw: number; pitch: number } {
-    return this.opts.view === 'cockpit' ? { yaw: this.cockpit.headYaw, pitch: this.cockpit.headPitch } : { yaw: 0, pitch: 0 };
+  get head(): { readonly yaw: number; readonly pitch: number } {
+    const inCockpit = this.opts.view === 'cockpit';
+    this.headOut.yaw = inCockpit ? this.cockpit.headYaw : 0;
+    this.headOut.pitch = inCockpit ? this.cockpit.headPitch : 0;
+    return this.headOut;
   }
 
   /** The canvas (for Pointer Lock). */
@@ -182,8 +191,11 @@ export class Game {
     const dt = this.lastTime < 0 ? 0 : Math.min((now - this.lastTime) / 1000, MAX_FRAME_DT);
     this.lastTime = now;
     this.opts.onFrame?.(now);
+    // Count draw calls over the whole frame (mirror pass + main pass), not just the last render.
+    this.stage.renderer.info.reset();
     this.opts.source.sample(now, this.snaps);
     this.syncCars(dt);
+    this.heads.sweep();
 
     const view = this.opts.view;
     if (view === 'chase' || view === 'cockpit') {
@@ -206,7 +218,9 @@ export class Game {
       }
       if (view === 'cockpit' && car && this.dashScreen) {
         this.dashScreen.mesh.position.y = car.y;
-        this.dashScreen.update(now, { speed: car.speed, ...(this.opts.gauges?.() ?? NO_GAUGES) });
+        Object.assign(this.dashValues, this.opts.gauges?.() ?? NO_GAUGES);
+        this.dashValues.speed = car.speed;
+        this.dashScreen.update(now, this.dashValues);
       }
       focusPose.set = car !== undefined;
       if (car) {
@@ -285,13 +299,19 @@ export class Game {
     m.yaw = s.yaw;
     const seats = this.opts.occupants?.(id) ?? null;
     const inCockpit = this.opts.view === 'cockpit';
-    for (const side of ['left', 'right'] as const) {
+    for (let i = 0; i < SIDES.length; i++) {
+      const side = SIDES[i]!;
       const who = seats?.[side] ?? null;
       let content: SeatContent = null;
-      if (who === 'duck') content = { kind: 'duck' };
+      if (who === 'duck') content = DUCK_SEAT;
       else if (who) {
         const head = this.heads.step(who.id, who.yaw, who.pitch, dt);
-        content = { kind: 'head', material: this.faces.get(who.face), yaw: head.yaw, pitch: head.pitch, hidden: who.me && inCockpit };
+        const c = this.seatHead[i]!;
+        c.material = this.faces.get(who.face);
+        c.yaw = head.yaw;
+        c.pitch = head.pitch;
+        c.hidden = who.me && inCockpit;
+        content = c;
       }
       mesh.setSeat(side, content, s.y, forwardAccel, sideAccel, dt);
     }

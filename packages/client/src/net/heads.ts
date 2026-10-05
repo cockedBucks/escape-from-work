@@ -28,22 +28,31 @@ export class HeadSender {
 
 /** Smoothed head angles of other players (synced ~20/s, drawn every frame). */
 export class HeadSmoother {
-  private readonly heads = new Map<string, { yaw: number; pitch: number }>();
+  private readonly heads = new Map<string, { yaw: number; pitch: number; seen: boolean }>();
 
   /** Advance one frame toward the latest synced angles; returns the smoothed pose. */
   step(id: string, targetYaw: number, targetPitch: number, dt: number): { yaw: number; pitch: number } {
     let h = this.heads.get(id);
     if (!h) {
-      h = { yaw: targetYaw, pitch: targetPitch };
+      h = { yaw: targetYaw, pitch: targetPitch, seen: true };
       this.heads.set(id, h);
     }
     const a = followAlpha(SMOOTH_RATE, dt);
     h.yaw += angleDiff(h.yaw, targetYaw) * a;
     h.pitch += (targetPitch - h.pitch) * a;
+    h.seen = true;
     return h;
   }
 
-  forget(id: string): void {
-    this.heads.delete(id);
+  /** Once per frame, after all steps: drop heads not drawn this frame (players who left). */
+  sweep(): void {
+    for (const [id, h] of this.heads) {
+      if (!h.seen) this.heads.delete(id);
+      h.seen = false;
+    }
+  }
+
+  get size(): number {
+    return this.heads.size;
   }
 }

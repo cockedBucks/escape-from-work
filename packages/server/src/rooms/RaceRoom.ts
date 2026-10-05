@@ -70,7 +70,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (!this.limits.get(client.sessionId)?.head.take()) return;
       const head = parseHead(message, this.tuning.camera);
       const player = this.state.players.get(client.sessionId);
-      if (!head || !player) return;
+      if (!head || !player || player.slot < 0) return; // only seated players have a head
       player.headYaw = head.yaw;
       player.headPitch = head.pitch;
     });

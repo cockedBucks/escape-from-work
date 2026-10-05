@@ -4,17 +4,15 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P4 — Cockpit cam and bobbleheads (`docs/phases/P04-cockpit.md`)
-- Next task: HUMAN GATE — cockpit fun (then P4.8)
-- Status: P4.7 done. `npm run verify` passes (279 tests + bot race). Shots: cockpit 13 / chase 12 /
-  overview 34 draw calls, ≤ 10.2k triangles. Waiting on the human.
+- Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
+- Next task: P5.1 Engine heat
+- Status: P4 done, tagged `p4-done`. `npm run verify` passes (294 tests + bot race). Shots: cockpit
+  39 draw calls (now counted with the mirror pass) / chase 12, ≤ 15k triangles.
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
-- P4 HUMAN GATE "cockpit fun": faces in assets/faces + npm run faces, two players in one car in
-  cockpit cam; reply funny? motion sickness? dashboard readable? mirror useful?
 - Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
 
 ## Environment
@@ -58,18 +56,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   way, finish window/DNF, time limit, reversed grid, time-split gaps), server bot cars, spectator cam
   + Tab scoreboard, results + rematch, host End race, load test (`npm run test:load`). Gate: all
   good. Decisions D050–D057.
-- 2026-10-05: P4.1 cockpit camera — seat by role, Pointer Lock mouse look with limits, recenter, head
-  bob on bumps (from sim events), C toggle remembered, dashboard + windshield frame. D058.
-- 2026-10-05: P4.2 head sync — `head` message (validated, clamped, rate-limited) → player state,
-  client sends ≤20/s on change, others smooth it. D059.
-- 2026-10-05: P4.3 bobbleheads — `npm run faces`, /faces served (traversal blocked), lobby face picker,
-  face-textured wobbly heads turning with synced look, duck in solo cars, `cockpit` scenario. D060.
-- 2026-10-05: P4.4 dashboard HUD — cockpit canvas screen + chase-cam gauge panel (speed, lap, place,
-  heat/nitro/item slots); duck moved onto the roof so it is visible. D061.
-- 2026-10-05: P4.5 rear-view mirror — low-res render target, rate by quality preset, framed panel. D062.
-- 2026-10-05: P4.6 honk — H by either player (once per press, cooldown), sim honk event, per-car
-  procedural Web Audio horn (cars.json `horn`), HONK! bubble for everyone. D063.
-- 2026-10-05: P4.7 shots — cockpit/chase/overview/lobby/results all ok and far inside the budget.
+- 2026-10-05: **P4 done** — cockpit cam (seat by role, Pointer Lock look, head bob, C toggle), head
+  sync, bobbleheads (`npm run faces`, any-language file names, per-photo eyes/chin framing, face
+  picker, duck in solo cars), dashboard screen + chase gauges, rear-view mirror, honk (sim event,
+  procedural horns, HONK! bubble). Gate: all good. Review fixes D066. Decisions D058–D066.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
@@ -85,5 +75,6 @@ roll old "Last sessions" lines into one summary line per finished phase.
   weird": turning feels like a box spinning, steering twitchy/slow, speed feels wrong. Tab
   close/reopen not tried yet. F3 number not reported. → P2.8: prediction + physics feel pass.
 - 2026-10-05 P3 gate "first real race": "all good" — no confusion or breakage reported.
-- 2026-10-05 P4 gate (in progress): "npm run faces says not images" → Arabic file names were rejected; fixed (D064) along with the missing face-picker styles and the empty-lobby backdrop.
-- 2026-10-05 P4 gate: faces work, "but the faces are not at the same height" → per-photo framing in faces.json (D065); both photos framed.
+- 2026-10-05 P4 gate "cockpit fun": `npm run faces` rejected Arabic file names (fixed, D064, with
+  the lost face-picker styles and an empty-lobby backdrop); then "all good, but the faces are not at
+  the same height" → per-photo eyes/chin framing (D065).

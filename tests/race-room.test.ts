@@ -117,6 +117,8 @@ describe('head sync (real server)', () => {
   it('a teammate sees your head angles, clamped to the limits; junk is ignored', async () => {
     const a = await new Client(endpoint).join<{ players?: { get(id: string): { headYaw: number; headPitch: number } | undefined } }>(ROOM_NAME);
     const b = await new Client(endpoint).join<{ players?: { get(id: string): { headYaw: number; headPitch: number } | undefined } }>(ROOM_NAME);
+    a.send(MSG.setSeat, { slot: 0, seat: 'pilot' });
+    await waitForState(a, (s) => s.players?.get(a.sessionId) !== undefined, 'A is in the room');
     a.send(MSG.head, { yaw: 'left', pitch: 0 });
     a.send(MSG.head, { yaw: 0.5, pitch: 99 });
     await waitForState(b, (s) => (s.players?.get(a.sessionId)?.headYaw ?? 0) > 0.4, 'B sees A look left');
@@ -125,5 +127,46 @@ describe('head sync (real server)', () => {
     expect(head.headPitch).toBeLessThan(1); // clamped to camera.headPitchLimit
     await a.leave();
     await b.leave();
+  });
+
+  it('watchers (no seat) have no head: their angles are ignored', async () => {
+    const a = await new Client(endpoint).join<{ players?: { get(id: string): { headYaw: number } | undefined } }>(ROOM_NAME);
+    await waitForState(a, (s) => s.players?.get(a.sessionId) !== undefined, 'A is in the room');
+    a.send(MSG.head, { yaw: 0.5, pitch: 0 });
+    a.send(MSG.setName, { name: 'Watcher' }); // a later message: once it lands, the head was handled
+    await waitForState(a, (s) => (s.players?.get(a.sessionId) as { name?: string } | undefined)?.name === 'Watcher', 'name set');
+    expect(a.state.players!.get(a.sessionId)!.headYaw).toBe(0);
+    await a.leave();
+  });
+});
+
+describe('faces (real server)', () => {
+  let game: GameServer | undefined;
+  let endpoint: EndpointSettings;
+  beforeAll(async () => {
+    game = await startServer({ port: 0, host: '127.0.0.1' });
+    endpoint = { hostname: '127.0.0.1', port: game.port, secure: false };
+  });
+  afterAll(() => game?.close());
+
+  it('a face that is not on the host is refused; the placeholder is fine', async () => {
+    const a = await new Client(endpoint).join<{ players?: { get(id: string): { face: string } | undefined } }>(ROOM_NAME);
+    const refused = new Promise<LobbyError>((resolve) => a.onMessage(MSG.lobbyError, resolve));
+    a.send(MSG.setFace, { face: 'nobody-has-this-face.png' });
+    expect((await refused).reason).toMatch(/not on the host/);
+    a.send(MSG.setFace, { face: '' });
+    a.send(MSG.setName, { name: 'Placeholder' });
+    await waitForState(a, (s) => (s.players?.get(a.sessionId) as { name?: string } | undefined)?.name === 'Placeholder', 'name set');
+    expect(a.state.players!.get(a.sessionId)!.face).toBe('');
+    await a.leave();
+  });
+
+  it('/faces never serves files outside the faces folder, and errors are short', async () => {
+    for (const evil of ['..%2fpackage.json', '..%5cpackage.json', '%2e%2e/%2e%2e/package.json', 'nope.png']) {
+      const res = await fetch(`http://127.0.0.1:${game!.port}/faces/${evil}`);
+      const body = await res.text();
+      expect([403, 404]).toContain(res.status);
+      expect(body).not.toMatch(/workspaces|escape-from-work|at /);
+    }
   });
 });

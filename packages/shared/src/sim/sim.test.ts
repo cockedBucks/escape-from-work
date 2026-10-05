@@ -199,3 +199,17 @@ describe('sim on the Test Loop', () => {
     expect(play()).toEqual(one);
   });
 });
+
+describe('honk', () => {
+  it('a held horn honks once per cooldown; it never changes how the car drives', () => {
+    const world = newWorld();
+    const quiet = newWorld();
+    const n = secs(cfg.race.honkCooldownSeconds * 3) + 1;
+    const honks = run(world, { ...GAS, honk: true }, n).filter((e) => e.type === 'honk');
+    run(quiet, GAS, n);
+    expect(honks).toHaveLength(4); // t = 0, 1, 2 and 3 cooldowns
+    expect(honks[0]).toEqual({ type: 'honk', car: 'a' });
+    expect(carA(world).x).toBe(carA(quiet).x);
+    expect(carA(world).z).toBe(carA(quiet).z);
+  });
+});

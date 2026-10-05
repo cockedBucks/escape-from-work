@@ -34,7 +34,10 @@ export function hashWorld(world: World): string {
   return h.toString(16).padStart(8, '0');
 }
 
-/** Every number/boolean field of CarState, in a fixed order. */
+/**
+ * Every number/boolean field of CarState that affects driving, in a fixed order.
+ * `nextHonkTick` (honk cooldown) is left out on purpose: honking is cosmetic (D063).
+ */
 const CAR_HASH_KEYS = [
   'x', 'z', 'y', 'vy', 'yaw', 'vx', 'vz', 'steer', 'segment', 'progress', 'lateral',
   'lastGate', 'onSlick', 'onRamp', 'respawnAtTick', 'ghostUntilTick',
