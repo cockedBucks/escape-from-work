@@ -99,6 +99,8 @@ const BotSchema = z.strictObject({
 
 /** Race rules. A stub for now; P3 adds countdown, finish and results. */
 const RaceSchema = z.strictObject({
+  /** Shortest time between two honks of the same car (s). */
+  honkCooldownSeconds: nonNeg(),
   /** Fade-out time before a respawned car reappears (s). */
   respawnFadeSeconds: nonNeg(),
   /** Time a respawned car is ghosted: no collisions with other cars (s). */

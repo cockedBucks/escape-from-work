@@ -66,6 +66,9 @@ interface Player extends SeatedPlayer {
   respawnHeld: boolean;
   /** A press arrived that the next tick should act on. */
   respawnPending: boolean;
+  /** Same once-per-press handling for the horn. */
+  honkHeld: boolean;
+  honkPending: boolean;
   /** Pressed Ready in the lobby. */
   ready: boolean;
 }
@@ -163,7 +166,7 @@ export class RaceSim {
     if (this.players.has(id)) return;
     this.players.set(id, {
       id, slot: -1, seat: null, connected: true,
-      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, ready: false,
+      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, ready: false,
     });
     this.joinOrder.push(id);
     this.updateHost();
@@ -183,6 +186,8 @@ export class RaceSim {
     if (connected) p.lastSeq = -1;
     p.respawnHeld = false;
     p.respawnPending = false;
+    p.honkHeld = false;
+    p.honkPending = false;
     this.updateHost();
   }
 
@@ -396,6 +401,9 @@ export class RaceSim {
     p.input = toCarInput(msg);
     if (p.input.respawn && !p.respawnHeld) p.respawnPending = true;
     p.respawnHeld = p.input.respawn;
+    const honk = p.input.honk ?? false;
+    if (honk && !p.honkHeld) p.honkPending = true;
+    p.honkHeld = honk;
     return true;
   }
 
@@ -409,7 +417,7 @@ export class RaceSim {
       const p = this.players.get(s.id);
       const role = effectiveRole(seating, s.id);
       if (!p || !role || !s.connected) continue;
-      parts.push({ role, input: { ...p.input, respawn: p.respawnPending } });
+      parts.push({ role, input: { ...p.input, respawn: p.respawnPending, honk: p.honkPending } });
     }
     return mergeCarInput(parts);
   }
@@ -429,7 +437,10 @@ export class RaceSim {
       const memory = this.botMemory.get(slot);
       if (car && memory) inputs[car.id] = live ? botInput(car, this.world.track, this.cfg, memory) : NO_INPUT;
     }
-    for (const p of this.players.values()) p.respawnPending = false;
+    for (const p of this.players.values()) {
+      p.respawnPending = false;
+      p.honkPending = false;
+    }
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);
     const { race, sim } = this.cfg;

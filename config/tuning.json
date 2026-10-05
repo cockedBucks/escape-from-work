@@ -46,6 +46,7 @@
     "stuckSeconds": 2
   },
   "race": {
+    "honkCooldownSeconds": 0.3,
     "respawnFadeSeconds": 1,
     "respawnGhostSeconds": 1,
     "offTrackRespawnDistance": 4,

@@ -3,7 +3,9 @@ import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
 import { BoxCar, type SeatContent } from './render/carMesh';
+import type * as THREE from 'three';
 import { DashboardScreen } from './render/dashboard';
+import { Bubbles } from './ui/bubbles';
 import { RearMirror } from './render/mirror';
 import { FaceMaterials } from './render/faceTexture';
 import type { GaugeValues } from './ui/gauges';
@@ -79,6 +81,8 @@ export class Game {
   private readonly heads = new HeadSmoother();
   /** Last frame's speed and heading per car, to work out acceleration for the wobble. */
   private readonly motion = new Map<string, { speed: number; yaw: number }>();
+  /** "HONK!" bubbles over cars. */
+  private readonly bubbles: Bubbles;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -98,6 +102,7 @@ export class Game {
     this.stage.scene.add(this.trackMeshes.group);
     this.chase = new ChaseCam(this.stage.camera);
     this.cockpit = new CockpitCam(this.stage.camera);
+    this.bubbles = new Bubbles(opts.container);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
@@ -139,6 +144,21 @@ export class Game {
   /** Mouse moved while captured (cockpit look). */
   mouse(dx: number, dy: number): void {
     if (this.opts.view === 'cockpit') this.cockpit.mouse(dx, dy, this.opts.tuning.camera);
+  }
+
+  /** Show a bubble over a car (e.g. "HONK!"). */
+  say(carId: string, text: string): void {
+    this.bubbles.say(carId, text, performance.now());
+  }
+
+  /** Where a car is drawn right now (for sound distance). */
+  carPosition(carId: string): { x: number; y: number; z: number } | undefined {
+    return this.snaps.get(carId);
+  }
+
+  /** Where the camera is (for sound distance). */
+  get cameraPosition(): THREE.Vector3 {
+    return this.stage.camera.position;
   }
 
   /** Something jolted your car (wall, landing, bump): shake the cockpit head a little. */
@@ -195,6 +215,7 @@ export class Game {
 
     const { renderer, scene, camera } = this.stage;
     renderer.render(scene, camera);
+    this.bubbles.update(now, camera, this.opts.container.clientWidth, this.opts.container.clientHeight, (id) => this.snaps.get(id));
     const info = renderer.info;
     liveStats.drawCalls = info.render.calls;
     liveStats.triangles = info.render.triangles;
@@ -277,6 +298,7 @@ export class Game {
     for (const mesh of this.cars.values()) mesh.dispose();
     this.cars.clear();
     this.overlay.dispose();
+    this.bubbles.dispose();
     this.faces.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();

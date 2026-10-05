@@ -1,0 +1,95 @@
+// Procedural horns (GAME_DESIGN §8): every car has a goofy horn, synthesized with Web Audio,
+// so there are no sound files to license. Browsers only allow sound after the player has
+// clicked or pressed a key, so the audio context starts on the first input.
+import type { Horn } from '@escape/shared';
+
+interface Voice {
+  type: OscillatorType;
+  /** Start and end frequency (Hz): a glide makes it silly. */
+  from: number;
+  to: number;
+}
+
+interface HornPreset {
+  voices: Voice[];
+  /** Length (s). */
+  duration: number;
+  /** Vibrato depth (Hz) and speed (Hz); 0 = none. */
+  vibrato: number;
+  vibratoRate: number;
+  /** Overall loudness (0–1) before distance. */
+  gain: number;
+}
+
+export const HORN_PRESETS: Readonly<Record<Horn, HornPreset>> = {
+  toot: { voices: [{ type: 'square', from: 392, to: 392 }, { type: 'square', from: 494, to: 494 }], duration: 0.35, vibrato: 0, vibratoRate: 0, gain: 0.18 },
+  duck: { voices: [{ type: 'sawtooth', from: 620, to: 340 }], duration: 0.22, vibrato: 30, vibratoRate: 28, gain: 0.22 },
+  truck: { voices: [{ type: 'sawtooth', from: 175, to: 170 }, { type: 'sawtooth', from: 220, to: 214 }], duration: 0.65, vibrato: 0, vibratoRate: 0, gain: 0.2 },
+  clown: { voices: [{ type: 'triangle', from: 700, to: 1300 }], duration: 0.3, vibrato: 60, vibratoRate: 18, gain: 0.3 },
+  bike: { voices: [{ type: 'sine', from: 2100, to: 2050 }], duration: 0.5, vibrato: 25, vibratoRate: 30, gain: 0.25 },
+  kazoo: { voices: [{ type: 'sawtooth', from: 300, to: 320 }], duration: 0.45, vibrato: 18, vibratoRate: 7, gain: 0.2 },
+};
+
+/** Distance (m) at which a horn is at half volume. */
+const HALF_VOLUME_DISTANCE = 40;
+
+/** Loudness of a horn heard from `distance` meters away (1 = right next to you). */
+export const hornVolume = (distance: number): number => 1 / (1 + Math.max(0, distance) / HALF_VOLUME_DISTANCE);
+
+export class HornPlayer {
+  private ctx: AudioContext | null = null;
+
+  constructor() {
+    window.addEventListener('pointerdown', this.unlock, { once: false });
+    window.addEventListener('keydown', this.unlock, { once: false });
+  }
+
+  /** Create/resume the audio context on a user gesture (browser autoplay rules). */
+  private readonly unlock = (): void => {
+    try {
+      this.ctx ??= new AudioContext();
+      if (this.ctx.state === 'suspended') void this.ctx.resume();
+    } catch {
+      this.ctx = null; // no audio on this machine: horns stay silent, the bubble still shows
+    }
+  };
+
+  play(horn: Horn, distance: number): void {
+    const ctx = this.ctx;
+    if (!ctx || ctx.state !== 'running') return;
+    const p = HORN_PRESETS[horn];
+    const t0 = ctx.currentTime;
+    const out = ctx.createGain();
+    const level = p.gain * hornVolume(distance);
+    // Quick attack, hold, quick release: no clicks.
+    out.gain.setValueAtTime(0, t0);
+    out.gain.linearRampToValueAtTime(level, t0 + 0.02);
+    out.gain.setValueAtTime(level, t0 + p.duration - 0.05);
+    out.gain.linearRampToValueAtTime(0, t0 + p.duration);
+    out.connect(ctx.destination);
+    for (const v of p.voices) {
+      const osc = ctx.createOscillator();
+      osc.type = v.type;
+      osc.frequency.setValueAtTime(v.from, t0);
+      osc.frequency.linearRampToValueAtTime(v.to, t0 + p.duration);
+      if (p.vibrato > 0) {
+        const lfo = ctx.createOscillator();
+        const depth = ctx.createGain();
+        lfo.frequency.value = p.vibratoRate;
+        depth.gain.value = p.vibrato;
+        lfo.connect(depth).connect(osc.frequency);
+        lfo.start(t0);
+        lfo.stop(t0 + p.duration);
+      }
+      osc.connect(out);
+      osc.start(t0);
+      osc.stop(t0 + p.duration);
+    }
+  }
+
+  dispose(): void {
+    window.removeEventListener('pointerdown', this.unlock);
+    window.removeEventListener('keydown', this.unlock);
+    void this.ctx?.close();
+  }
+}

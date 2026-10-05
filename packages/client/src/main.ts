@@ -2,9 +2,10 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type Horn, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
+import { HornPlayer } from './audio/horn';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
@@ -411,8 +412,17 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     }
   };
   room.onStateChange(applyView);
+  const horns = new HornPlayer();
+  const hornOf = (): Horn => loadCars().cars[0]?.horn ?? 'toot';
   onEvents = (events) => {
     for (const e of events) {
+      if (e.type === 'honk') {
+        game.say(e.car, 'HONK!');
+        const p = game.carPosition(e.car);
+        const cam = game.cameraPosition;
+        horns.play(hornOf(), p ? Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z) : 0);
+        continue;
+      }
       const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);
       if (!hitsMe) continue;
       if (e.type === 'wallHit' || e.type === 'carHit') game.bump(e.speed);
@@ -444,6 +454,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     hud.dispose();
     gaugePanel.dispose();
     cameraToggle.dispose();
+    horns.dispose();
     mouseLook.dispose();
     endRace.remove();
     board.dispose();

@@ -64,7 +64,7 @@ once first.
 | `npm run faces` | lists the face photos in `assets/faces/` for the lobby's face picker (run after adding/removing photos) |
 
 Driving (from P1.6): open the page and you join the race at once. **W/S** or **↑/↓** gas and
-brake (hold S when stopped to reverse), **A/D** or **←/→** steer, **R** respawn, **F3** debug overlay
+brake (hold S when stopped to reverse), **A/D** or **←/→** steer, **R** respawn, **H** honk, **F3** debug overlay
 (fps, ping, draw calls), **C** chase ↔ cockpit cam (click the game to look around with the mouse,
 Esc to let go), **F2** tuning panel (dev only: sliders change the feel live,
 **Save** writes `config/tuning.json`, **Revert** goes back to the file). Add `?quality=low` to

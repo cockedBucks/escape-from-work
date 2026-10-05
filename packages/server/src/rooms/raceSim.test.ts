@@ -383,3 +383,26 @@ describe('RaceSim review fixes (P3.8)', () => {
     expect(sim.seating().find((s) => s.id === 'b')!.seat).not.toBeNull();
   });
 });
+
+describe('RaceSim honk', () => {
+  it('either player honks once per press, with a cooldown', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('p');
+    sim.addPlayer('e');
+    sim.setSeat('p', 0, 'pilot');
+    sim.setSeat('e', 0, 'engineer');
+    const honks = (n: number): number => {
+      let count = 0;
+      for (let i = 0; i < n; i++) count += sim.tick().filter((ev) => ev.type === 'honk').length;
+      return count;
+    };
+    sim.handleInput('e', { seq: 1, honk: true });
+    expect(honks(60)).toBe(1); // held for a second: still one honk
+    sim.handleInput('e', { seq: 2, honk: false });
+    sim.handleInput('p', { seq: 1, honk: true }); // the Pilot may honk too
+    expect(honks(1)).toBe(1);
+    sim.handleInput('p', { seq: 2, honk: false });
+    sim.handleInput('p', { seq: 3, honk: true }); // pressed again at once: cooldown
+    expect(honks(1)).toBe(0);
+  });
+});

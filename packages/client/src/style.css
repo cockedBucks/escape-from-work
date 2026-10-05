@@ -690,3 +690,40 @@ body {
 .g-item b {
   margin-left: 0.4rem;
 }
+
+/* Speech bubbles over cars (P4.6: HONK!). */
+.bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0.2rem 0.7rem;
+  border-radius: 1rem;
+  background: #fff;
+  color: var(--ui-dark);
+  font-size: 1.3rem;
+  font-weight: 600;
+  box-shadow: 0 0.2rem 0 var(--ui-dark);
+  white-space: nowrap;
+}
+
+.bubble.pop {
+  animation: bubble-pop 0.3s ease-out;
+}
+
+@keyframes bubble-pop {
+  from {
+    font-size: 0.6rem;
+    opacity: 0.3;
+  }
+  to {
+    font-size: 1.3rem;
+    opacity: 1;
+  }
+}

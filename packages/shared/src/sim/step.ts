@@ -84,6 +84,12 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     events.push({ type: 'checkpoint', car: car.id, gate: next });
   }
 
+  // Horn: a cosmetic event (sound + bubble on every client; the league counts them later).
+  if (rawInput.honk && now >= car.nextHonkTick) {
+    car.nextHonkTick = now + ticks(cfg.race.honkCooldownSeconds, dt);
+    events.push({ type: 'honk', car: car.id });
+  }
+
   // 4. Fell off / ended up outside the walls: respawn by itself.
   if (car.respawnAtTick < 0 && grounded && Math.abs(loc.lateral) > loc.halfWidth + cfg.race.offTrackRespawnDistance) {
     startRespawn(car, now, cfg, 'offTrack', events);

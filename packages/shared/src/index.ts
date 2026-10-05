@@ -9,7 +9,7 @@ export {
   type QualityPreset,
   type Tuning,
 } from './config/tuning';
-export { CarsSchema, parseCars, type CarDef, type CarsConfig } from './config/cars';
+export { CarsSchema, HORNS, parseCars, type CarDef, type CarsConfig, type Horn } from './config/cars';
 export {
   TrackSchema,
   parseTrack,

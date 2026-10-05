@@ -7,6 +7,7 @@ const KEYS = {
   gas: ['KeyW', 'ArrowUp'],
   brake: ['KeyS', 'ArrowDown'],
   respawn: ['KeyR'],
+  honk: ['KeyH'],
 } as const;
 
 type Action = keyof typeof KEYS;
@@ -22,6 +23,7 @@ export function controlsFrom(held: ReadonlySet<Action>): Omit<InputMessage, 'seq
     gas: held.has('gas'),
     brake: held.has('brake'),
     respawn: held.has('respawn'),
+    honk: held.has('honk'),
   };
 }
 
@@ -73,6 +75,7 @@ export class KeyboardControls {
     out.gas = this.held.has('gas');
     out.brake = this.held.has('brake');
     out.respawn = this.held.has('respawn');
+    out.honk = this.held.has('honk');
     return out;
   }
 

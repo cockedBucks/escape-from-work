@@ -10,12 +10,18 @@ const StatsSchema = z.strictObject({
   weight: z.number().positive(),
 });
 
+/** Procedural horn sounds (the client synthesizes them; no audio files). */
+export const HORNS = ['toot', 'duck', 'truck', 'clown', 'bike', 'kazoo'] as const;
+export type Horn = (typeof HORNS)[number];
+
 const CarDefSchema = z.strictObject({
   /** Stable id used in code, saves and the league (lowercase, digits, dashes). */
   id: z.string().regex(/^[a-z0-9-]+$/, 'use lowercase letters, digits and dashes'),
   /** Display name. */
   name: z.string().min(1),
   stats: StatsSchema,
+  /** Horn preset (GAME_DESIGN §8: each car has its own goofy horn). */
+  horn: z.enum(HORNS),
 });
 
 export const CarsSchema = z

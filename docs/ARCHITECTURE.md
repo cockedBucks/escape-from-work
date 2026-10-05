@@ -215,6 +215,10 @@ Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:rea
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
 Esc hides it to drive around; never redraws under a focused text field.
+Honk (P4.6): `input.honk` (anyone in the car, once per press) → the sim emits `honk` (cooldown
+`race.honkCooldownSeconds`; cosmetic, not in the replay hash) → every client shows a "HONK!" bubble
+and plays the car's `horn` preset from cars.json, synthesized with Web Audio (`audio/horn.ts`), quieter
+with distance.
 Mirror (P4.5): `render/mirror.ts` — a backward camera above/behind your car renders into a 256×64
 texture shown (flipped) under your windshield roof in the cockpit; `quality.presets.*.mirror`: off
 (Low), every 2nd frame (Medium), every frame (High).
@@ -304,6 +308,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | wrong-way warning too eager / too late | `race.wrongWaySeconds`, `race.wrongWayMinSpeed` |
 | races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |
 | name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |
+| honk spam | `race.honkCooldownSeconds` |
 | respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds`, `race.offTrackRespawnDistance` |
 | low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots); try `?quality=low` in the URL |
 | chase cam too close / too far / too stiff / floaty | `camera.chaseDistance`, `camera.chaseHeight`, `camera.followRate` |

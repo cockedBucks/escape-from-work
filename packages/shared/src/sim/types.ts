@@ -9,6 +9,8 @@ export interface CarInput {
   gas: boolean;
   brake: boolean;
   respawn: boolean;
+  /** Honk the horn (anyone in the car; once per press). */
+  honk?: boolean;
 }
 
 export const NO_INPUT: Readonly<CarInput> = { steer: 0, gas: false, brake: false, respawn: false };
@@ -49,6 +51,8 @@ export interface CarState {
   onSlick: boolean;
   /** Inside a ramp zone: a ramp launches only on entry, not again while still on it. */
   onRamp: boolean;
+  /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
+  nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
   respawnAtTick: number;
   /** Ghosted (no car-vs-car collisions) until this tick. */
@@ -63,7 +67,8 @@ export type SimEvent =
   | { type: 'land'; car: string; impact: number }
   | { type: 'checkpoint'; car: string; gate: number }
   | { type: 'respawnStart'; car: string; reason: 'button' | 'offTrack' }
-  | { type: 'respawn'; car: string; gate: number };
+  | { type: 'respawn'; car: string; gate: number }
+  | { type: 'honk'; car: string };
 
 export interface World {
   /** Ticks since the world was created. */
