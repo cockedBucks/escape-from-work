@@ -9,6 +9,7 @@ import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
 import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
+import { HeadSender } from './net/heads';
 import { InputDelayMeter } from './net/latency';
 import { OwnCarPredictor } from './net/predictor';
 import { seatSideFor } from './render/cockpitCam';
@@ -163,6 +164,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
 
   const source = new ServerCarSource(tuning.net.interpDelayMs, tuning.sim.dt * 1000);
   const delayMeter = new InputDelayMeter();
+  const headSender = new HeadSender();
   // Live tuning: the server sends the current values on join and after every change.
   const tuningListeners: ((t: Tuning) => void)[] = [(t) => (source.interpDelayMs = t.net.interpDelayMs)];
   let latestTuning = tuning;
@@ -311,6 +313,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     seatSide: () => seatSideFor(mySeat),
     mouseLocked: () => mouseLook.locked,
     onFrame: (now) => {
+      // Share where you look (your teammate sees your bobblehead turn).
+      const h = game.head;
+      const send = headSender.next(now, h.yaw, h.pitch, latestTuning.net.headSendMs);
+      if (send) room.send(MSG.head, send);
       liveStats.snapshotAgeMs = source.lastArrival < 0 ? null : now - source.lastArrival;
       liveStats.interpDelayMs = source.interpDelayMs;
     },

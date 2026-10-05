@@ -14,6 +14,8 @@ export const MSG = {
   tuning: 'tuning',
   /** server → clients (dev): a track or car file changed; reload the page to rebuild it. */
   reload: 'reload',
+  /** client → server: `{ yaw, pitch }` head angles (cockpit look), ~20/s. */
+  head: 'head',
   /** client → server: `{ name }`. */
   setName: 'lobby:setName',
   /** client → server: `{ slot, seat }`. */
@@ -114,3 +116,22 @@ export const ReadySchema = z.strictObject({ ready: z.boolean() });
 
 /** `host:bots` (client → server). */
 export const BotsSchema = z.strictObject({ on: z.boolean() });
+
+/** `head` (client → server, ~20/s in the cockpit): where your head points, relative to the car. */
+export const HeadSchema = z.strictObject({
+  yaw: z.number().finite(),
+  pitch: z.number().finite(),
+});
+
+/**
+ * Validate a head message and clamp it to the head limits (`camera.headYawLimit/PitchLimit`).
+ * Null for anything malformed (the server drops it).
+ */
+export function parseHead(raw: unknown, limits: { headYawLimit: number; headPitchLimit: number }): { yaw: number; pitch: number } | null {
+  const r = HeadSchema.safeParse(raw);
+  if (!r.success) return null;
+  return {
+    yaw: clamp(r.data.yaw, -limits.headYawLimit, limits.headYawLimit),
+    pitch: clamp(r.data.pitch, -limits.headPitchLimit, limits.headPitchLimit),
+  };
+}

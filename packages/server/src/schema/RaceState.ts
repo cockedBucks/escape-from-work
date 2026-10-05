@@ -13,6 +13,9 @@ export const PlayerState = schema(
     role: t.string().default(''),
     /** False while disconnected and their seat is held (P2.4). */
     connected: t.boolean().default(true),
+    /** Where the player looks in the cockpit, relative to the car (rad): drives their bobblehead. */
+    headYaw: t.float32().default(0),
+    headPitch: t.float32().default(0),
     /** Pressed Ready in the lobby. */
     ready: t.boolean().default(false),
     /** Last input `seq` the server applied, so the client can measure input delay (-1 = none). */

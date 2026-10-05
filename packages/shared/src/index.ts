@@ -46,6 +46,8 @@ export {
   NAME_MAX_LENGTH,
   SetNameSchema,
   BotsSchema,
+  HeadSchema,
+  parseHead,
   ReadySchema,
   SetLapsSchema,
   SetSeatSchema,

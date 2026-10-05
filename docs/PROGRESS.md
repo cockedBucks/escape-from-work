@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P4 — Cockpit cam and bobbleheads (`docs/phases/P04-cockpit.md`)
-- Next task: P4.2 (head sync)
-- Status: P4.1 done. `npm run verify` passes (261 tests + bot race).
+- Next task: P4.3 (bobbleheads)
+- Status: P4.2 done. `npm run verify` passes (266 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -57,6 +57,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   good. Decisions D050–D057.
 - 2026-10-05: P4.1 cockpit camera — seat by role, Pointer Lock mouse look with limits, recenter, head
   bob on bumps (from sim events), C toggle remembered, dashboard + windshield frame. D058.
+- 2026-10-05: P4.2 head sync — `head` message (validated, clamped, rate-limited) → player state,
+  client sends ≤20/s on change, others smooth it. D059.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

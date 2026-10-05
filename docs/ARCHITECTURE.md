@@ -215,6 +215,9 @@ Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:rea
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
 Esc hides it to drive around; never redraws under a focused text field.
+Head sync (P4.2): `head {yaw, pitch}` (~20/s from the cockpit cam, only when it changed) is
+zod-checked, clamped to `camera.headYawLimit/PitchLimit`, rate-limited (`net.headRatePerSec`) and
+stored as `players.headYaw/headPitch`; other clients ease toward it (`HeadSmoother`).
 Race loop (P3.1): `packages/shared/src/race/flow.ts` — phases lobby → countdown → racing → results →
 lobby / rematch. The server owns a `RaceFlow` (phase, phaseTick, host, laps) and syncs it. Host =
 earliest-joined connected player, passed on automatically. `host:start` (host, between races, ≥1
@@ -302,6 +305,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |
 | own car shimmers / snaps after bumps | `net.predictCorrectionRate` (lower = softer corrections) |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
+| teammate's head turns choppy / too much network | `net.headSendMs`, `net.headRatePerSec`, `net.headBurst` |
 | controls ignored when mashing keys | `net.inputRatePerSec`, `net.inputBurst` |
 | a key seems stuck after a network hiccup | `net.inputResendMs` |
 | port already in use | `net.port` |

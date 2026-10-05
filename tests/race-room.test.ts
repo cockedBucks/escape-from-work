@@ -104,3 +104,26 @@ describe('race room (real server, real clients)', () => {
     await a.leave();
   });
 });
+
+describe('head sync (real server)', () => {
+  let game: GameServer | undefined;
+  let endpoint: EndpointSettings;
+  beforeAll(async () => {
+    game = await startServer({ port: 0, host: '127.0.0.1' });
+    endpoint = { hostname: '127.0.0.1', port: game.port, secure: false };
+  });
+  afterAll(() => game?.close());
+
+  it('a teammate sees your head angles, clamped to the limits; junk is ignored', async () => {
+    const a = await new Client(endpoint).join<{ players?: { get(id: string): { headYaw: number; headPitch: number } | undefined } }>(ROOM_NAME);
+    const b = await new Client(endpoint).join<{ players?: { get(id: string): { headYaw: number; headPitch: number } | undefined } }>(ROOM_NAME);
+    a.send(MSG.head, { yaw: 'left', pitch: 0 });
+    a.send(MSG.head, { yaw: 0.5, pitch: 99 });
+    await waitForState(b, (s) => (s.players?.get(a.sessionId)?.headYaw ?? 0) > 0.4, 'B sees A look left');
+    const head = b.state.players!.get(a.sessionId)!;
+    expect(head.headYaw).toBeCloseTo(0.5, 5);
+    expect(head.headPitch).toBeLessThan(1); // clamped to camera.headPitchLimit
+    await a.leave();
+    await b.leave();
+  });
+});

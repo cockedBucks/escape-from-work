@@ -6,6 +6,7 @@ import {
   ReadySchema,
   SetTeamNameSchema,
   TEAM_NAME_MAX_LENGTH,
+  parseHead,
   SetLapsSchema,
   SetNameSchema,
   SetSeatSchema,
@@ -27,6 +28,7 @@ const TICK_MS_ROUND = 10;
 interface Limits {
   input: TokenBucket;
   lobby: TokenBucket;
+  head: TokenBucket;
 }
 
 /** The one room of the server: players join, pick a car and seat, and drive. */
@@ -59,6 +61,16 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       // Over the rate limit or malformed: drop quietly (never log per message).
       if (!this.limits.get(client.sessionId)?.input.take()) return;
       this.sim.handleInput(client.sessionId, message);
+    });
+
+    // Head angles (cockpit look): validated, clamped to the head limits, straight into state.
+    this.onMessage(MSG.head, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.head.take()) return;
+      const head = parseHead(message, this.tuning.camera);
+      const player = this.state.players.get(client.sessionId);
+      if (!head || !player) return;
+      player.headYaw = head.yaw;
+      player.headPitch = head.pitch;
     });
 
     this.onMessage(MSG.setName, (client, message: unknown) => {
@@ -219,7 +231,11 @@ export class RaceRoom extends Room<{ state: RaceState }> {
 
   private newLimits(): Limits {
     const n = this.tuning.net;
-    return { input: new TokenBucket(n.inputRatePerSec, n.inputBurst), lobby: new TokenBucket(n.lobbyRatePerSec, n.lobbyBurst) };
+    return {
+      input: new TokenBucket(n.inputRatePerSec, n.inputBurst),
+      lobby: new TokenBucket(n.lobbyRatePerSec, n.lobbyBurst),
+      head: new TokenBucket(n.headRatePerSec, n.headBurst),
+    };
   }
 
   /** Live config changed (dev: F2 panel or an edited file). */

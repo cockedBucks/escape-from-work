@@ -87,6 +87,11 @@ export class Game {
     this.opts.view = view;
   }
 
+  /** Your head angles in the cockpit (0, 0 in other views), to share with your teammate. */
+  get head(): { yaw: number; pitch: number } {
+    return this.opts.view === 'cockpit' ? { yaw: this.cockpit.headYaw, pitch: this.cockpit.headPitch } : { yaw: 0, pitch: 0 };
+  }
+
   /** The canvas (for Pointer Lock). */
   get canvas(): HTMLCanvasElement {
     return this.stage.renderer.domElement;

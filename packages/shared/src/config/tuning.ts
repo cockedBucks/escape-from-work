@@ -201,6 +201,11 @@ const NetSchema = z.strictObject({
   inputRatePerSec: z.number().positive(),
   /** Short bursts above the average rate that are still allowed (messages). */
   inputBurst: z.number().int().min(1),
+  /** Head-angle messages a client may send per second (cockpit look), and the burst. */
+  headRatePerSec: z.number().positive(),
+  headBurst: z.number().int().min(1),
+  /** Clients send head angles at most this often (ms), and only when they changed. */
+  headSendMs: z.number().int().min(10),
   /** Lobby messages (name, seat) a client may send per second on average, and the burst. */
   lobbyRatePerSec: z.number().positive(),
   lobbyBurst: z.number().int().min(1),
