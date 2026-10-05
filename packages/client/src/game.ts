@@ -1,8 +1,10 @@
-import type { Track, Tuning } from '@escape/shared';
+import { angleDiff, type Track, type Tuning } from '@escape/shared';
 import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
-import { BoxCar } from './render/carMesh';
+import { BoxCar, type SeatContent } from './render/carMesh';
+import { FaceMaterials } from './render/faceTexture';
+import { HeadSmoother } from './net/heads';
 import { TEAM_COLORS } from './render/look';
 import { createStage, type Stage } from './render/renderer';
 import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
@@ -26,12 +28,28 @@ export interface GameOptions {
   view: View;
   /** Car the chase cam follows (null = first car). */
   focus: () => string | null;
+  /** Who sits in each car (for bobbleheads); null/undefined = empty seats. */
+  occupants?: (carId: string) => CarSeats | null;
   /** Cockpit cam: which seat you sit in (default left). */
   seatSide?: () => SeatSide;
   /** Cockpit cam: is the mouse captured for looking around? */
   mouseLocked?: () => boolean;
   /** Called at the start of every frame with the client time (ms), for per-frame stats. */
   onFrame?: (now: number) => void;
+}
+
+/** A player in a seat: their face, where they look (synced), and whether it is you. */
+export interface SeatPerson {
+  id: string;
+  face: string;
+  yaw: number;
+  pitch: number;
+  me: boolean;
+}
+
+export interface CarSeats {
+  left: SeatPerson | 'duck' | null;
+  right: SeatPerson | 'duck' | null;
 }
 
 /** Team color: by car slot for server cars ("car3" → slot 3), else by arrival order (scenario bots). */
@@ -50,6 +68,10 @@ export class Game {
   private readonly trackMeshes: TrackMeshes;
   private readonly chase: ChaseCam;
   private readonly cockpit: CockpitCam;
+  private readonly faces = new FaceMaterials();
+  private readonly heads = new HeadSmoother();
+  /** Last frame's speed and heading per car, to work out acceleration for the wobble. */
+  private readonly motion = new Map<string, { speed: number; yaw: number }>();
   /** Car currently showing its dashboard (your car in cockpit view). */
   private dashCar: string | null = null;
   private readonly overlay: DebugOverlay;
@@ -95,6 +117,12 @@ export class Game {
   /** The canvas (for Pointer Lock). */
   get canvas(): HTMLCanvasElement {
     return this.stage.renderer.domElement;
+  }
+
+  /** Point the cockpit head (scenarios: look at your teammate). */
+  lookAt(yaw: number, pitch: number): void {
+    this.cockpit.headYaw = yaw;
+    this.cockpit.headPitch = pitch;
   }
 
   /** Mouse moved while captured (cockpit look). */
@@ -168,11 +196,37 @@ export class Game {
     if (id) this.cars.get(id)?.setCockpit(true);
   }
 
+  /** Bobbleheads / duck for one car, wobbling with its acceleration. */
+  private updateSeats(id: string, mesh: BoxCar, s: CarSnap, dt: number): void {
+    let m = this.motion.get(id);
+    if (!m) {
+      m = { speed: s.speed, yaw: s.yaw };
+      this.motion.set(id, m);
+    }
+    const forwardAccel = dt > 0 ? (s.speed - m.speed) / dt : 0;
+    const sideAccel = dt > 0 ? (s.speed * angleDiff(m.yaw, s.yaw)) / dt : 0;
+    m.speed = s.speed;
+    m.yaw = s.yaw;
+    const seats = this.opts.occupants?.(id) ?? null;
+    const inCockpit = this.opts.view === 'cockpit';
+    for (const side of ['left', 'right'] as const) {
+      const who = seats?.[side] ?? null;
+      let content: SeatContent = null;
+      if (who === 'duck') content = { kind: 'duck' };
+      else if (who) {
+        const head = this.heads.step(who.id, who.yaw, who.pitch, dt);
+        content = { kind: 'head', material: this.faces.get(who.face), yaw: head.yaw, pitch: head.pitch, hidden: who.me && inCockpit };
+      }
+      mesh.setSeat(side, content, s.y, forwardAccel, sideAccel, dt);
+    }
+  }
+
   private syncCars(dt: number): void {
     for (const [id, mesh] of this.cars) {
       if (!this.snaps.has(id)) {
         mesh.dispose();
         this.cars.delete(id);
+        this.motion.delete(id);
       }
     }
     for (const [id, s] of this.snaps) {
@@ -183,6 +237,7 @@ export class Game {
         this.stage.scene.add(mesh.root);
       }
       mesh.update(s.x, s.y, s.z, s.yaw, s.speed, s.steer, dt, s.ghost || s.respawning);
+      this.updateSeats(id, mesh, s, dt);
     }
   }
 
@@ -192,6 +247,7 @@ export class Game {
     for (const mesh of this.cars.values()) mesh.dispose();
     this.cars.clear();
     this.overlay.dispose();
+    this.faces.dispose();
     this.trackMeshes.dispose();
     this.stage.dispose();
   }

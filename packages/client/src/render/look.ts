@@ -98,6 +98,33 @@ export const COCKPIT = {
   dashColor: 0x2b2b2b,
 } as const;
 
+/** Bobbleheads (ART_STYLE §4: heads ~1.6× scale, on a spring, wobbling). */
+export const HEAD = {
+  radius: 0.36,
+  /** Head center height above the car's ground point (pokes up through the roof). */
+  centerY: 1.82,
+  /** Wrap-around face texture width in px (height is half). Faces ≤ 256 px tall. */
+  textureWidth: 512,
+  /** The non-face part of the head (a light helmet) and the placeholder face color. */
+  helmetColor: '#d9dde3',
+  placeholderSkin: '#f6d7b0',
+  /** Wobble spring: stiffness (1/s), damping ratio (<1 = bouncy), tilt per m/s² and max tilt (rad). */
+  wobbleStiffness: 9,
+  wobbleDamping: 0.35,
+  wobblePerAccel: 0.03,
+  wobbleMax: 0.6,
+} as const;
+
+/** The rubber duck in a solo car's empty seat. */
+export const DUCK = {
+  bodyRadius: 0.26,
+  headRadius: 0.15,
+  /** Sits on the seat, lower than a head. */
+  y: 1.15,
+  yellow: 0xffd23f,
+  orange: 0xfb8500,
+} as const;
+
 /** Top-down overview camera: field of view and empty border around the track (1.1 = 10%). */
 export const OVERVIEW = {
   fov: 50,

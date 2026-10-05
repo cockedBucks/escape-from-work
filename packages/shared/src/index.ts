@@ -49,6 +49,7 @@ export {
   HeadSchema,
   parseHead,
   ReadySchema,
+  SetFaceSchema,
   SetLapsSchema,
   SetSeatSchema,
   SetTeamNameSchema,

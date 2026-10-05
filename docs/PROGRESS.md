@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P4 — Cockpit cam and bobbleheads (`docs/phases/P04-cockpit.md`)
-- Next task: P4.3 (bobbleheads)
-- Status: P4.2 done. `npm run verify` passes (266 tests + bot race).
+- Next task: P4.4 (dashboard HUD)
+- Status: P4.3 done. `npm run verify` passes (274 tests + bot race). Shots chase/cockpit ok.
 
 ## Half-done
 - (nothing)
@@ -59,6 +59,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   bob on bumps (from sim events), C toggle remembered, dashboard + windshield frame. D058.
 - 2026-10-05: P4.2 head sync — `head` message (validated, clamped, rate-limited) → player state,
   client sends ≤20/s on change, others smooth it. D059.
+- 2026-10-05: P4.3 bobbleheads — `npm run faces`, /faces served (traversal blocked), lobby face picker,
+  face-textured wobbly heads turning with synced look, duck in solo cars, `cockpit` scenario. D060.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

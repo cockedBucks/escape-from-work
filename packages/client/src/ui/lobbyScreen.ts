@@ -7,6 +7,8 @@ import { TEAM_COLORS } from '../render/look';
 export interface LobbyPlayer {
   id: string;
   name: string;
+  /** Bobblehead face file ('' = drawn placeholder). */
+  face?: string;
   slot: number;
   seat: string;
   connected: boolean;
@@ -24,6 +26,8 @@ export interface LobbyView {
   bots: boolean;
   /** Car slots currently driven by server bots. */
   botSlots: number[];
+  /** Faces available on the host (from /faces/faces.json); empty = placeholder only. */
+  faces?: { file: string; name: string }[];
 }
 
 export interface LobbyHandlers {
@@ -32,6 +36,7 @@ export interface LobbyHandlers {
   leaveSeat(): void;
   setTeamName(slot: number, name: string): void;
   setReady(ready: boolean): void;
+  setFace(face: string): void;
   start(): void;
   setLaps(laps: number): void;
   shuffle(): void;
@@ -73,7 +78,21 @@ function saveName(name: string): void {
 export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
   const me = v.players.find((p) => p.id === v.myId);
   const iAmHost = v.host === v.myId;
-  const html: string[] = ['<div class="join-cards">'];
+  const html: string[] = [];
+  const faces = v.faces ?? [];
+  if (faces.length > 0) {
+    // Face picker: your bobblehead face (only people who agreed have a photo here).
+    const mine = me?.face ?? '';
+    const pick = (file: string, label: string, inner: string): string =>
+      `<button class="face${file === mine ? ' mine' : ''}" data-action="face" data-face="${escapeHtml(file)}" title="${escapeHtml(label)}">${inner}</button>`;
+    html.push('<div class="face-picker"><span>Your face</span>');
+    html.push(pick('', 'Smiley', '<span class="face-smiley">🤓</span>'));
+    for (const f of faces) {
+      html.push(pick(f.file, f.name, `<img src="/faces/${encodeURIComponent(f.file)}" alt="${escapeHtml(f.name)}">`));
+    }
+    html.push('</div>');
+  }
+  html.push('<div class="join-cards">');
   for (let slot = 0; slot < limits.maxCars; slot++) {
     const inCar = v.players.filter((p) => p.slot === slot && p.seat !== '');
     const solo = inCar.find((p) => p.seat === 'solo');
@@ -208,6 +227,7 @@ export class LobbyScreen {
     switch (btn.dataset['action']) {
       case 'watch': return this.handlers.leaveSeat();
       case 'ready': return this.handlers.setReady(!(v.players.find((p) => p.id === v.myId)?.ready ?? false));
+      case 'face': return this.handlers.setFace(btn.dataset['face'] ?? '');
       case 'start': return this.handlers.start();
       case 'shuffle': return this.handlers.shuffle();
       case 'bots': return this.handlers.setBots(!v.bots);

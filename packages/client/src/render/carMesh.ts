@@ -1,10 +1,20 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { BOX_CAR, COCKPIT, PALETTE } from './look';
+import { Bobblehead, makeDuck } from './bobblehead';
+import type { SeatSide } from './cockpitCam';
+import { BOX_CAR, COCKPIT, DUCK, HEAD, PALETTE } from './look';
+
+/** What a seat shows: a player's bobblehead (hidden = it is you, in the cockpit), a duck, or nobody. */
+export type SeatContent =
+  | { kind: 'head'; material: THREE.Material; yaw: number; pitch: number; hidden: boolean }
+  | { kind: 'duck' }
+  | null;
 
 /** Shared by every car (built once). */
 interface CarAssets {
   body: THREE.BufferGeometry;
+  /** Both rear wheels in one mesh: they share an axle, so they spin together (one draw call). */
+  rearAxle: THREE.BufferGeometry;
   dash: THREE.BufferGeometry;
   dashMat: THREE.Material;
   wheel: THREE.BufferGeometry;
@@ -49,11 +59,19 @@ function getAssets(): CarAssets {
   for (const p of parts) p.dispose();
   if (!dash) throw new Error('could not merge the cockpit');
 
+  const rearL = wheel.clone().translate(C.wheelTrack, 0, 0);
+  const rearR = wheel.clone().translate(-C.wheelTrack, 0, 0);
+  const rearAxle = mergeGeometries([rearL, rearR]);
+  rearL.dispose();
+  rearR.dispose();
+  if (!rearAxle) throw new Error('could not merge the rear wheels');
+
   const shadow = new THREE.CircleGeometry(C.shadowRadius, 20);
   shadow.rotateX(-Math.PI / 2);
 
   assets = {
     body: merged,
+    rearAxle,
     dash,
     dashMat: new THREE.MeshLambertMaterial({ color: COCKPIT.dashColor, flatShading: true }),
     wheel,
@@ -66,7 +84,8 @@ function getAssets(): CarAssets {
 
 /**
  * Placeholder box car (P7 replaces it with the car kit): one merged body in team color,
- * four wheels that spin and steer, a blob shadow. 6 draw calls, about 300 triangles.
+ * two steering front wheels, one rear axle, a blob shadow (5 draw calls, ~300 triangles),
+ * plus what sits in the two seats: bobbleheads (1 draw call each) or a rubber duck.
  */
 export class BoxCar {
   readonly root = new THREE.Group();
@@ -77,6 +96,11 @@ export class BoxCar {
   private spin = 0;
   /** Dashboard block, only for your own car while you sit in the cockpit cam. */
   private dash: THREE.Mesh | null = null;
+  /** What sits in the left and right seat. */
+  private readonly seats: Record<SeatSide, { kind: 'head'; head: Bobblehead } | { kind: 'duck'; mesh: THREE.Mesh } | null> = {
+    left: null,
+    right: null,
+  };
 
   constructor(teamColor: number) {
     const a = getAssets();
@@ -85,14 +109,18 @@ export class BoxCar {
     this.body = new THREE.Mesh(a.body, this.bodyMat);
     this.body.castShadow = true;
     this.root.add(this.body);
-    for (const [fz, sx] of [[1, 1], [1, -1], [-1, 1], [-1, -1]] as const) {
+    for (const sx of [1, -1]) {
       const w = new THREE.Mesh(a.wheel, a.wheelMat);
-      w.position.set(sx * C.wheelTrack, C.wheelRadius, fz * C.wheelBase);
+      w.position.set(sx * C.wheelTrack, C.wheelRadius, C.wheelBase);
       w.rotation.order = 'YXZ';
       this.root.add(w);
       this.wheels.push(w);
-      if (fz === 1) this.frontWheels.push(w);
+      this.frontWheels.push(w);
     }
+    const rear = new THREE.Mesh(a.rearAxle, a.wheelMat);
+    rear.position.set(0, C.wheelRadius, -C.wheelBase);
+    this.root.add(rear);
+    this.wheels.push(rear);
     const shadow = new THREE.Mesh(a.shadow, a.shadowMat);
     shadow.position.y = 0.03;
     shadow.renderOrder = -1;
@@ -119,6 +147,33 @@ export class BoxCar {
       this.bodyMat.transparent = ghost;
       this.bodyMat.opacity = ghost ? BOX_CAR.ghostOpacity : 1;
       this.bodyMat.needsUpdate = true;
+    }
+  }
+
+  /**
+   * Put a bobblehead (or the duck, or nobody) in a seat and move it for this frame.
+   * `forwardAccel`/`sideAccel` (m/s²) drive the wobble; `y` is the car's jump height.
+   */
+  setSeat(side: SeatSide, content: SeatContent, y: number, forwardAccel: number, sideAccel: number, dt: number): void {
+    const x = side === 'left' ? COCKPIT.seatOffset : -COCKPIT.seatOffset;
+    let seat = this.seats[side];
+    const want = content?.kind ?? null;
+    if ((seat?.kind ?? null) !== want) {
+      if (seat) (seat.kind === 'head' ? seat.head.mesh : seat.mesh).removeFromParent();
+      seat = null;
+      if (content?.kind === 'head') seat = { kind: 'head', head: new Bobblehead(content.material) };
+      else if (content?.kind === 'duck') seat = { kind: 'duck', mesh: makeDuck() };
+      if (seat) this.root.add(seat.kind === 'head' ? seat.head.mesh : seat.mesh);
+      this.seats[side] = seat;
+    }
+    if (!seat || !content) return;
+    if (seat.kind === 'head' && content.kind === 'head') {
+      seat.head.setMaterial(content.material);
+      seat.head.mesh.position.set(x, HEAD.centerY + y, -COCKPIT.seatBack);
+      seat.head.mesh.visible = !content.hidden;
+      seat.head.update(content.yaw, content.pitch, forwardAccel, sideAccel, dt);
+    } else if (seat.kind === 'duck') {
+      seat.mesh.position.set(x, DUCK.y + y, -COCKPIT.seatBack);
     }
   }
 

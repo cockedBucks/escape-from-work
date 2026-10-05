@@ -215,6 +215,12 @@ Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:rea
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
 Esc hides it to drive around; never redraws under a focused text field.
+Bobbleheads (P4.3): `npm run faces` writes `assets/faces/faces.json` (`packages/server/src/faces.ts`);
+the game server serves `/faces/*` (Vite proxies it in dev). `lobby:setFace {face}` is accepted
+only for files that exist; `players.face` syncs. Each seat shows a sphere head (face painted on
+the front of a wrap-around canvas texture, placeholder smiley until/unless a photo loads),
+turned by the synced head angles and wobbling on a spring from the car's acceleration; your
+own head is hidden in the cockpit; a solo car gets a rubber duck in the empty seat.
 Head sync (P4.2): `head {yaw, pitch}` (~20/s from the cockpit cam, only when it changed) is
 zod-checked, clamped to `camera.headYawLimit/PitchLimit`, rate-limited (`net.headRatePerSec`) and
 stored as `players.headYaw/headPitch`; other clients ease toward it (`HeadSmoother`).

@@ -16,6 +16,8 @@ export const MSG = {
   reload: 'reload',
   /** client → server: `{ yaw, pitch }` head angles (cockpit look), ~20/s. */
   head: 'head',
+  /** client → server: `{ face }` pick your bobblehead face ('' = placeholder). */
+  setFace: 'lobby:setFace',
   /** client → server: `{ name }`. */
   setName: 'lobby:setName',
   /** client → server: `{ slot, seat }`. */
@@ -135,3 +137,8 @@ export function parseHead(raw: unknown, limits: { headYawLimit: number; headPitc
     pitch: clamp(r.data.pitch, -limits.headPitchLimit, limits.headPitchLimit),
   };
 }
+
+/** `lobby:setFace` (client → server): a file from assets/faces/faces.json, or '' for the placeholder. */
+export const SetFaceSchema = z.strictObject({
+  face: z.string().max(80),
+});

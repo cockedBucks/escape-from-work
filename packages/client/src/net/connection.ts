@@ -43,6 +43,7 @@ export interface PlayerViewState {
   role: string;
   connected: boolean;
   ready: boolean;
+  face: string;
   headYaw: number;
   headPitch: number;
   /** Last input seq the server applied for this player. */

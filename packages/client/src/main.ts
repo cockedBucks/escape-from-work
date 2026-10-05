@@ -4,7 +4,7 @@ import '@fontsource/fredoka/600.css';
 import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
-import { Game, type CarSource } from './game';
+import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
@@ -23,6 +23,51 @@ import { Scoreboard, boardRows, type BoardCar } from './ui/scoreboard';
 import { Spectator } from './ui/spectator';
 import { RoleBadge } from './ui/roleBadge';
 
+/**
+ * Seats per car from the synced players: Pilot or Solo on the left, Engineer on the right;
+ * a lone player's car gets the rubber duck in the other seat; bot cars get two placeholder heads.
+ */
+function carSeatsFrom(
+  state: {
+    players: { forEach(cb: (p: { slot: number; seat: string; face: string; headYaw: number; headPitch: number }, id: string) => void): void };
+    cars: { forEach(cb: (c: { bot: boolean }, id: string) => void): void };
+  },
+  myId: string,
+): Map<string, CarSeats> {
+  const seats = new Map<string, CarSeats>();
+  state.players.forEach((p, id) => {
+    if (p.slot < 0 || p.seat === '') return;
+    const carId = carIdForSlot(p.slot);
+    const car = seats.get(carId) ?? { left: null, right: null };
+    const person: SeatPerson = { id, face: p.face, yaw: p.headYaw, pitch: p.headPitch, me: id === myId };
+    if (p.seat === 'engineer') car.right = person;
+    else car.left = person;
+    seats.set(carId, car);
+  });
+  for (const car of seats.values()) {
+    if (car.left && !car.right) car.right = 'duck';
+    else if (car.right && !car.left) car.left = 'duck';
+  }
+  state.cars.forEach((c, id) => {
+    if (!c.bot) return;
+    const bot = (side: string): SeatPerson => ({ id: `${id}-${side}`, face: '', yaw: 0, pitch: 0, me: false });
+    seats.set(id, { left: bot('l'), right: bot('r') });
+  });
+  return seats;
+}
+
+/** The host's face list (/faces/faces.json, built by `npm run faces`); [] if missing. */
+async function fetchFaces(): Promise<{ file: string; name: string }[]> {
+  try {
+    const res = await fetch('/faces/faces.json');
+    if (!res.ok) return [];
+    const data = (await res.json()) as { faces?: { file: string; name: string }[] };
+    return Array.isArray(data.faces) ? data.faces : [];
+  } catch {
+    return [];
+  }
+}
+
 /** Car slots driven by server bots (car ids are "car<slot>"). */
 function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: string) => void): void } }): number[] {
   const slots: number[] = [];
@@ -31,6 +76,9 @@ function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: strin
   });
   return slots;
 }
+
+/** Where you look in the `cockpit` scenario: right (negative yaw) and a bit up, at your teammate. */
+const SCENARIO_LOOK = { yaw: -1.15, pitch: 0.25 };
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
@@ -89,9 +137,23 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     track,
     quality: pickQuality(window.location.search, tuning).preset,
     source: frozenSource(world),
-    view: scenario === 'track-overview' ? 'overview' : 'chase',
+    view: scenario === 'track-overview' ? 'overview' : scenario === 'cockpit' ? 'cockpit' : 'chase',
     focus: () => 'bot1',
+    seatSide: () => 'left',
+    // Hold the head where the scenario points it (as if the mouse were captured).
+    mouseLocked: () => true,
+    // Placeholder bobbleheads for the screenshots; bot2 drives solo with the duck.
+    // In the cockpit shot you are bot1's Pilot and your teammate turns to look at you.
+    occupants: (carId) => {
+      const head = (side: string, yaw = 0): SeatPerson => ({
+        id: `${carId}-${side}`, face: '', yaw, pitch: 0, me: carId === 'bot1' && side === 'l',
+      });
+      if (carId === 'bot2') return { left: head('l'), right: 'duck' };
+      return { left: head('l', 0.5), right: head('r', carId === 'bot1' ? 1.2 : 0) };
+    },
   });
+  // Cockpit shot: turn your head right toward your teammate's bobblehead.
+  if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
   game.renderFrame(performance.now(), true);
   game.start();
   setStatus('');
@@ -106,7 +168,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     const noop = (): void => {};
     const handlers: LobbyHandlers = {
       setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
-      start: noop, setLaps: noop, shuffle: noop, setBots: noop,
+      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setFace: noop,
     };
     const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
@@ -180,6 +242,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   // Sim events (bumps, jumps, …): for now they shake the cockpit head; sounds and effects in P7.
   let onEvents: (events: SimEvent[]) => void = () => {};
   room.onMessage(MSG.events, (events: SimEvent[]) => onEvents(events));
+  // Faces on the host PC (none = everyone gets the drawn placeholder).
+  let faces: { file: string; name: string }[] = [];
+  void fetchFaces().then((list) => (faces = list));
   const race = latestTuning.race;
   const join = new LobbyScreen(container, { maxCars: race.maxCars, minLaps: race.minLaps, maxLaps: race.maxLaps }, {
     setName: (name) => room.send(MSG.setName, { name }),
@@ -187,6 +252,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     leaveSeat: () => room.send(MSG.leaveSeat, {}),
     setTeamName: (slot, name) => room.send(MSG.setTeamName, { slot, name }),
     setReady: (ready) => room.send(MSG.ready, { ready }),
+    setFace: (face) => room.send(MSG.setFace, { face }),
     start: () => room.send(MSG.hostStart, {}),
     setLaps: (laps) => room.send(MSG.hostLaps, { laps }),
     shuffle: () => room.send(MSG.hostShuffle, {}),
@@ -206,6 +272,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   endRace.addEventListener('click', () => room.send(MSG.hostEndRace, {}));
   container.appendChild(endRace);
   const board = new Scoreboard(container);
+  // Who sits where (bobbleheads), rebuilt on every state change, read every frame.
+  let seatsByCar = new Map<string, CarSeats>();
   const resultsScreen = new ResultsScreen(container, {
     rematch: () => room.send(MSG.hostStart, {}),
     lobby: () => room.send(MSG.hostLobby, {}),
@@ -240,7 +308,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     liveStats.tickMs = state.tickMs;
     const players: LobbyPlayer[] = [];
     state.players.forEach((p, id) =>
-      players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected, ready: p.ready }),
+      players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected, ready: p.ready, face: p.face }),
     );
     const me = state.players.get(room.sessionId);
     const delay = me ? delayMeter.acked(me.ackSeq, now) : null;
@@ -258,6 +326,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     badge.set(me?.role ?? '');
     endRace.hidden = !(state.host === room.sessionId && (state.phase === 'countdown' || state.phase === 'racing'));
     teamNames = [...state.teams];
+    seatsByCar = carSeatsFrom(state, room.sessionId);
     const boardCars: BoardCar[] = [];
     state.cars.forEach((c, id) => {
       boardCars.push({
@@ -298,6 +367,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       teams: [...state.teams],
       bots: state.bots,
       botSlots: botSlotsOf(state),
+      faces,
     });
   });
 
@@ -310,6 +380,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     view: 'chase',
     // Follow your own car; while watching, the spectator cam picks the car.
     focus: () => myCarId ?? spectator.target,
+    occupants: (carId) => seatsByCar.get(carId) ?? null,
     seatSide: () => seatSideFor(mySeat),
     mouseLocked: () => mouseLook.locked,
     onFrame: (now) => {

@@ -11,7 +11,11 @@ export default defineConfig({
   // Listen on the LAN too, so a second laptop or phone can open the dev page.
   server: {
     host: true,
-    proxy: { '/dev': `http://localhost:${tuning.net.port}` },
+    proxy: {
+      '/dev': `http://localhost:${tuning.net.port}`,
+      // Bobblehead faces live on the host PC and are served by the game server.
+      '/faces': `http://localhost:${tuning.net.port}`,
+    },
   },
   preview: { host: true },
   build: { outDir: 'dist', emptyOutDir: true, target: 'es2023' },

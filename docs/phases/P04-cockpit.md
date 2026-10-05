@@ -19,7 +19,7 @@ a dashboard HUD, a rear-view mirror, and a goofy horn.
   mouse look with yaw/pitch limits, light head bob on bumps, C toggle, preference saved.
 - [x] **P4.2 Head sync.** `head` message (~20/s, validated, rate-limited) → state → teammates
   interpolate the head angle. Test for validation and clamping.
-- [ ] **P4.3 Bobbleheads.** `scripts/faces.mjs` + `npm run faces` builds `assets/faces/faces.json`.
+- [x] **P4.3 Bobbleheads.** `scripts/faces.mjs` + `npm run faces` builds `assets/faces/faces.json`.
   Players choose their face in the lobby (or a placeholder). Head sphere with the face on the
   front, spring wobble driven by car acceleration. Solo cars show a rubber duck in the empty
   seat.

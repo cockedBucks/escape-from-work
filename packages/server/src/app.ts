@@ -5,6 +5,7 @@ import { Server, matchMaker } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { ROOM_NAME } from '@escape/shared';
 import { watchConfig } from './dev/configWatcher';
+import { FACES_DIR } from './faces';
 import { installTuningRoutes } from './dev/tuningRoutes';
 import { LiveConfig, setLiveConfig } from './liveConfig';
 import { RaceRoom } from './rooms/RaceRoom';
@@ -57,6 +58,8 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
     greet: false,
     gracefullyShutdown: opts.handleSignals ?? false,
     express: (app) => {
+      // Bobblehead faces (coworker photos on this PC) for the page, dev and production.
+      app.use('/faces', express.static(FACES_DIR, { fallthrough: false, index: false }));
       if (dev) installTuningRoutes(app, live);
       const dir = opts.clientDir;
       if (dir !== undefined && existsSync(dir)) {

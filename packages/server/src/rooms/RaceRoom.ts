@@ -7,6 +7,7 @@ import {
   SetTeamNameSchema,
   TEAM_NAME_MAX_LENGTH,
   parseHead,
+  SetFaceSchema,
   SetLapsSchema,
   SetNameSchema,
   SetSeatSchema,
@@ -15,6 +16,7 @@ import {
   type Tuning,
   type World,
 } from '@escape/shared';
+import { faceExists } from '../faces';
 import { liveConfig, type ConfigChange } from '../liveConfig';
 import { TokenBucket } from '../net/rateLimit';
 import { CarView, PlayerState, RaceState } from '../schema/RaceState';
@@ -71,6 +73,16 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (!head || !player) return;
       player.headYaw = head.yaw;
       player.headPitch = head.pitch;
+    });
+
+    this.onMessage(MSG.setFace, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = SetFaceSchema.safeParse(message);
+      const player = this.state.players.get(client.sessionId);
+      if (!msg.success || !player) return;
+      // Only faces that really exist on this PC (or '' for the placeholder).
+      if (msg.data.face !== '' && !faceExists(msg.data.face)) return this.refuse(client, 'that face is not on the host');
+      player.face = msg.data.face;
     });
 
     this.onMessage(MSG.setName, (client, message: unknown) => {

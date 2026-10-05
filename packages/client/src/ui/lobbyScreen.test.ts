@@ -56,3 +56,19 @@ describe('lobbyHtml bots', () => {
     expect(html).toMatch(/data-slot="2" data-seat="pilot" >\s*<span class="seat-role">Pilot<\/span><span class="seat-who">🤖 bot/);
   });
 });
+
+describe('lobbyHtml faces', () => {
+  it('shows a face picker when the host has faces and marks yours', () => {
+    const html = lobbyHtml(base({ faces: [{ file: 'dina.png', name: 'dina' }], players: [{ id: 'me', name: 'Me', slot: 0, seat: 'pilot', connected: true, ready: false, face: 'dina.png' }] }), limits);
+    expect(html).toContain('class="face-picker"');
+    expect(html).toMatch(/class="face mine" data-action="face" data-face="dina.png"/);
+    expect(html).toContain('src="/faces/dina.png"');
+  });
+
+  it('no picker without faces; file names cannot inject HTML', () => {
+    expect(lobbyHtml(base(), limits)).not.toContain('face-picker');
+    const html = lobbyHtml(base({ faces: [{ file: 'a"b.png', name: '<b>x</b>' }] }), limits);
+    expect(html).not.toContain('<b>x</b>');
+    expect(html).toContain('data-face="a&quot;b.png"');
+  });
+});

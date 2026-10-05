@@ -13,6 +13,8 @@ export const PlayerState = schema(
     role: t.string().default(''),
     /** False while disconnected and their seat is held (P2.4). */
     connected: t.boolean().default(true),
+    /** Bobblehead face: a file in assets/faces/ (served at /faces/), '' = drawn placeholder. */
+    face: t.string().default(''),
     /** Where the player looks in the cockpit, relative to the car (rad): drives their bobblehead. */
     headYaw: t.float32().default(0),
     headPitch: t.float32().default(0),
