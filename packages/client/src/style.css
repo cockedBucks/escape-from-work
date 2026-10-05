@@ -262,3 +262,154 @@ body {
   transform: scale(1.25) rotate(-3deg);
   transform-origin: left bottom;
 }
+
+/* Lobby (P3.2) additions on top of the join-screen styles. */
+.join-card .team-name {
+  font: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ui-dark);
+  border: 0;
+  border-bottom: 2px dashed transparent;
+  background: transparent;
+  padding: 0.1rem 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.join-card input.team-name {
+  border-bottom-color: var(--team);
+}
+
+.join-card.my-team {
+  box-shadow: 0 0 0 4px var(--team);
+}
+
+.lobby-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.lobby-actions button {
+  font: inherit;
+  font-size: 1.05rem;
+  padding: 0.45rem 0.9rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: #eef0f4;
+  color: var(--ui-dark);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.lobby-actions button:hover:not(:disabled) {
+  transform: rotate(-2deg) scale(1.05);
+}
+
+.lobby-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.lobby-actions .big {
+  font-size: 1.35rem;
+  font-weight: 600;
+  padding: 0.6rem 1.3rem;
+}
+
+.lobby-actions .ready.on,
+.lobby-actions .on {
+  background: var(--teal);
+  color: #fff;
+}
+
+.lobby-actions .start {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 0.25rem 0 var(--ui-dark);
+}
+
+.host-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.host-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
+  background: var(--ui-dark);
+  color: #fff;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.laps strong {
+  display: inline-block;
+  min-width: 1.6em;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.lobby-actions .watch {
+  grid-column: auto;
+}
+
+.waiting {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.lobby-help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--road);
+}
+
+/* Lobby: compact enough to fit 1280×720 / 1366×768 without scrolling. */
+.lobby .join-panel {
+  padding: 0.9rem 1.2rem;
+}
+
+.lobby .join-panel h2 {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.lobby .join-cards {
+  gap: 0.55rem;
+  margin: 0.55rem 0 0.2rem;
+}
+
+.lobby .join-card {
+  gap: 0.22rem;
+  padding: 0.45rem 0.55rem;
+}
+
+.lobby .join-card-head {
+  font-size: 1.1rem;
+}
+
+.lobby .join-card .seat {
+  padding: 0.22rem 0.55rem;
+  font-size: 0.95rem;
+}
+
+.lobby .lobby-actions {
+  margin-top: 0.45rem;
+}
+
+.lobby .join-error {
+  min-height: 0;
+  margin: 0.2rem 0;
+}

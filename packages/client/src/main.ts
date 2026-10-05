@@ -12,7 +12,7 @@ import { OwnCarPredictor } from './net/predictor';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
-import { JoinScreen, type JoinPlayer } from './ui/joinScreen';
+import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { RoleBadge } from './ui/roleBadge';
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
@@ -82,22 +82,29 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   await markReady(hooks);
 }
 
-/** Join screen with made-up players over the track (scenario `join`, for screenshots). */
-async function showJoinScenario(hooks: GameHooks, tuning: Tuning): Promise<void> {
+/** Lobby with made-up players over the track (scenario `lobby`, for screenshots). */
+async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void> {
+  const r = tuning.race;
   await showScenario(hooks, tuning, 'track-overview', () => {
-    const join = new JoinScreen(el('game'), tuning.race.maxCars, { setName: () => {}, setSeat: () => {}, leaveSeat: () => {} });
-    join.update(fake, 'me');
+    const noop = (): void => {};
+    const handlers: LobbyHandlers = {
+      setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
+      start: noop, setLaps: noop, shuffle: noop, setBots: noop,
+    };
+    const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
+    const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
+    lobby.update({ players: fakePlayers, myId: 'me', host: 'me', phase: 'lobby', laps: r.defaultLaps, teams, bots: false });
   });
 }
 
-/** Made-up players for the `join` scenario: a full car, a lone pilot, a solo car, one away. */
-const fake: JoinPlayer[] = [
-    { id: 'me', name: 'You', slot: -1, seat: '', connected: true },
-    { id: 'a', name: 'Dina', slot: 0, seat: 'pilot', connected: true },
-    { id: 'b', name: 'Omar', slot: 0, seat: 'engineer', connected: true },
-    { id: 'c', name: 'Karim', slot: 1, seat: 'pilot', connected: true },
-    { id: 'd', name: 'Sara', slot: 2, seat: 'solo', connected: true },
-  { id: 'e', name: 'Youssef', slot: 3, seat: 'engineer', connected: false },
+/** Made-up players for the `lobby` scenario: you (host) in car 1, full cars, a solo car, one away. */
+const fakePlayers: LobbyPlayer[] = [
+  { id: 'me', name: 'You', slot: 0, seat: 'pilot', connected: true, ready: true },
+  { id: 'a', name: 'Dina', slot: 0, seat: 'engineer', connected: true, ready: true },
+  { id: 'b', name: 'Omar', slot: 1, seat: 'pilot', connected: true, ready: false },
+  { id: 'c', name: 'Karim', slot: 1, seat: 'engineer', connected: true, ready: true },
+  { id: 'd', name: 'Sara', slot: 2, seat: 'solo', connected: true, ready: false },
+  { id: 'e', name: 'Youssef', slot: 3, seat: 'engineer', connected: false, ready: false },
 ];
 
 /** The real thing: join the server's race, pick a seat, drive. */
@@ -131,10 +138,17 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   // Sim events (bumps, jumps, …) drive sounds and effects later (P7). Listening now keeps the
   // SDK from warning about every unhandled one.
   room.onMessage(MSG.events, () => {});
-  const join = new JoinScreen(container, latestTuning.race.maxCars, {
+  const race = latestTuning.race;
+  const join = new LobbyScreen(container, { maxCars: race.maxCars, minLaps: race.minLaps, maxLaps: race.maxLaps }, {
     setName: (name) => room.send(MSG.setName, { name }),
     setSeat: (slot, seat) => room.send(MSG.setSeat, { slot, seat }),
     leaveSeat: () => room.send(MSG.leaveSeat, {}),
+    setTeamName: (slot, name) => room.send(MSG.setTeamName, { slot, name }),
+    setReady: (ready) => room.send(MSG.ready, { ready }),
+    start: () => room.send(MSG.hostStart, {}),
+    setLaps: (laps) => room.send(MSG.hostLaps, { laps }),
+    shuffle: () => room.send(MSG.hostShuffle, {}),
+    setBots: (on) => room.send(MSG.hostBots, { on }),
   });
   room.onMessage(MSG.lobbyError, (e: LobbyError) => {
     join.show(true);
@@ -166,8 +180,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     const now = performance.now();
     source.push(now, state);
     liveStats.tickMs = state.tickMs;
-    const players: JoinPlayer[] = [];
-    state.players.forEach((p, id) => players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected }));
+    const players: LobbyPlayer[] = [];
+    state.players.forEach((p, id) =>
+      players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected, ready: p.ready }),
+    );
     const me = state.players.get(room.sessionId);
     const delay = me ? delayMeter.acked(me.ackSeq, now) : null;
     if (delay !== null) {
@@ -181,7 +197,15 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
-    join.update(players, room.sessionId);
+    join.update({
+      players,
+      myId: room.sessionId,
+      host: state.host,
+      phase: state.phase,
+      laps: state.laps,
+      teams: [...state.teams],
+      bots: state.bots,
+    });
   });
 
   const game = new Game({
@@ -233,8 +257,8 @@ if (hooks.error !== null) {
   const run =
     hooks.scenario === 'hello'
       ? showHello(hooks, tuning)
-      : hooks.scenario === 'join'
-        ? showJoinScenario(hooks, tuning)
+      : hooks.scenario === 'lobby'
+        ? showLobbyScenario(hooks, tuning)
         : isRaceScenario(hooks.scenario)
         ? showScenario(hooks, tuning, hooks.scenario)
         : showRace(hooks, tuning);

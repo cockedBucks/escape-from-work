@@ -33,6 +33,7 @@ export interface PlayerViewState {
   seat: string;
   role: string;
   connected: boolean;
+  ready: boolean;
   /** Last input seq the server applied for this player. */
   ackSeq: number;
 }
@@ -47,6 +48,8 @@ export interface RaceStateView {
   phaseTick: number;
   host: string;
   laps: number;
+  teams: ArrayLike<string> & Iterable<string>;
+  bots: boolean;
 }
 
 export interface PageLocation {

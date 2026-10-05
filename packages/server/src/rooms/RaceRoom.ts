@@ -1,7 +1,11 @@
 import { Room, type Client } from '@colyseus/core';
 import {
+  BotsSchema,
   MSG,
   NAME_MAX_LENGTH,
+  ReadySchema,
+  SetTeamNameSchema,
+  TEAM_NAME_MAX_LENGTH,
   SetLapsSchema,
   SetNameSchema,
   SetSeatSchema,
@@ -44,7 +48,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     this.tuning = live.tuning;
     const firstCar = live.cars.cars[0];
     if (!firstCar) throw new Error('config/cars.json has no cars');
-    this.sim = new RaceSim(live.track, this.tuning, firstCar.stats);
+    this.sim = new RaceSim(live.track, this.tuning, firstCar.stats, live.teams);
+    for (const name of this.sim.teamNames) this.state.teams.push(name);
     // Two players per car plus some watchers (seats themselves are limited by the seat rules).
     this.maxClients = this.tuning.race.maxCars * 2 + this.tuning.race.maxSpectators;
     this.setPatchRate(this.tuning.net.patchRateMs);
@@ -80,11 +85,45 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       this.syncPlayers();
     });
 
+    this.onMessage(MSG.setTeamName, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = SetTeamNameSchema.safeParse(message);
+      if (!msg.success) return this.refuse(client, `team names are 1–${TEAM_NAME_MAX_LENGTH} characters`);
+      const problem = this.sim.setTeamName(client.sessionId, msg.data.slot, msg.data.name);
+      if (problem) return this.refuse(client, problem);
+      this.state.teams[msg.data.slot] = msg.data.name;
+    });
+
+    this.onMessage(MSG.ready, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = ReadySchema.safeParse(message);
+      if (!msg.success) return;
+      this.sim.setReady(client.sessionId, msg.data.ready);
+      this.syncPlayers();
+    });
+
     // Host controls. The race rules decide who may do what and when.
+    this.onMessage(MSG.hostShuffle, (client) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const problem = this.sim.shuffle(client.sessionId);
+      if (problem) return this.refuse(client, problem);
+      this.syncPlayers();
+    });
+
+    this.onMessage(MSG.hostBots, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = BotsSchema.safeParse(message);
+      if (!msg.success) return;
+      const problem = this.sim.setBots(client.sessionId, msg.data.on);
+      if (problem) return this.refuse(client, problem);
+      this.state.bots = this.sim.botsEnabled;
+    });
+
     this.onMessage(MSG.hostStart, (client) => {
       if (!this.limits.get(client.sessionId)?.lobby.take()) return;
       const problem = this.sim.startRace(client.sessionId);
       if (problem) return this.refuse(client, problem);
+      this.syncPlayers(); // ready flags reset
       console.log(`[room] race start (${this.sim.world.cars.length} cars, ${this.sim.flow.laps} laps)`);
     });
 
@@ -196,6 +235,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.seat = s.seat ?? '';
       view.role = effectiveRole(seating, s.id) ?? '';
       view.connected = s.connected;
+      view.ready = this.sim.isReady(s.id);
     }
   }
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { clamp } from '../util/math';
+import { TEAM_NAME_MAX_LENGTH } from '../config/teams';
 import { SEATS } from '../race/seats';
 import type { CarInput } from '../sim/types';
 
@@ -19,6 +20,14 @@ export const MSG = {
   setSeat: 'lobby:setSeat',
   /** client → server: leave your seat and watch. */
   leaveSeat: 'lobby:leaveSeat',
+  /** client → server: `{ slot, name }` rename a team (its players or the host). */
+  setTeamName: 'lobby:setTeamName',
+  /** client → server: `{ ready }`. */
+  ready: 'lobby:ready',
+  /** client (host) → server: random pairs for everyone. */
+  hostShuffle: 'host:shuffle',
+  /** client (host) → server: `{ on }` bots fill empty cars. */
+  hostBots: 'host:bots',
   /** client (host) → server: start the race / rematch. */
   hostStart: 'host:start',
   /** client (host) → server: `{ laps }` for the next race. */
@@ -91,3 +100,15 @@ export interface LobbyError {
 export const SetLapsSchema = z.strictObject({
   laps: z.number().int(),
 });
+
+/** `lobby:setTeamName` (client → server). */
+export const SetTeamNameSchema = z.strictObject({
+  slot: z.number().int().nonnegative(),
+  name: z.string().trim().min(1).max(TEAM_NAME_MAX_LENGTH),
+});
+
+/** `lobby:ready` (client → server). */
+export const ReadySchema = z.strictObject({ ready: z.boolean() });
+
+/** `host:bots` (client → server). */
+export const BotsSchema = z.strictObject({ on: z.boolean() });

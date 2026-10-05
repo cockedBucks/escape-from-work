@@ -4,9 +4,11 @@ import {
   ConfigError,
   buildTrack,
   parseCars,
+  parseTeams,
   parseTrack,
   parseTuning,
   type CarsConfig,
+  type TeamsConfig,
   type Track,
   type Tuning,
 } from '@escape/shared';
@@ -33,6 +35,11 @@ export function loadTuningFile(file = path.join(REPO_ROOT, 'config', 'tuning.jso
 /** Read and validate `config/cars.json`. */
 export function loadCarsFile(file = path.join(REPO_ROOT, 'config', 'cars.json')): CarsConfig {
   return parseCars(readJson(file), rel(file));
+}
+
+/** Read and validate `config/teams.json` (default team names). */
+export function loadTeamsFile(file = path.join(REPO_ROOT, 'config', 'teams.json')): TeamsConfig {
+  return parseTeams(readJson(file), rel(file));
 }
 
 /** Read, validate and build `config/tracks/<id>.json`. */

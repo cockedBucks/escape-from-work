@@ -13,6 +13,8 @@ export const PlayerState = schema(
     role: t.string().default(''),
     /** False while disconnected and their seat is held (P2.4). */
     connected: t.boolean().default(true),
+    /** Pressed Ready in the lobby. */
+    ready: t.boolean().default(false),
     /** Last input `seq` the server applied, so the client can measure input delay (-1 = none). */
     ackSeq: t.int32().default(-1),
   },
@@ -65,6 +67,10 @@ export const RaceState = schema(
     host: t.string().default(''),
     /** Laps for the next / current race. */
     laps: t.uint8().default(3),
+    /** Team name per car slot. */
+    teams: t.array('string'),
+    /** Host switch: bots fill empty cars. */
+    bots: t.boolean().default(false),
     /** Sim tick of the state being sent (clients use it to order snapshots). */
     tick: t.uint32().default(0),
     /** Server cost of one sim tick (ms, smoothed), for the F3 overlay. */

@@ -1,6 +1,11 @@
 import {
   NO_INPUT,
+  Rng,
   carIdForSlot,
+  defaultTeamName,
+  shuffleSeats,
+  teamNameProblem,
+  type TeamsConfig,
   chooseHost,
   inputsAllowed,
   lapsProblem,
@@ -45,6 +50,8 @@ interface Player extends SeatedPlayer {
   respawnHeld: boolean;
   /** A press arrived that the next tick should act on. */
   respawnPending: boolean;
+  /** Pressed Ready in the lobby. */
+  ready: boolean;
 }
 
 /**
@@ -60,15 +67,23 @@ export class RaceSim {
   private readonly joinOrder: string[] = [];
   /** Race phase, host and laps (shared rules in race/flow.ts). */
   readonly flow: RaceFlow;
+  /** Team name per car slot (editable in the lobby). */
+  readonly teamNames: string[];
+  /** Host switch: bots drive empty cars (bot cars arrive in P3.4). */
+  botsEnabled = false;
 
   constructor(
     track: Track,
     private cfg: Tuning,
     stats: CarStats,
+    teams?: TeamsConfig,
   ) {
     this.world = createWorld(track, []);
     this.stats = { ...stats };
     this.flow = newFlow(cfg.race);
+    this.teamNames = Array.from({ length: cfg.race.maxCars }, (_, slot) =>
+      teams ? defaultTeamName(teams, slot) : `Team ${slot + 1}`,
+    );
   }
 
   private updateHost(): void {
@@ -119,7 +134,7 @@ export class RaceSim {
     if (this.players.has(id)) return;
     this.players.set(id, {
       id, slot: -1, seat: null, connected: true,
-      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false,
+      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, ready: false,
     });
     this.joinOrder.push(id);
     this.updateHost();
@@ -182,9 +197,57 @@ export class RaceSim {
     const problem = startProblem(this.flow, by, usedSlots(this.seating()).length);
     if (problem) return problem;
     startCountdown(this.flow, this.world.tick);
+    for (const p of this.players.values()) p.ready = false;
     for (const car of this.world.cars) {
       Object.assign(car, createCarOnGrid(car.id, car.stats, this.world.track, slotOfCar(car.id), this.cfg.race));
     }
+    return null;
+  }
+
+  /** Ready (or not) in the lobby. */
+  setReady(id: string, ready: boolean): void {
+    const p = this.players.get(id);
+    if (p) p.ready = ready;
+  }
+
+  isReady(id: string): boolean {
+    return this.players.get(id)?.ready ?? false;
+  }
+
+  /** Rename a team: its own players or the host. */
+  setTeamName(by: string, slot: number, name: string): string | null {
+    if (!Number.isInteger(slot) || slot < 0 || slot >= this.teamNames.length) return 'there is no such car';
+    const problem = teamNameProblem(this.seating(), by, slot, this.flow.host);
+    if (problem) return problem;
+    this.teamNames[slot] = name;
+    return null;
+  }
+
+  /** Host: random pairs for everyone connected (between races). */
+  shuffle(by: string): string | null {
+    if (by !== this.flow.host) return 'only the host can shuffle';
+    if (!seatChangesAllowed(this.flow.phase)) return SEATS_LOCKED;
+    const ids = [...this.players.values()].filter((p) => p.connected).map((p) => p.id);
+    const plan = shuffleSeats(ids, this.cfg.race.maxCars, new Rng(this.world.tick + 1));
+    for (const p of this.players.values()) {
+      p.slot = -1;
+      p.seat = null;
+      p.input = { ...NO_INPUT };
+    }
+    for (const a of plan) {
+      const p = this.players.get(a.id);
+      if (!p) continue;
+      p.slot = a.slot;
+      p.seat = a.seat;
+    }
+    this.syncCars();
+    return null;
+  }
+
+  /** Host: bots fill empty cars on/off. */
+  setBots(by: string, on: boolean): string | null {
+    if (by !== this.flow.host) return 'only the host can change bots';
+    this.botsEnabled = on;
     return null;
   }
 

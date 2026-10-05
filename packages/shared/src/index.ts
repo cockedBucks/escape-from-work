@@ -45,8 +45,11 @@ export {
   InputMessageSchema,
   NAME_MAX_LENGTH,
   SetNameSchema,
+  BotsSchema,
+  ReadySchema,
   SetLapsSchema,
   SetSeatSchema,
+  SetTeamNameSchema,
   TuningPostSchema,
   parseInputMessage,
   toCarInput,
@@ -86,3 +89,5 @@ export {
   type RaceFlow,
   type RacePhase,
 } from './race/flow';
+export { TEAM_NAME_MAX_LENGTH, TeamsSchema, defaultTeamName, parseTeams, type TeamsConfig } from './config/teams';
+export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby';

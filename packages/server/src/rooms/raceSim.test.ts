@@ -240,3 +240,43 @@ describe('RaceSim race flow', () => {
     expect(sim.flow.host).toBeNull();
   });
 });
+
+describe('RaceSim lobby', () => {
+  it('host shuffle seats everyone connected in random pairs', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    for (const id of ['a', 'b', 'c', 'd', 'e']) sim.addPlayer(id);
+    expect(sim.shuffle('b')).toMatch(/only the host/);
+    expect(sim.shuffle('a')).toBeNull();
+    const seats = sim.seating();
+    expect(seats.every((s) => s.seat !== null)).toBe(true);
+    expect(sim.world.cars.map((c) => c.id)).toEqual(['car0', 'car1', 'car2']);
+    expect(seats.filter((s) => s.seat === 'solo').length).toBe(1);
+  });
+
+  it('shuffle is refused during a race', () => {
+    const sim = soloSim('a');
+    sim.startRace('a');
+    expect(sim.shuffle('a')).toMatch(/locked/);
+  });
+
+  it('teams can be renamed by their players or the host', () => {
+    const sim = soloSim('a', 'b');
+    expect(sim.teamNames[0]).toBe('Team 1'); // no teams.json given in this test
+    expect(sim.setTeamName('b', 1, 'Speed Demons')).toBeNull();
+    expect(sim.setTeamName('b', 0, 'Nope')).toMatch(/only the team/);
+    expect(sim.setTeamName('a', 1, 'Host Pick')).toBeNull(); // a is host
+    expect(sim.teamNames[1]).toBe('Host Pick');
+    expect(sim.setTeamName('a', 99, 'x')).toMatch(/no such car/);
+  });
+
+  it('ready flags reset when a race starts; bots switch is host only', () => {
+    const sim = soloSim('a', 'b');
+    sim.setReady('b', true);
+    expect(sim.isReady('b')).toBe(true);
+    sim.startRace('a');
+    expect(sim.isReady('b')).toBe(false);
+    expect(sim.setBots('b', true)).toMatch(/only the host/);
+    expect(sim.setBots('a', true)).toBeNull();
+    expect(sim.botsEnabled).toBe(true);
+  });
+});

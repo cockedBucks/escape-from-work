@@ -33,6 +33,7 @@ escape-from-work/
   config/
     tuning.json        car, sim, track, bot, heat, drift, nitro, solo, race, net, league, quality
     cars.json          roster: stats, visual spec, horn preset
+    teams.json         default team names (IT puns), one per car slot
     items.json         item params + roll weights
     tracks/<id>.json   track data
   assets/
@@ -194,6 +195,10 @@ solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules li
 missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
 slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
 `maxClients` = 2 × `race.maxCars`.
+Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:ready {ready}`,
+`host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
+`bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
+Esc hides it to drive around; never redraws under a focused text field.
 Race loop (P3.1): `packages/shared/src/race/flow.ts` — phases lobby → countdown → racing → results →
 lobby / rematch. The server owns a `RaceFlow` (phase, phaseTick, host, laps) and syncs it. Host =
 earliest-joined connected player, passed on automatically. `host:start` (host, between races, ≥1
