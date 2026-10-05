@@ -29,7 +29,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
 - [x] **P2.6 Latency visibility.** Overlay shows ping, snapshot age, and measured
   input-to-motion delay (input seq echoed back with the state that applied it).
   Interpolation delay and patch rate tunable live.
-- [ ] **P2.7 LAN guide.** `docs/LAN.md`: find the host IP, the Windows firewall rule for the
+- [x] **P2.7 LAN guide.** `docs/LAN.md`: find the host IP, the Windows firewall rule for the
   game port (command + GUI steps), testing from another laptop, common problems. Confirm
   `npm start` works as the production path.
   Known from the P0 gate (D030): office Wi-Fi shows up as a **Public** network and the Node.js

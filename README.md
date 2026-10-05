@@ -124,5 +124,5 @@ Claude will not install these on its own. Ideas worth trying once the matching p
   in the conversation.
 - **A change broke the game**: ask Claude to revert the last task's commit with `git revert`
   (history is never rewritten), or use `/rewind` inside the session.
-- **Other laptops cannot open the game**: see `docs/LAN.md` (written in Phase 2); usually the
+- **Other laptops cannot open the game**: see `docs/LAN.md`; usually the
   Windows firewall needs a rule for the game port.

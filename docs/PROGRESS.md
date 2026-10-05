@@ -5,20 +5,21 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.7 (LAN guide)
-- Status: P2.6 done. `npm run verify` passes (181 tests + bot race, ~1 min).
+- Next task: HUMAN GATE — FUN GATE (then P2.8)
+- Status: P2.7 done. `npm run verify` passes (181 tests + bot race, ~1 min). Waiting on the human.
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
-- (nothing)
+- P2 FUN GATE: two laptops, one car (Pilot + Engineer), 10 minutes; reply with lag / fun / F3 input delay.
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
 - Node v24.19.0, npm 11.17.0, git 2.55.0.windows.5
 - Browsers: Chrome 154.0.8037.93, Edge 154.0.4258.53
-- Host LAN IP 192.168.0.105 (office Wi-Fi is a Public network; firewall rule D030 opens 2567 + 5173)
+- Host LAN IP changes daily (192.168.0.105 on 10-04, 192.168.119.113 on 10-05); office Wi-Fi is a
+  Public network; firewall rule D030 opens 2567 + 5173. See docs/LAN.md.
 
 ## Known issues
 - In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
@@ -53,6 +54,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   `carStateFromView` adapter, integration lap test; 4 cars lapped in 36.9–37.3 s. D043.
 - 2026-10-04: P2.6 latency visibility — `ackSeq` echo, input-delay meter, tick-based snapshot
   timeline, F3 shows snapshot age + input→screen (88 ms on localhost). D044.
+- 2026-10-05: P2.7 LAN guide — docs/LAN.md (host, firewall command + GUI, testing, problems);
+  `npm start` confirmed (builds, serves page, prints LAN URL).
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

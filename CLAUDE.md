@@ -87,7 +87,7 @@ You build everything else, agentically, from these docs. Explain decisions in pl
 | Test strategy, scenarios, shots pipeline | `docs/TESTING.md` |
 | Why something was decided | `docs/DECISIONS.md` |
 | Asset licenses | `docs/ASSETS.md` |
-| LAN setup / firewall (created in Phase 2) | `docs/LAN.md` |
+| LAN setup / firewall | `docs/LAN.md` |
 
 Path-specific rules load automatically from `.claude/rules/` when you touch those folders.
 

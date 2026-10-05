@@ -289,4 +289,4 @@ it is ignored (clients may send everything). Respawn: any player in the car.
   overrides the port (0 = any free port; used by `npm run shots`).
 - `npm run dev`: server with watch + Vite dev server (port 5173, also on the LAN); the
   client connects to the game server port on the same hostname.
-- Windows firewall and troubleshooting go in `docs/LAN.md` (written in Phase 2).
+- Windows firewall and troubleshooting: `docs/LAN.md`.
