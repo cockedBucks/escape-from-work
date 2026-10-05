@@ -5,14 +5,14 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: HUMAN GATE — FUN GATE (then P2.8)
-- Status: P2.7 done. `npm run verify` passes (181 tests + bot race, ~1 min). Waiting on the human.
+- Next task: P2.8 (act on the fun gate: physics feel + client prediction)
+- Status: FUN GATE answered. `npm run verify` passes (181 tests + bot race, ~1 min).
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
-- P2 FUN GATE: two laptops, one car (Pilot + Engineer), 10 minutes; reply with lag / fun / F3 input delay.
+- Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
@@ -66,3 +66,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   saved topSpeed 30→90, gravity 25→75, radius 1.1→1.27 (topSpeed and gravity at the slider max,
   which nearly removed the jump); asked, they chose to restore the old values (slider experiments).
   Tuning unchanged.
+- 2026-10-05 P2 FUN GATE: first try found a join-screen bug (seat buttons jittered and ignored
+  clicks; fixed, D045). Then: steering "a little bit laggy"; "it is fun" but physics "feels
+  weird": turning feels like a box spinning, steering twitchy/slow, speed feels wrong. Tab
+  close/reopen not tried yet. F3 number not reported. → P2.8: prediction + physics feel pass.

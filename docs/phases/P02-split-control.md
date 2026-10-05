@@ -36,7 +36,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
   allow rule covers only Private/Domain. The fix that worked (admin terminal):
   `New-NetFirewallRule -DisplayName "Escape from Work (game ports)" -Direction Inbound -Protocol TCP -LocalPort 2567,5173 -RemoteAddress LocalSubnet -Action Allow -Profile Any`
   (undo: `Remove-NetFirewallRule -DisplayName "Escape from Work (game ports)"`).
-- [ ] **HUMAN GATE — FUN GATE (the important one).**
+- [x] **HUMAN GATE — FUN GATE (the important one).**
   1. Host: `npm start` on one laptop (or `npm run dev`). Second laptop: open the LAN URL.
   2. Both join the same car: one Pilot, one Engineer. Sit next to each other. Drive 10 minutes.
   3. Also try: one of you closes the tab mid-lap and reopens it.
