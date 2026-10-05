@@ -95,6 +95,22 @@ const BotSchema = z.strictObject({
   /** Below this speed (m/s) for `stuckSeconds`, the bot presses respawn. */
   stuckSpeed: nonNeg(),
   stuckSeconds: pos(),
+  /** Engineer: lets go of the gas at this engine heat (0–1) so the engine never stalls. */
+  heatLiftAt: z.number().min(0).max(1),
+});
+
+/** Engine heat (GAME_DESIGN §5): the Engineer's main decision. Heat is 0–1 (1 = stall). */
+const HeatSchema = z.strictObject({
+  /** Heat rises only at full gas above this share of the car's top speed (0–1). */
+  hotSpeedFraction: z.number().min(0).max(1),
+  /** Heat gained per second at full gas and speed (0.25 = +25%/s). */
+  risePerSec: nonNeg(),
+  /** Heat lost per second off the gas or braking. */
+  coolPerSec: nonNeg(),
+  /** At full heat the engine stalls (no gas) for this long (s)... */
+  stallSeconds: nonNeg(),
+  /** ...then restarts at this heat (0–1). */
+  restartHeat: z.number().min(0).max(1),
 });
 
 /** Race rules. A stub for now; P3 adds countdown, finish and results. */
@@ -224,6 +240,7 @@ export const TuningSchema = z.strictObject({
   sim: SimSchema,
   track: TrackBuildSchema,
   bot: BotSchema,
+  heat: HeatSchema,
   race: RaceSchema,
   net: NetSchema,
   camera: CameraSchema,

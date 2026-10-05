@@ -5,9 +5,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.1 Engine heat
-- Status: P4 done, tagged `p4-done`. `npm run verify` passes (294 tests + bot race). Shots: cockpit
-  39 draw calls (now counted with the mirror pass) / chase 12, ≤ 15k triangles.
+- Next task: P5.2 Tandem drift
+- Status: P5.1 done. `npm run verify` passes (304 tests + bot race, best lap 37.13 s with heat).
+  Shots: cockpit 39 / chase 12 / stall 13 draw calls.
 
 ## Half-done
 - (nothing)
@@ -60,6 +60,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   sync, bobbleheads (`npm run faces`, any-language file names, per-photo eyes/chin framing, face
   picker, duck in solo cars), dashboard screen + chase gauges, rear-view mirror, honk (sim event,
   procedural horns, HONK! bubble). Gate: all good. Review fixes D066. Decisions D058–D066.
+
+- 2026-10-05: P5.1 engine heat — shared heat model (rise at full gas when fast, cool off gas, stall
+  2 s, restart at 60%), synced heat/stall, bot lifts at 90%, HUD/dashboard heat bar + STALL!, smoke,
+  stall/restart sounds, `stall` scenario. Golden laps +2 s (intended). D067.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -30,6 +30,12 @@ export const HORN_PRESETS: Readonly<Record<Horn, HornPreset>> = {
   kazoo: { voices: [{ type: 'sawtooth', from: 300, to: 320 }], duration: 0.45, vibrato: 18, vibratoRate: 7, gain: 0.2 },
 };
 
+/** Engine sounds, made the same way: a sad sinking "waaah" when it stalls, a cough on restart. */
+export const ENGINE_SOUNDS = {
+  stall: { voices: [{ type: 'sawtooth', from: 233, to: 98 }, { type: 'triangle', from: 117, to: 49 }], duration: 1.1, vibrato: 7, vibratoRate: 6, gain: 0.2 },
+  restart: { voices: [{ type: 'square', from: 70, to: 150 }], duration: 0.35, vibrato: 25, vibratoRate: 22, gain: 0.16 },
+} as const satisfies Record<string, HornPreset>;
+
 /** Distance (m) at which a horn is at half volume. */
 const HALF_VOLUME_DISTANCE = 40;
 
@@ -55,9 +61,13 @@ export class HornPlayer {
   };
 
   play(horn: Horn, distance: number): void {
+    this.playSound(HORN_PRESETS[horn], distance);
+  }
+
+  /** Play any synthesized sound (horn or engine) heard from `distance` meters away. */
+  playSound(p: HornPreset, distance: number): void {
     const ctx = this.ctx;
     if (!ctx || ctx.state !== 'running') return;
-    const p = HORN_PRESETS[horn];
     const t0 = ctx.currentTime;
     const out = ctx.createGain();
     const level = p.gain * hornVolume(distance);

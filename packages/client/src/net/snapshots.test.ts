@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SnapshotBuffer, type CarSnap } from './snapshots';
 
 const car = (x: number, yaw = 0, over: Partial<CarSnap> = {}): CarSnap => ({
-  x, y: 0, z: 0, yaw, speed: x, steer: 0, respawning: false, ghost: false, ...over,
+  x, y: 0, z: 0, yaw, speed: x, steer: 0, respawning: false, ghost: false, stalled: false, ...over,
 });
 const snap = (entries: [string, CarSnap][]): Map<string, CarSnap> => new Map(entries);
 

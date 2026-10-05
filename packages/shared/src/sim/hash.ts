@@ -40,5 +40,5 @@ export function hashWorld(world: World): string {
  */
 const CAR_HASH_KEYS = [
   'x', 'z', 'y', 'vy', 'yaw', 'vx', 'vz', 'steer', 'segment', 'progress', 'lateral',
-  'lastGate', 'onSlick', 'onRamp', 'respawnAtTick', 'ghostUntilTick',
+  'lastGate', 'onSlick', 'onRamp', 'respawnAtTick', 'ghostUntilTick', 'heat', 'stallUntilTick',
 ] as const satisfies readonly (keyof CarState)[];

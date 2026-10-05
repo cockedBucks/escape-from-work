@@ -43,7 +43,15 @@
     "planDistance": 90,
     "speedMargin": 1,
     "stuckSpeed": 1,
-    "stuckSeconds": 2
+    "stuckSeconds": 2,
+    "heatLiftAt": 0.9
+  },
+  "heat": {
+    "hotSpeedFraction": 0.7,
+    "risePerSec": 0.25,
+    "coolPerSec": 0.35,
+    "stallSeconds": 2,
+    "restartHeat": 0.6
   },
   "race": {
     "honkCooldownSeconds": 0.3,

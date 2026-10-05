@@ -320,7 +320,9 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | cockpit too shaky / too stiff on bumps (motion sickness!) | `camera.headBob` (0 = off), `camera.headBobStiffness` |
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
 | drifting hard to start (P5) | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
-| overheating too fast (P5) | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |
+| overheating too fast / never (P5) | `heat.risePerSec`, `heat.hotSpeedFraction` (heats only above this share of top speed), `heat.coolPerSec`, `heat.nitroRisePerSec` (P5.3) |
+| stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
+| bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt` |
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |
 | own car shimmers / snaps after bumps | `net.predictCorrectionRate` (lower = softer corrections) |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |

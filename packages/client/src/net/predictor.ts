@@ -29,6 +29,9 @@ export interface OwnCarView {
   steer: number;
   respawning: boolean;
   ghost: boolean;
+  heat: number;
+  /** Seconds until a stalled engine restarts (0 = running). */
+  stallLeft: number;
   /** Merged input the server applied (your partner's half comes from here). */
   inSteer: number;
   inGas: boolean;
@@ -62,6 +65,7 @@ export class OwnCarPredictor {
   private readonly off = { x: 0, z: 0, yaw: 0 };
   private needOffset = false;
   private lastNow = -1;
+  private baseStallLeft = 0;
 
   /** `stats`: your car's stats from cars.json (the server uses the same). */
   constructor(
@@ -99,6 +103,8 @@ export class OwnCarPredictor {
     car.vz = view.vz;
     car.steer = view.steer;
     car.respawnAtTick = view.respawning ? 1 : -1;
+    car.heat = view.heat;
+    this.baseStallLeft = view.stallLeft;
     const loc = locateOnTrack(this.track, { x: view.x, z: view.z }, near ? prev.segment : undefined);
     car.segment = loc.segment;
     car.progress = lapProgress(this.track, loc.progress);
@@ -137,6 +143,7 @@ export class OwnCarPredictor {
     const car = world.cars[0] as CarState;
     Object.assign(car, base);
     world.tick = 0;
+    car.stallUntilTick = this.baseStallLeft > 0 ? Math.round(this.baseStallLeft / cfg.sim.dt) : -1;
     for (let i = 0; i < whole; i++) step(world, this.inputs, cfg);
     const ax = car.x;
     const az = car.z;

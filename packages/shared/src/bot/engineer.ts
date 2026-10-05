@@ -31,7 +31,7 @@ export function plannedSpeed(car: CarState, track: Track, cfg: Tuning): number {
   return allowed;
 }
 
-/** Engineer half of the bot: gas, brake, and respawn when stuck. */
+/** Engineer half of the bot: gas, brake, engine heat, and respawn when stuck. */
 export function botPedals(
   car: CarState,
   track: Track,
@@ -40,12 +40,14 @@ export function botPedals(
 ): { gas: boolean; brake: boolean; respawn: boolean } {
   const vF = dot({ x: car.vx, z: car.vz }, forward(car.yaw));
 
-  if (car.respawnAtTick < 0 && Math.abs(vF) < cfg.bot.stuckSpeed) memory.stuckTicks++;
+  // A stalled engine is not stuck: it restarts by itself.
+  if (car.respawnAtTick < 0 && car.stallUntilTick < 0 && Math.abs(vF) < cfg.bot.stuckSpeed) memory.stuckTicks++;
   else memory.stuckTicks = 0;
   const respawn = memory.stuckTicks >= Math.round(cfg.bot.stuckSeconds / cfg.sim.dt);
   if (respawn) memory.stuckTicks = 0;
 
   const target = plannedSpeed(car, track, cfg);
   const brake = vF > 0 && vF > target + cfg.bot.speedMargin;
-  return { gas: !brake && vF < target, brake, respawn };
+  // Let go of the gas just before the engine would stall (cools, then back on).
+  return { gas: !brake && vF < target && car.heat < cfg.bot.heatLiftAt, brake, respawn };
 }

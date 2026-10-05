@@ -8,8 +8,10 @@ export interface GaugeValues {
   lap: string | null;
   /** "2nd / 4" or null outside a race. */
   place: string | null;
-  /** 0–1, null until engine heat exists (P5). */
+  /** Engine heat 0–1 (null outside a car). */
   heat: number | null;
+  /** The engine is stalled (the heat bar says so). */
+  stalled: boolean;
   /** 0–1, null until nitro exists (P5). */
   nitro: number | null;
   /** Item name, null until items exist (P6). */
@@ -19,13 +21,18 @@ export interface GaugeValues {
 export const kmh = (speed: number): number => Math.round(Math.abs(speed) * 3.6);
 
 /** What the gauges show, as text (pure: tested, and compared to skip redraws). */
-export function gaugeText(v: GaugeValues): { speed: string; lap: string; place: string; heat: number; nitro: number; item: string } {
+/** Bars move in steps this small (fewer redraws; the eye cannot tell). */
+const BAR_STEPS = 50;
+const bar = (v: number | null): number => Math.round((v ?? 0) * BAR_STEPS) / BAR_STEPS;
+
+export function gaugeText(v: GaugeValues): { speed: string; lap: string; place: string; heatLabel: string; heat: number; nitro: number; item: string } {
   return {
     speed: String(kmh(v.speed)),
     lap: v.lap ?? '',
     place: v.place ?? '',
-    heat: v.heat ?? 0,
-    nitro: v.nitro ?? 0,
+    heatLabel: v.stalled ? 'STALL!' : 'HEAT',
+    heat: bar(v.heat),
+    nitro: bar(v.nitro),
     item: v.item ?? '—',
   };
 }
@@ -50,7 +57,7 @@ export class GaugePanel {
     this.last = key;
     this.el.innerHTML =
       `<div class="g-speed"><strong>${t.speed}</strong> km/h</div>` +
-      `<div class="g-bar"><span>HEAT</span><i style="width:${Math.round(t.heat * 100)}%"></i></div>` +
+      `<div class="g-bar${v.stalled ? ' stalled' : ''}"><span>${t.heatLabel}</span><i style="width:${Math.round(t.heat * 100)}%"></i></div>` +
       `<div class="g-bar nitro"><span>NITRO</span><i style="width:${Math.round(t.nitro * 100)}%"></i></div>` +
       `<div class="g-item">ITEM <b>${t.item}</b></div>`;
   }

@@ -66,7 +66,7 @@ export class DashboardScreen {
       ctx.fillStyle = color;
       ctx.fillRect(x, y, W * 0.17 * Math.max(0, Math.min(1, fill)), H * 0.12);
     };
-    bar('HEAT', W * 0.6, H * 0.32, t.heat, '#e63946');
+    bar(t.heatLabel, W * 0.6, H * 0.32, t.heat, '#e63946');
     bar('NITRO', W * 0.6, H * 0.7, t.nitro, '#1d7fe0');
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = H * 0.04;

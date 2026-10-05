@@ -64,11 +64,24 @@ describe('bot engineer', () => {
     expect(botPedals(car, track, cfg, memory).respawn).toBe(true);
     expect(memory.stuckTicks).toBe(0);
   });
+
+  it('lets go of the gas at bot.heatLiftAt, and a stalled engine is not "stuck"', () => {
+    const car = createCar('a', STATS, track);
+    expect(botPedals(car, track, cfg, newBotMemory()).gas).toBe(true);
+    car.heat = cfg.bot.heatLiftAt;
+    expect(botPedals(car, track, cfg, newBotMemory()).gas).toBe(false);
+    car.stallUntilTick = 1;
+    const memory = newBotMemory();
+    for (let i = 0; i < Math.round((cfg.bot.stuckSeconds * 2) / cfg.sim.dt); i++) {
+      expect(botPedals(car, track, cfg, memory).respawn).toBe(false);
+    }
+  });
 });
 
 describe('golden: bot laps on the Test Loop', () => {
   // GOLDEN: change these windows only for an intended feel change, and say so in the commit.
-  // Measured at P2.8 (carve + engine curve + gentler coasting): lap 1 35.57 s, flying 34.60 s.
+  // Measured at P5.1 (engine heat: the bot lifts at bot.heatLiftAt): lap 1 37.15 s, flying 36.87 s.
+  // (P2.8 without heat: 35.57 s / 34.60 s.)
   const race = runBotRace(track, cfg, { cars: 1, laps: 3, maxSeconds: 300 });
 
   it('finishes 3 laps without respawning', () => {
@@ -78,11 +91,11 @@ describe('golden: bot laps on the Test Loop', () => {
 
   it('lap times stay inside the golden window', () => {
     const [first, ...flying] = race.cars[0]!.lapTimes;
-    expect(first).toBeGreaterThan(33.8);
-    expect(first).toBeLessThan(37.4);
+    expect(first).toBeGreaterThan(35.4);
+    expect(first).toBeLessThan(39.0);
     for (const lap of flying) {
-      expect(lap).toBeGreaterThan(32.9);
-      expect(lap).toBeLessThan(36.4);
+      expect(lap).toBeGreaterThan(35.2);
+      expect(lap).toBeLessThan(38.7);
     }
   });
 });
@@ -105,7 +118,7 @@ describe('golden: replay determinism', () => {
     // GOLDEN: any change to physics, bot or Test Loop changes this. Update it only when the
     // change is intended, and say so in the commit message.
     const race = runBotRace(track, cfg, { cars: 2, laps: 1, maxSeconds: 120 });
-    expect(race.hash).toBe('f1135e86');
+    expect(race.hash).toBe('21f68292');
   });
 
   it('hash notices a tiny difference', () => {

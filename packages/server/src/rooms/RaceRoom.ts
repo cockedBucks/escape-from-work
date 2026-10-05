@@ -374,6 +374,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.inBrake = input?.brake ?? false;
       view.respawning = car.respawnAtTick >= 0;
       view.ghost = car.ghostUntilTick > world.tick;
+      view.heat = car.heat;
+      view.stallLeft = car.stallUntilTick > world.tick ? (car.stallUntilTick - world.tick) * this.tuning.sim.dt : 0;
     }
   }
 }

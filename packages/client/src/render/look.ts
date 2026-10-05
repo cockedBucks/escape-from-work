@@ -174,3 +174,22 @@ export const OVERVIEW = {
   nearFraction: 0.5,
   farFraction: 1.5,
 } as const;
+
+/** Smoke from a stalled engine (ART_STYLE: chunky low-poly puffs, no textures). */
+export const SMOKE = {
+  /** Most puffs alive at once (all cars); one instanced draw call. */
+  maxPuffs: 64,
+  /** A stalled car puffs this often (ms); "reduced" particles puff half as often. */
+  emitEveryMs: 80,
+  lifeSeconds: 1.3,
+  /** Rise speed (m/s) and random sideways drift (m/s). */
+  rise: 2,
+  drift: 0.5,
+  /** Puff radius: starts small, swells to `peakSize` at a third of its life, shrinks to 0. */
+  startSize: 0.2,
+  peakSize: 0.9,
+  color: 0x6f757e,
+  /** Where on the car it comes out: in front of the cabin, above the hood (m from the car's center). */
+  forward: 1.2,
+  height: 1.05,
+} as const;

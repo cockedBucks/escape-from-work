@@ -4,6 +4,7 @@ import { fall, isAirborne, launch } from './air';
 import { placeAtGate } from './car';
 import { collideCars } from './carCollisions';
 import { drive } from './drive';
+import { stepHeat } from './heat';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { collideWalls } from './walls';
 
@@ -51,7 +52,9 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     input = NO_INPUT;
   }
 
-  // 2. Drive (on the ground only), move, fall, hit walls.
+  // 2. Engine heat (a stalled engine gives no gas), then drive (on the ground only), move,
+  // fall, hit walls.
+  input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
   if (!isAirborne(car)) drive(car, input, cfg.car, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;

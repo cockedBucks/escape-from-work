@@ -15,10 +15,10 @@ function view(speed: number, over: Partial<OwnCarView> = {}): OwnCarView {
   const f = forward(gate.yaw);
   return {
     x: gate.pos.x, y: 0, z: gate.pos.z, yaw: gate.yaw, vx: f.x * speed, vz: f.z * speed, vy: 0, steer: 0,
-    respawning: false, ghost: false, inSteer: 0, inGas: false, inBrake: false, ...over,
+    respawning: false, ghost: false, heat: 0, stallLeft: 0, inSteer: 0, inGas: false, inBrake: false, ...over,
   };
 }
-const out = (): CarSnap => ({ x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, respawning: false, ghost: false });
+const out = (): CarSnap => ({ x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, respawning: false, ghost: false, stalled: false });
 const GAS: CarInput = { ...NO_INPUT, gas: true };
 
 describe('OwnCarPredictor', () => {

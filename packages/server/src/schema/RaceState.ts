@@ -66,6 +66,9 @@ export const CarView = schema(
     respawning: t.boolean().default(false),
     /** Ghosted after a respawn (drawn see-through). */
     ghost: t.boolean().default(false),
+    /** Engine heat 0–1, and seconds until a stalled engine restarts (0 = running). */
+    heat: t.float32().default(0),
+    stallLeft: t.float32().default(0),
   },
   'CarView',
 );

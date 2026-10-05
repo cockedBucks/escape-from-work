@@ -10,6 +10,8 @@ export interface CarSnap {
   steer: number;
   respawning: boolean;
   ghost: boolean;
+  /** Engine stalled (smoke). */
+  stalled: boolean;
 }
 
 interface Snapshot {
@@ -81,6 +83,7 @@ export class SnapshotBuffer {
       o.steer = lerp(ca.steer, cb.steer, alpha);
       o.respawning = cb.respawning;
       o.ghost = cb.ghost;
+      o.stalled = cb.stalled;
     }
   }
 

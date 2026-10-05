@@ -12,6 +12,9 @@ export interface CarViewLike {
   /** Ground speed (m/s, never negative). */
   speed: number;
   respawning: boolean;
+  /** Engine heat 0–1, and seconds until a stalled engine restarts (0 = running). */
+  heat: number;
+  stallLeft: number;
 }
 
 /**
@@ -28,6 +31,8 @@ export function carStateFromView(id: string, view: CarViewLike, track: Track, st
   car.vx = Math.sin(view.yaw) * view.speed;
   car.vz = Math.cos(view.yaw) * view.speed;
   car.respawnAtTick = view.respawning ? 1 : -1;
+  car.heat = view.heat;
+  car.stallUntilTick = view.stallLeft > 0 ? 1 : -1;
   const loc = locateOnTrack(track, { x: view.x, z: view.z }, hintSegment);
   car.segment = loc.segment;
   car.progress = lapProgress(track, loc.progress);

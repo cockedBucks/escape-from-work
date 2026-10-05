@@ -51,6 +51,10 @@ export interface CarState {
   onSlick: boolean;
   /** Inside a ramp zone: a ramp launches only on entry, not again while still on it. */
   onRamp: boolean;
+  /** Engine heat 0–1 (1 = stall). */
+  heat: number;
+  /** Stalled (no gas) until this tick, or -1 when the engine runs. */
+  stallUntilTick: number;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
@@ -68,7 +72,9 @@ export type SimEvent =
   | { type: 'checkpoint'; car: string; gate: number }
   | { type: 'respawnStart'; car: string; reason: 'button' | 'offTrack' }
   | { type: 'respawn'; car: string; gate: number }
-  | { type: 'honk'; car: string };
+  | { type: 'honk'; car: string }
+  | { type: 'stall'; car: string }
+  | { type: 'restart'; car: string };
 
 export interface World {
   /** Ticks since the world was created. */

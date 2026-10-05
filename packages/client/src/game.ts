@@ -8,6 +8,7 @@ import { DashboardScreen } from './render/dashboard';
 import { Bubbles } from './ui/bubbles';
 import { RearMirror } from './render/mirror';
 import { FaceMaterials } from './render/faceTexture';
+import { Smoke } from './render/smoke';
 import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
 import { TEAM_COLORS } from './render/look';
@@ -67,7 +68,7 @@ function teamColor(id: string, index: number): number {
   return TEAM_COLORS[i % TEAM_COLORS.length] ?? TEAM_COLORS[0]!;
 }
 
-const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, nitro: null, item: null };
+const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
 const SIDES = ['left', 'right'] as const;
 const DUCK_SEAT: SeatContent = { kind: 'duck' };
 
@@ -90,6 +91,8 @@ export class Game {
   private readonly motion = new Map<string, { speed: number; yaw: number }>();
   /** "HONK!" bubbles over cars. */
   private readonly bubbles: Bubbles;
+  /** Smoke over stalled engines. */
+  private readonly smoke: Smoke;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -110,6 +113,8 @@ export class Game {
     this.chase = new ChaseCam(this.stage.camera);
     this.cockpit = new CockpitCam(this.stage.camera);
     this.bubbles = new Bubbles(opts.container);
+    this.smoke = new Smoke(opts.quality.particles);
+    this.stage.scene.add(this.smoke.mesh);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
@@ -138,6 +143,13 @@ export class Game {
     this.headOut.yaw = inCockpit ? this.cockpit.headYaw : 0;
     this.headOut.pitch = inCockpit ? this.cockpit.headPitch : 0;
     return this.headOut;
+  }
+
+  /** Scenarios: run the smoke for `seconds` first, so a still picture already shows it. */
+  warmEffects(seconds: number, now: number): void {
+    this.opts.source.sample(now, this.snaps);
+    const dt = 1 / 60;
+    for (let t = seconds; t > 0; t -= dt) this.smoke.update(now - t * 1000, dt, this.snaps);
   }
 
   /** The canvas (for Pointer Lock). */
@@ -196,6 +208,7 @@ export class Game {
     this.opts.source.sample(now, this.snaps);
     this.syncCars(dt);
     this.heads.sweep();
+    this.smoke.update(now, dt, this.snaps);
 
     const view = this.opts.view;
     if (view === 'chase' || view === 'cockpit') {
@@ -345,6 +358,7 @@ export class Game {
     this.overlay.dispose();
     this.bubbles.dispose();
     this.faces.dispose();
+    this.smoke.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();
     this.trackMeshes.dispose();

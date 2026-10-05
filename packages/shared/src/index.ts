@@ -36,6 +36,7 @@ export { NO_INPUT, type CarInput, type CarState, type CarStats, type SimEvent, t
 export { createCar, createCarOnGrid, createWorld, placeAtGate } from './sim/car';
 export { step, type InputsByCar } from './sim/step';
 export { hashWorld } from './sim/hash';
+export { isStalled } from './sim/heat';
 export { botSteer, lookAheadPoint } from './bot/pilot';
 export { botPedals, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
 export { botInput } from './bot/driver';

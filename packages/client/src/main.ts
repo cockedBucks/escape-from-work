@@ -5,7 +5,7 @@ import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type Horn, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
-import { HornPlayer } from './audio/horn';
+import { ENGINE_SOUNDS, HornPlayer } from './audio/horn';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
@@ -90,6 +90,8 @@ function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: strin
 
 /** Where you look in the `cockpit` scenario: right (negative yaw) and a bit up, at your teammate. */
 const SCENARIO_LOOK = { yaw: -1.15, pitch: 0.25 };
+/** `stall` scenario: smoke already puffing this long when the picture is taken (s). */
+const SCENARIO_SMOKE_SECONDS = 1;
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
@@ -168,6 +170,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   });
   // Cockpit shot: turn your head right toward your teammate's bobblehead.
   if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
+  if (scenario === 'stall') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
   game.renderFrame(performance.now(), true);
   game.start();
   setStatus('');
@@ -280,7 +283,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const badge = new RoleBadge(container);
   const hud = new RaceHud(container);
   const gaugePanel = new GaugePanel(container);
-  const gauges: GaugeValues = { speed: 0, lap: null, place: null, heat: null, nitro: null, item: null };
+  const gauges: GaugeValues = { speed: 0, lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
   // Host only, during a race: the way out of a race nobody finishes.
   const endRace = document.createElement('button');
   endRace.className = 'end-race';
@@ -374,9 +377,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
       });
     hud.set(hudNow);
-    // Heat, nitro and item arrive in P5/P6; the gauges already have their slots.
+    // Nitro and item arrive in P5.3/P6; the gauges already have their slots.
     gauges.lap = hudNow.lap;
     gauges.place = hudNow.place;
+    gauges.heat = myCar ? myCar.heat : null;
+    gauges.stalled = myCar ? myCar.stallLeft > 0 : false;
     join.update({
       players,
       myId: room.sessionId,
@@ -432,13 +437,22 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const horns = new HornPlayer();
   // Every car is cars[0] until a car roster exists (the server does the same), so one horn.
   const horn: Horn = loadCars().cars[0]?.horn ?? 'toot';
+  /** How far a car is from the camera (m), for sound volume. */
+  const heardFrom = (carId: string): number => {
+    const p = game.carPosition(carId);
+    const cam = game.cameraPosition;
+    return p ? Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z) : 0;
+  };
   onEvents = (events) => {
     for (const e of events) {
       if (e.type === 'honk') {
         game.say(e.car, 'HONK!');
-        const p = game.carPosition(e.car);
-        const cam = game.cameraPosition;
-        horns.play(horn, p ? Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z) : 0);
+        horns.play(horn, heardFrom(e.car));
+        continue;
+      }
+      if (e.type === 'stall' || e.type === 'restart') {
+        if (e.type === 'stall') game.say(e.car, 'STALL!');
+        horns.playSound(ENGINE_SOUNDS[e.type], heardFrom(e.car));
         continue;
       }
       const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);

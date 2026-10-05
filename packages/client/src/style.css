@@ -765,3 +765,13 @@ body {
   font-size: 1.6rem;
   line-height: 2.2rem;
 }
+
+/* Stalled engine: the heat bar blinks. */
+.g-bar.stalled i {
+  animation: stall-blink 0.4s steps(2, jump-none) infinite;
+}
+
+@keyframes stall-blink {
+  from { opacity: 1; }
+  to { opacity: 0.25; }
+}
