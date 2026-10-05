@@ -819,3 +819,66 @@ body {
   from { transform: translateX(-50%) scale(0.6); opacity: 0; }
   to { transform: translateX(-50%) scale(1); opacity: 1; }
 }
+
+/* How-to-play cards in the lobby: one per role, yours highlighted. */
+.howto {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem 0.6rem;
+  margin: 0.5rem 0;
+}
+
+.howto-card {
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.8rem;
+  background: rgba(30, 34, 48, 0.08);
+  border: 2px solid transparent;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.howto-card.mine {
+  border-color: var(--red);
+  background: rgba(230, 57, 70, 0.08);
+}
+
+.howto-card strong {
+  letter-spacing: 0.05em;
+}
+
+.howto-card p {
+  margin: 0.1rem 0 0.25rem;
+}
+
+.howto-card ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.howto-card li {
+  margin: 0;
+}
+
+.howto-card kbd {
+  display: inline-block;
+  min-width: 1.6rem;
+  padding: 0 0.3rem;
+  border-radius: 0.3rem;
+  background: #1e2230;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.howto-tip {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: center;
+  opacity: 0.85;
+}

@@ -19,6 +19,16 @@ const base = (over: Partial<LobbyView> = {}): LobbyView => ({
 });
 
 describe('lobbyHtml', () => {
+  it('shows a how-to-play card per role with its keys, yours highlighted', () => {
+    const html = lobbyHtml(base(), limits);
+    for (const role of ['pilot', 'engineer', 'solo']) expect(html).toContain(`data-role="${role}"`);
+    expect(html).toContain('class="howto-card mine" data-role="pilot"');
+    expect(html).toContain('<kbd>Shift</kbd> nitro');
+    expect(html).toContain('SWAP lane');
+    const watcher = lobbyHtml(base({ myId: 'nobody' }), limits);
+    expect(watcher).not.toContain('howto-card mine');
+  });
+
   it('shows host controls only to the host', () => {
     expect(lobbyHtml(base(), limits)).toContain('START RACE');
     const guest = lobbyHtml(base({ myId: 'b' }), limits);

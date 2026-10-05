@@ -3,6 +3,7 @@
 // you are typing in one of its text fields (live updates must not steal your keystrokes).
 import { NAME_MAX_LENGTH, TEAM_NAME_MAX_LENGTH, type RacePhase, type Seat } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
+import { HOW_TO_CARDS, TEAM_TIP } from './roleKeys';
 
 export interface LobbyPlayer {
   id: string;
@@ -118,6 +119,8 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
   }
   html.push('</div>');
 
+  html.push(howToHtml(me?.seat ?? ''));
+
   const ready = me?.ready ?? false;
   const seated = me !== undefined && me.slot >= 0;
   html.push('<div class="lobby-actions">');
@@ -143,6 +146,15 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
 }
 
 const laps = (n: number): string => `${n} lap${n === 1 ? '' : 's'}`;
+
+/** How-to-play: one short card per role (yours highlighted) and the team loop in a line. */
+function howToHtml(mySeat: string): string {
+  const cards = HOW_TO_CARDS.map((c) => {
+    const keys = c.keys.map(([k, what]) => `<li><kbd>${k}</kbd> ${what}</li>`).join('');
+    return `<div class="howto-card${c.role === mySeat ? ' mine' : ''}" data-role="${c.role}"><strong>${c.title}</strong><p>${c.job}</p><ul>${keys}</ul></div>`;
+  });
+  return `<div class="howto">${cards.join('')}<p class="howto-tip">${TEAM_TIP}</p></div>`;
+}
 
 /**
  * The lobby overlay. Opens between races; Esc hides it to drive around while you wait.

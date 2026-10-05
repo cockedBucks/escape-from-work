@@ -23,7 +23,7 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
 - [x] **P5.5 Bot skills + balance.** Engineer bot half learns to drift, use nitro and manage heat
   (with a skill level). Balance test: skilled vs plain bot team lap-time gain inside the
   configured range. Update golden windows if needed (and say why).
-- [ ] **P5.6 How-to-play cards.** One short card per role in the lobby, with the keys.
+- [x] **P5.6 How-to-play cards.** One short card per role in the lobby, with the keys.
 - [ ] **HUMAN GATE — duo mechanics.**
   1. Race as a duo. Try to chain drifts into nitro without overheating. Use the swap lane once.
   2. Reply: is drifting understandable? Does heat create good tension or just annoy?

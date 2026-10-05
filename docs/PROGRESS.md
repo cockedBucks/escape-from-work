@@ -5,15 +5,18 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.6 How-to-play cards
-- Status: P5.5 done. `npm run verify` passes (340 tests + bot race, best lap 37.25 s);
-  `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps).
+- Next task: HUMAN GATE — duo mechanics (then P5.7 phase end)
+- Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
+  `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
+- P5 HUMAN GATE "duo mechanics": race as a duo, chain drifts into nitro without overheating,
+  use the swap lane once; reply: drifting understandable? heat tension or annoying? swap lane
+  worth it? (`/feedback` for tuning).
 - Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
 
 ## Environment
@@ -84,6 +87,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   straights clear at nitro speed. Server + network bots use `bot.skill` 2. Balance test: skilled
   104.3 s vs plain 110.5 s (5.6%, range 2–12%). Network bots now follow their seat after a swap
   (load test had broken in P5.4). D071.
+
+- 2026-10-05: P5.6 how-to cards — lobby row with one card per role (job + keys, yours
+  highlighted) and the duo loop in one line; texts in `ui/roleKeys.ts`. Fits 1280×720.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
