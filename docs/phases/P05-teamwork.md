@@ -15,7 +15,7 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
 
 - [x] **P5.1 Engine heat.** Heat model, stall and restart, smoke and sad engine sound, gauges.
   All numbers in `tuning.json` (`heat.*`). Tests.
-- [ ] **P5.2 Tandem drift.** Brake-tap detection, entry conditions, drift handling, 3 charge
+- [x] **P5.2 Tandem drift.** Brake-tap detection, entry conditions, drift handling, 3 charge
   levels with spark colors, boost on release, nitro charge, events. Tests, including solo.
 - [ ] **P5.3 Nitro.** Meter, Shift burn, speed boost, extra heat, flames. Tests.
 - [ ] **P5.4 Swap lane.** `swap` zone (lap 2+): swaps seats, resets heat, HUD flash with the new

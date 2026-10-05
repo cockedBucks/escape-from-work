@@ -4,7 +4,9 @@ import { fall, isAirborne, launch } from './air';
 import { placeAtGate } from './car';
 import { collideCars } from './carCollisions';
 import { drive } from './drive';
+import { resetDrift, stepDrift } from './drift';
 import { stepHeat } from './heat';
+import { dot, forward } from '../util/math';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { collideWalls } from './walls';
 
@@ -43,6 +45,7 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
       if (gate) placeAtGate(car, track, gate);
       car.respawnAtTick = -1;
       car.ghostUntilTick = now + ticks(cfg.race.respawnGhostSeconds, dt);
+      resetDrift(car);
       events.push({ type: 'respawn', car: car.id, gate: car.lastGate });
       return;
     }
@@ -52,10 +55,11 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     input = NO_INPUT;
   }
 
-  // 2. Engine heat (a stalled engine gives no gas), then drive (on the ground only), move,
-  // fall, hit walls.
+  // 2. Engine heat (a stalled engine gives no gas), drift (a tap does not brake), then drive
+  // (on the ground only), move, fall, hit walls.
   input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
-  if (!isAirborne(car)) drive(car, input, cfg.car, dt);
+  input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), cfg, events);
+  if (!isAirborne(car)) drive(car, input, cfg.car, cfg.drift, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;
   const impact = fall(car, cfg.car, dt);

@@ -1,4 +1,4 @@
-import type { CarTuning } from '../config/tuning';
+import type { CarTuning, DriftTuning } from '../config/tuning';
 import { clamp, dot, forward, lerp, moveToward, right, wrapAngle } from '../util/math';
 import type { CarInput, CarState } from './types';
 
@@ -44,10 +44,18 @@ export function longitudinal(vF: number, input: CarInput, top: number, accel: nu
 }
 
 /**
- * One tick of ground driving: steering, engine, brakes and grip. Changes `steer`, `yaw`,
- * `vx` and `vz` only. Position, height and walls are handled elsewhere.
+ * The steering the car turns with while drifting: always into the drift, tighter when the
+ * Pilot steers into it, wider when they steer out.
  */
-export function drive(state: CarState, input: CarInput, car: CarTuning, dt: number): void {
+export function driftSteer(dir: number, steer: number, drift: DriftTuning): number {
+  return dir * (drift.steerBase + drift.steerRange * clamp(steer * dir, -1, 1));
+}
+
+/**
+ * One tick of ground driving: steering, engine, brakes, grip, drift and boost. Changes
+ * `steer`, `yaw`, `vx` and `vz` only. Position, height and walls are handled elsewhere.
+ */
+export function drive(state: CarState, input: CarInput, car: CarTuning, drift: DriftTuning, dt: number): void {
   const top = car.topSpeed * state.stats.speed;
   const accel = car.accel * state.stats.speed;
 
@@ -60,20 +68,25 @@ export function drive(state: CarState, input: CarInput, car: CarTuning, dt: numb
   let vS = dot(v, r);
 
   vF = longitudinal(vF, input, top, accel, car, dt);
+  // Drift boost: an extra push, up to a bit above top speed (it settles back afterwards).
+  const boostTop = top * drift.boostTopSpeed;
+  if (state.boostTicks > 0 && vF < boostTop) vF = Math.min(boostTop, vF + drift.boostAccel * dt);
 
-  // Grip removes sideways sliding. exp() keeps it the same at any tick rate.
-  const grip = car.grip * state.stats.grip * (state.onSlick ? car.slickGrip : 1);
+  const drifting = state.driftDir !== 0;
+  // Grip removes sideways sliding (less while drifting). exp() keeps it the same at any tick rate.
+  const grip = car.grip * state.stats.grip * (state.onSlick ? car.slickGrip : 1) * (drifting ? car.driftGrip : 1);
   vS *= Math.exp(-grip * dt);
 
   // Steer +1 = right = yaw goes down. Reversing flips the turn, like a real car.
-  const yawRate = -state.steer * car.maxYawRate * steerSpeedFactor(vF, top, car) * Math.sign(vF);
+  const steer = drifting ? driftSteer(state.driftDir, state.steer, drift) * drift.turnRate : state.steer;
+  const yawRate = -steer * car.maxYawRate * steerSpeedFactor(vF, top, car) * Math.sign(vF);
   const turn = yawRate * dt;
   state.yaw = wrapAngle(state.yaw + turn);
 
   // Carve: the movement turns with the car (by `carve` of the turn), so the car follows the
   // corner instead of spinning in place and waiting for grip to catch up. On a slick, it
   // carves less and slides more.
-  const carve = car.carve * (state.onSlick ? car.slickGrip : 1);
+  const carve = car.carve * (state.onSlick ? car.slickGrip : 1) * (drifting ? drift.carve : 1);
   const fc = forward(state.yaw - turn + turn * carve);
   const rc = right(state.yaw - turn + turn * carve);
   state.vx = fc.x * vF + rc.x * vS;

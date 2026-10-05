@@ -5,6 +5,7 @@ export {
   TuningSchema,
   parseTuning,
   type CarTuning,
+  type DriftTuning,
   type QualityLevel,
   type QualityPreset,
   type Tuning,

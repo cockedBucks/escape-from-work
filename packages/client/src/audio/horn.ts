@@ -36,6 +36,16 @@ export const ENGINE_SOUNDS = {
   restart: { voices: [{ type: 'square', from: 70, to: 150 }], duration: 0.35, vibrato: 25, vibratoRate: 22, gain: 0.16 },
 } as const satisfies Record<string, HornPreset>;
 
+/** Drift: a ding per spark level (higher each time; your car only) and a whoosh on the boost. */
+export const DRIFT_SOUNDS = {
+  levels: [
+    { voices: [{ type: 'triangle', from: 523, to: 523 }], duration: 0.12, vibrato: 0, vibratoRate: 0, gain: 0.18 },
+    { voices: [{ type: 'triangle', from: 659, to: 659 }], duration: 0.12, vibrato: 0, vibratoRate: 0, gain: 0.18 },
+    { voices: [{ type: 'triangle', from: 784, to: 784 }, { type: 'triangle', from: 1568, to: 1568 }], duration: 0.18, vibrato: 0, vibratoRate: 0, gain: 0.18 },
+  ],
+  boost: { voices: [{ type: 'sawtooth', from: 160, to: 620 }], duration: 0.4, vibrato: 12, vibratoRate: 30, gain: 0.14 },
+} as const satisfies { levels: readonly HornPreset[]; boost: HornPreset };
+
 /** Distance (m) at which a horn is at half volume. */
 const HALF_VOLUME_DISTANCE = 40;
 

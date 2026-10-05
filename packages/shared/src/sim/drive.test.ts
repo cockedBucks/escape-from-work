@@ -20,7 +20,8 @@ function state(over: Partial<CarState> = {}): CarState {
   return {
     id: 'a', stats: { speed: 1, grip: 1, weight: 1 }, x: 0, z: 0, y: 0, vy: 0, yaw: 0, vx: 0, vz: 0, steer: 0,
     segment: 0, progress: 0, lateral: 0, lastGate: 0, onSlick: false, onRamp: false, respawnAtTick: -1,
-    ghostUntilTick: 0, heat: 0, stallUntilTick: -1, nextHonkTick: 0, ...over,
+    ghostUntilTick: 0, heat: 0, stallUntilTick: -1, driftDir: 0, driftCharge: 0, driftLevel: 0, brakeTicks: 0,
+    boostTicks: 0, nitro: 0, nextHonkTick: 0, ...over,
   };
 }
 
@@ -107,8 +108,8 @@ describe('drive (whole ground step)', () => {
     const dry = state({ vx: r.x * 10, vz: r.z * 10 });
     const slick = state({ vx: r.x * 10, vz: r.z * 10, onSlick: true });
     for (let i = 0; i < 30; i++) {
-      drive(dry, NO_INPUT, car, dt);
-      drive(slick, NO_INPUT, car, dt);
+      drive(dry, NO_INPUT, car, cfg.drift, dt);
+      drive(slick, NO_INPUT, car, cfg.drift, dt);
     }
     const side = (s: CarState): number => Math.abs(dot({ x: s.vx, z: s.vz }, r));
     expect(side(dry)).toBeLessThan(0.2);
@@ -119,8 +120,8 @@ describe('drive (whole ground step)', () => {
     const fwd = state({ vx: forward(0).x * 15, vz: forward(0).z * 15 });
     const rev = state({ vx: forward(0).x * -5, vz: forward(0).z * -5 });
     for (let i = 0; i < 20; i++) {
-      drive(fwd, { ...NO_INPUT, steer: 1 }, car, dt);
-      drive(rev, { ...NO_INPUT, steer: 1, brake: true }, car, dt);
+      drive(fwd, { ...NO_INPUT, steer: 1 }, car, cfg.drift, dt);
+      drive(rev, { ...NO_INPUT, steer: 1, brake: true }, car, cfg.drift, dt);
     }
     expect(fwd.yaw).toBeLessThan(-0.1);
     expect(rev.yaw).toBeGreaterThan(0.05);
@@ -128,7 +129,7 @@ describe('drive (whole ground step)', () => {
 
   it('does not turn when stopped', () => {
     const s = state();
-    for (let i = 0; i < 60; i++) drive(s, { ...NO_INPUT, steer: 1 }, car, dt);
+    for (let i = 0; i < 60; i++) drive(s, { ...NO_INPUT, steer: 1 }, car, cfg.drift, dt);
     expect(s.yaw).toBe(0);
     expect(s.steer).toBe(1);
   });
@@ -139,7 +140,7 @@ describe('carve and engine curve (P2.8 feel pass)', () => {
   function slideAfterTurn(carve: number, onSlick = false): number {
     const tuned = { ...car, carve };
     const s = state({ vx: forward(0).x * 20, vz: forward(0).z * 20, steer: 1, onSlick });
-    for (let i = 0; i < 30; i++) drive(s, { ...NO_INPUT, gas: true, steer: 1 }, tuned, dt);
+    for (let i = 0; i < 30; i++) drive(s, { ...NO_INPUT, gas: true, steer: 1 }, tuned, cfg.drift, dt);
     return Math.abs(dot({ x: s.vx, z: s.vz }, right(s.yaw)));
   }
 

@@ -12,6 +12,10 @@ export interface CarSnap {
   ghost: boolean;
   /** Engine stalled (smoke). */
   stalled: boolean;
+  /** Drifting (-1 left / 0 / +1 right) and the spark level 0–3; drift boost on. */
+  drift: number;
+  driftLevel: number;
+  boosting: boolean;
 }
 
 interface Snapshot {
@@ -84,6 +88,9 @@ export class SnapshotBuffer {
       o.respawning = cb.respawning;
       o.ghost = cb.ghost;
       o.stalled = cb.stalled;
+      o.drift = cb.drift;
+      o.driftLevel = cb.driftLevel;
+      o.boosting = cb.boosting;
     }
   }
 

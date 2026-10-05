@@ -32,6 +32,12 @@ export interface OwnCarView {
   heat: number;
   /** Seconds until a stalled engine restarts (0 = running). */
   stallLeft: number;
+  drift: number;
+  driftLevel: number;
+  driftCharge: number;
+  /** Seconds of drift boost left. */
+  boostLeft: number;
+  nitro: number;
   /** Merged input the server applied (your partner's half comes from here). */
   inSteer: number;
   inGas: boolean;
@@ -66,6 +72,7 @@ export class OwnCarPredictor {
   private needOffset = false;
   private lastNow = -1;
   private baseStallLeft = 0;
+  private baseBoostLeft = 0;
 
   /** `stats`: your car's stats from cars.json (the server uses the same). */
   constructor(
@@ -105,6 +112,13 @@ export class OwnCarPredictor {
     car.respawnAtTick = view.respawning ? 1 : -1;
     car.heat = view.heat;
     this.baseStallLeft = view.stallLeft;
+    car.driftDir = view.drift;
+    car.driftLevel = view.driftLevel;
+    car.driftCharge = view.driftCharge;
+    car.nitro = view.nitro;
+    // The brake as the server last applied it: held = no fresh press to start a drift with.
+    car.brakeTicks = view.inBrake ? 1 : 0;
+    this.baseBoostLeft = view.boostLeft;
     const loc = locateOnTrack(this.track, { x: view.x, z: view.z }, near ? prev.segment : undefined);
     car.segment = loc.segment;
     car.progress = lapProgress(this.track, loc.progress);
@@ -144,6 +158,7 @@ export class OwnCarPredictor {
     Object.assign(car, base);
     world.tick = 0;
     car.stallUntilTick = this.baseStallLeft > 0 ? Math.round(this.baseStallLeft / cfg.sim.dt) : -1;
+    car.boostTicks = Math.round(this.baseBoostLeft / cfg.sim.dt);
     for (let i = 0; i < whole; i++) step(world, this.inputs, cfg);
     const ax = car.x;
     const az = car.z;

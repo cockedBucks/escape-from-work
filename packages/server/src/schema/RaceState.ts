@@ -69,6 +69,12 @@ export const CarView = schema(
     /** Engine heat 0–1, and seconds until a stalled engine restarts (0 = running). */
     heat: t.float32().default(0),
     stallLeft: t.float32().default(0),
+    /** Drift: -1 left / 0 none / +1 right, level 0–3, seconds charged; boost seconds left; nitro 0–1. */
+    drift: t.int8().default(0),
+    driftLevel: t.uint8().default(0),
+    driftCharge: t.float32().default(0),
+    boostLeft: t.float32().default(0),
+    nitro: t.float32().default(0),
   },
   'CarView',
 );

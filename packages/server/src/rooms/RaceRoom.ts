@@ -376,6 +376,11 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.ghost = car.ghostUntilTick > world.tick;
       view.heat = car.heat;
       view.stallLeft = car.stallUntilTick > world.tick ? (car.stallUntilTick - world.tick) * this.tuning.sim.dt : 0;
+      view.drift = car.driftDir;
+      view.driftLevel = car.driftLevel;
+      view.driftCharge = car.driftCharge;
+      view.boostLeft = car.boostTicks * this.tuning.sim.dt;
+      view.nitro = car.nitro;
     }
   }
 }

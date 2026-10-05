@@ -15,7 +15,7 @@ import type { CarSnap } from './net/snapshots';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 
@@ -48,6 +48,14 @@ export function frozenBotRace(track: Track, tuning: Tuning, scenario: RaceScenar
     world.cars[0].heat = 1;
     world.cars[0].stallUntilTick = world.tick + Math.round(tuning.heat.stallSeconds / tuning.sim.dt);
   }
+  // `drift`: the car you follow (bot1) is mid-drift with orange (level 2) sparks.
+  if (scenario === 'drift' && world.cars[0]) {
+    const car = world.cars[0];
+    car.driftDir = 1;
+    car.driftLevel = 2;
+    car.driftCharge = tuning.drift.levelSeconds[1];
+    car.nitro = 0.6;
+  }
   return world;
 }
 
@@ -66,6 +74,9 @@ export function frozenSource(world: World): CarSource {
           respawning: car.respawnAtTick >= 0,
           ghost: car.ghostUntilTick > world.tick,
           stalled: car.stallUntilTick > world.tick,
+          drift: car.driftDir,
+          driftLevel: car.driftLevel,
+          boosting: car.boostTicks > 0,
         });
       }
     },

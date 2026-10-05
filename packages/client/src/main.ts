@@ -5,7 +5,7 @@ import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type Horn, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
-import { ENGINE_SOUNDS, HornPlayer } from './audio/horn';
+import { DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer } from './audio/horn';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
@@ -90,7 +90,7 @@ function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: strin
 
 /** Where you look in the `cockpit` scenario: right (negative yaw) and a bit up, at your teammate. */
 const SCENARIO_LOOK = { yaw: -1.15, pitch: 0.25 };
-/** `stall` scenario: smoke already puffing this long when the picture is taken (s). */
+/** `stall`/`drift` scenarios: smoke/sparks already flying this long when the picture is taken (s). */
 const SCENARIO_SMOKE_SECONDS = 1;
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
@@ -170,7 +170,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   });
   // Cockpit shot: turn your head right toward your teammate's bobblehead.
   if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
-  if (scenario === 'stall') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
+  if (scenario === 'stall' || scenario === 'drift') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
   game.renderFrame(performance.now(), true);
   game.start();
   setStatus('');
@@ -377,11 +377,12 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
       });
     hud.set(hudNow);
-    // Nitro and item arrive in P5.3/P6; the gauges already have their slots.
+    // The item arrives in P6; the gauge already has its slot.
     gauges.lap = hudNow.lap;
     gauges.place = hudNow.place;
     gauges.heat = myCar ? myCar.heat : null;
     gauges.stalled = myCar ? myCar.stallLeft > 0 : false;
+    gauges.nitro = myCar ? myCar.nitro : null;
     join.update({
       players,
       myId: room.sessionId,
@@ -453,6 +454,15 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       if (e.type === 'stall' || e.type === 'restart') {
         if (e.type === 'stall') game.say(e.car, 'STALL!');
         horns.playSound(ENGINE_SOUNDS[e.type], heardFrom(e.car));
+        continue;
+      }
+      if (e.type === 'driftLevel') {
+        const ding = DRIFT_SOUNDS.levels[e.level - 1];
+        if (ding && e.car === myCarId) horns.playSound(ding, 0);
+        continue;
+      }
+      if (e.type === 'boost') {
+        horns.playSound(DRIFT_SOUNDS.boost, heardFrom(e.car));
         continue;
       }
       const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);

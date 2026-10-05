@@ -5,9 +5,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.2 Tandem drift
-- Status: P5.1 done. `npm run verify` passes (304 tests + bot race, best lap 37.13 s with heat).
-  Shots: cockpit 39 / chase 12 / stall 13 draw calls.
+- Next task: P5.3 Nitro (Shift burns `car.nitro`, which drifts already fill; speed boost, extra heat
+  `heat.nitroRisePerSec`, flames — reuse `render/sparks.ts` flame puffs)
+- Status: P5.2 done. `npm run verify` passes (318 tests + bot race, best lap 37.13 s).
+  Shots: cockpit 39 / chase 12 / stall 13 / drift 13 draw calls.
+- Session paused 2026-10-05 by the human (PC shutdown). Resume with `/next`.
 
 ## Half-done
 - (nothing)
@@ -64,6 +66,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-05: P5.1 engine heat — shared heat model (rise at full gas when fast, cool off gas, stall
   2 s, restart at 60%), synced heat/stall, bot lifts at 90%, HUD/dashboard heat bar + STALL!, smoke,
   stall/restart sounds, `stall` scenario. Golden laps +2 s (intended). D067.
+
+- 2026-10-05: P5.2 tandem drift — brake tap + hard steer at speed starts a drift (Engineer +
+  Pilot, or solo), wider slide, 3 levels (dust → blue/orange/pink sparks, dings), release on the
+  gas = boost + nitro; synced + predicted; `drift` scenario. Bots never drift yet (P5.5). D068.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

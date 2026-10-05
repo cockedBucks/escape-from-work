@@ -55,6 +55,17 @@ export interface CarState {
   heat: number;
   /** Stalled (no gas) until this tick, or -1 when the engine runs. */
   stallUntilTick: number;
+  /** Drifting: 0 = no, -1 = drifting left, +1 = drifting right. */
+  driftDir: number;
+  /** Seconds charged in this drift, and the level reached (0–3: none, blue, orange, pink). */
+  driftCharge: number;
+  driftLevel: number;
+  /** Ticks the brake has been held in a row (0 = not held): tells a tap from braking. */
+  brakeTicks: number;
+  /** Ticks of drift boost left (0 = none). */
+  boostTicks: number;
+  /** Nitro meter 0–1 (filled by drifts; P5.3 burns it). */
+  nitro: number;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
@@ -74,6 +85,8 @@ export type SimEvent =
   | { type: 'respawn'; car: string; gate: number }
   | { type: 'honk'; car: string }
   | { type: 'stall'; car: string }
+  | { type: 'driftLevel'; car: string; level: number }
+  | { type: 'boost'; car: string; level: number }
   | { type: 'restart'; car: string };
 
 export interface World {

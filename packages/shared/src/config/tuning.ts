@@ -31,6 +31,8 @@ const CarSchema = z.strictObject({
   grip: pos(),
   /** Grip multiplier on slick zones (0–1). */
   slickGrip: fraction(),
+  /** Grip multiplier while drifting (0–1): lower = wider slides. */
+  driftGrip: fraction(),
   /** How fast steering moves toward the pressed direction (full lock per second). */
   steerRiseRate: pos(),
   /** How fast steering returns to center when released (full lock per second). */
@@ -97,6 +99,39 @@ const BotSchema = z.strictObject({
   stuckSeconds: pos(),
   /** Engineer: lets go of the gas at this engine heat (0–1) so the engine never stalls. */
   heatLiftAt: z.number().min(0).max(1),
+});
+
+/** Three increasing values, one per drift level (blue, orange, pink). */
+const perLevel = () => z.tuple([nonNeg(), nonNeg(), nonNeg()]);
+
+/** Tandem drift (GAME_DESIGN §5): Engineer taps brake while the Pilot steers hard. */
+const DriftSchema = z.strictObject({
+  /** Entry: steering at least this hard (0–1)... */
+  minSteer: fraction(),
+  /** ...above this share of the car's top speed... */
+  minSpeedRatio: fraction(),
+  /** ...and a brake press. Held longer than this (ms), it is braking: the drift ends. */
+  brakeTapMaxMs: z.number().int().positive(),
+  /** The drift ends with no reward below this share of top speed. */
+  exitSpeedRatio: fraction(),
+  /** Steering under this (0–1) releases the drift: boost if on the gas. */
+  releaseSteer: fraction(),
+  /** Turn while drifting = base + range × steer into the drift (−1..1): steer out to go wide. */
+  steerBase: fraction(),
+  steerRange: fraction(),
+  /** Turn-rate multiplier while drifting (> 1 = tighter). */
+  turnRate: pos(),
+  /** Multiplier on `car.carve` while drifting (lower = the nose points further in). */
+  carve: fraction(),
+  /** Seconds of drifting to reach level 1, 2, 3. */
+  levelSeconds: perLevel().refine(([a, b, c]) => a < b && b < c, 'drift levels must take longer and longer'),
+  /** Boost on release, per level: duration (s)... */
+  boostSeconds: perLevel(),
+  /** ...push (m/s²) up to `boostTopSpeed` × top speed... */
+  boostAccel: pos(),
+  boostTopSpeed: z.number().min(1).max(3),
+  /** ...and nitro meter gained (0–1 of a full meter). */
+  nitroPerLevel: perLevel(),
 });
 
 /** Engine heat (GAME_DESIGN §5): the Engineer's main decision. Heat is 0–1 (1 = stall). */
@@ -241,6 +276,7 @@ export const TuningSchema = z.strictObject({
   track: TrackBuildSchema,
   bot: BotSchema,
   heat: HeatSchema,
+  drift: DriftSchema,
   race: RaceSchema,
   net: NetSchema,
   camera: CameraSchema,
@@ -249,6 +285,7 @@ export const TuningSchema = z.strictObject({
 
 export type Tuning = z.infer<typeof TuningSchema>;
 export type CarTuning = Tuning['car'];
+export type DriftTuning = Tuning['drift'];
 export type QualityLevel = Tuning['quality']['default'];
 export type QualityPreset = Tuning['quality']['presets'][QualityLevel];
 

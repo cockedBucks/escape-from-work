@@ -9,6 +9,7 @@ import { Bubbles } from './ui/bubbles';
 import { RearMirror } from './render/mirror';
 import { FaceMaterials } from './render/faceTexture';
 import { Smoke } from './render/smoke';
+import { Sparks } from './render/sparks';
 import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
 import { TEAM_COLORS } from './render/look';
@@ -91,8 +92,9 @@ export class Game {
   private readonly motion = new Map<string, { speed: number; yaw: number }>();
   /** "HONK!" bubbles over cars. */
   private readonly bubbles: Bubbles;
-  /** Smoke over stalled engines. */
+  /** Smoke over stalled engines; drift dust/sparks and boost flames. */
   private readonly smoke: Smoke;
+  private readonly sparks: Sparks;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -115,6 +117,8 @@ export class Game {
     this.bubbles = new Bubbles(opts.container);
     this.smoke = new Smoke(opts.quality.particles);
     this.stage.scene.add(this.smoke.mesh);
+    this.sparks = new Sparks(opts.quality.particles);
+    this.stage.scene.add(this.sparks.mesh);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
@@ -145,11 +149,14 @@ export class Game {
     return this.headOut;
   }
 
-  /** Scenarios: run the smoke for `seconds` first, so a still picture already shows it. */
+  /** Scenarios: run the smoke and sparks for `seconds` first, so a still picture already shows it. */
   warmEffects(seconds: number, now: number): void {
     this.opts.source.sample(now, this.snaps);
     const dt = 1 / 60;
-    for (let t = seconds; t > 0; t -= dt) this.smoke.update(now - t * 1000, dt, this.snaps);
+    for (let t = seconds; t > 0; t -= dt) {
+      this.smoke.update(now - t * 1000, dt, this.snaps);
+      this.sparks.update(now - t * 1000, dt, this.snaps);
+    }
   }
 
   /** The canvas (for Pointer Lock). */
@@ -209,6 +216,7 @@ export class Game {
     this.syncCars(dt);
     this.heads.sweep();
     this.smoke.update(now, dt, this.snaps);
+    this.sparks.update(now, dt, this.snaps);
 
     const view = this.opts.view;
     if (view === 'chase' || view === 'cockpit') {
@@ -359,6 +367,7 @@ export class Game {
     this.bubbles.dispose();
     this.faces.dispose();
     this.smoke.dispose();
+    this.sparks.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();
     this.trackMeshes.dispose();

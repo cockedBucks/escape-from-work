@@ -291,7 +291,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | turning feels like a box spinning / like on rails | `car.carve` (higher = follows the nose), `car.grip` |
 | pickup fades near top speed / too punchy | `car.accelCurve`, `car.accel` |
 | can't turn when slow / spins on the spot | `car.steerFullSpeed`, `car.maxYawRate` |
-| floaty / too sticky | `car.grip`, `car.drag` (`car.driftGrip` arrives in P5) |
+| floaty / too sticky | `car.grip`, `car.drag` (`car.driftGrip` while drifting) |
 | slow / too fast | `car.topSpeed`, `car.accel`, `car.drag`, car `stats.speed` (cars.json) |
 | rolls too far / stops too soon off the gas | `car.drag`, `car.rollingResistance` |
 | brakes weak / reverse useless | `car.brake`, `car.reverseTopSpeed`, `car.reverseAccel` |
@@ -320,6 +320,9 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | cockpit too shaky / too stiff on bumps (motion sickness!) | `camera.headBob` (0 = off), `camera.headBobStiffness` |
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
 | drifting hard to start (P5) | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
+| drift too slidey / too grippy / turns too little | `car.driftGrip`, `drift.turnRate`, `drift.steerBase`, `drift.steerRange`, `drift.carve` |
+| drift ends too easily / never ends | `drift.releaseSteer`, `drift.exitSpeedRatio` |
+| spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
 | overheating too fast / never (P5) | `heat.risePerSec`, `heat.hotSpeedFraction` (heats only above this share of top speed), `heat.coolPerSec`, `heat.nitroRisePerSec` (P5.3) |
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
 | bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt` |

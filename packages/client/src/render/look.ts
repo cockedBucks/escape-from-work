@@ -193,3 +193,30 @@ export const SMOKE = {
   forward: 1.2,
   height: 1.05,
 } as const;
+
+/** Drift dust and sparks, boost flames (ART_STYLE §6): bright unlit chips, one instanced draw call. */
+export const SPARKS = {
+  maxParticles: 192,
+  /** A drifting car throws particles from each rear wheel this often (ms); boosting cars flame as often. */
+  driftEveryMs: 20,
+  boostEveryMs: 30,
+  /** Rear wheels: this far behind the car's center and to each side (m), at this height. */
+  rearBack: 1.3,
+  rearSide: 0.95,
+  rearHeight: 0.25,
+  /** Colors: dust while a drift charges (level 0), then blue → orange → pink; flames. */
+  dust: 0xd8c9ad,
+  levels: [0x1d7fe0, 0xfb8500, 0xf15bb5],
+  flames: [0xffb703, 0xfb8500],
+  /** Size (m), life (s), backward throw and upward kick (m/s), gravity (m/s²) per kind. */
+  dustSize: 0.4,
+  dustLife: 0.5,
+  sparkSize: 0.26,
+  sparkLife: 0.35,
+  flameSize: 0.38,
+  flameLife: 0.22,
+  throwBack: 3,
+  kickUp: 4,
+  flameBack: 7,
+  gravity: 14,
+} as const;
