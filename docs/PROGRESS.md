@@ -5,8 +5,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.5 Bot skills + balance
-- Status: P5.4 done. `npm run verify` passes (334 tests + bot race, best lap 37.25 s).
+- Next task: P5.6 How-to-play cards
+- Status: P5.5 done. `npm run verify` passes (340 tests + bot race, best lap 37.25 s);
+  `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps).
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
 
 ## Half-done
@@ -77,6 +78,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
   (`car.swapLaneSpeed` 0.8); striped lane on the Test Loop's last straight; SWAP! flash with your
   new keys; role texts in one place (`ui/roleKeys.ts`, keys now list drift/nitro/honk); solo
   handicap `solo.speedMultiplier` (default 1). D070.
+
+- 2026-10-05: P5.5 bot skills — `BotMemory.skill` (0 plain / 1 drifts / 2 + nitro): Pilot turns in
+  hard and holds the drift to the corner's end, Engineer taps once and stays on the gas, nitro on
+  straights clear at nitro speed. Server + network bots use `bot.skill` 2. Balance test: skilled
+  104.3 s vs plain 110.5 s (5.6%, range 2–12%). Network bots now follow their seat after a swap
+  (load test had broken in P5.4). D071.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

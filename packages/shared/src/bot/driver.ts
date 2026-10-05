@@ -6,5 +6,5 @@ import { botSteer } from './pilot';
 
 /** Both halves of the bot together: the input a solo bot car sends for this tick. */
 export function botInput(car: CarState, track: Track, cfg: Tuning, memory: BotMemory): CarInput {
-  return { steer: botSteer(car, track, cfg.bot), ...botPedals(car, track, cfg, memory) };
+  return { steer: botSteer(car, track, cfg, memory.skill), ...botPedals(car, track, cfg, memory) };
 }

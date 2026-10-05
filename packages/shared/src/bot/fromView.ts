@@ -15,6 +15,10 @@ export interface CarViewLike {
   /** Engine heat 0–1, and seconds until a stalled engine restarts (0 = running). */
   heat: number;
   stallLeft: number;
+  /** Smoothed steering, drift direction (-1/0/+1) and nitro meter: what skilled bots read. */
+  steer: number;
+  drift: number;
+  nitro: number;
 }
 
 /**
@@ -33,6 +37,9 @@ export function carStateFromView(id: string, view: CarViewLike, track: Track, st
   car.respawnAtTick = view.respawning ? 1 : -1;
   car.heat = view.heat;
   car.stallUntilTick = view.stallLeft > 0 ? 1 : -1;
+  car.steer = view.steer;
+  car.driftDir = view.drift;
+  car.nitro = view.nitro;
   const loc = locateOnTrack(track, { x: view.x, z: view.z }, hintSegment);
   car.segment = loc.segment;
   car.progress = lapProgress(track, loc.progress);

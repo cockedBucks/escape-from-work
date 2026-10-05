@@ -20,7 +20,7 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
 - [x] **P5.3 Nitro.** Meter, Shift burn, speed boost, extra heat, flames. Tests.
 - [x] **P5.4 Swap lane.** `swap` zone (lap 2+): swaps seats, resets heat, HUD flash with the new
   role's keys. Solo handicap option (`solo.speedMultiplier`). Tests.
-- [ ] **P5.5 Bot skills + balance.** Engineer bot half learns to drift, use nitro and manage heat
+- [x] **P5.5 Bot skills + balance.** Engineer bot half learns to drift, use nitro and manage heat
   (with a skill level). Balance test: skilled vs plain bot team lap-time gain inside the
   configured range. Update golden windows if needed (and say why).
 - [ ] **P5.6 How-to-play cards.** One short card per role in the lobby, with the keys.

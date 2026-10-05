@@ -329,7 +329,7 @@ export class RaceSim {
     for (let slot = 0; slot < this.cfg.race.maxCars && humans.size + this.botSlots.size < this.cfg.race.botFillCars; slot++) {
       if (humans.has(slot) || this.botSlots.has(slot)) continue;
       this.botSlots.add(slot);
-      this.botMemory.set(slot, newBotMemory());
+      this.botMemory.set(slot, newBotMemory(this.cfg.bot.skill));
     }
   }
 

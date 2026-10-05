@@ -46,7 +46,14 @@
     "speedMargin": 1,
     "stuckSpeed": 1,
     "stuckSeconds": 2,
-    "heatLiftAt": 0.9
+    "heatLiftAt": 0.9,
+    "driftHeatLiftAt": 0.97,
+    "skill": 2,
+    "driftMinCurvature": 0.025,
+    "driftLookAhead": 12,
+    "driftHoldAhead": 6,
+    "nitroMaxHeat": 0.45,
+    "balanceGain": [0.02, 0.12]
   },
   "drift": {
     "minSteer": 0.7,

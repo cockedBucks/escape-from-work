@@ -328,7 +328,11 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | swap lane never worth it / always worth it | `car.swapLaneSpeed` (top-speed share inside the lane), zone `minLap`, `from`/`to` (track file) |
 | solo players too strong / too weak vs duos | `solo.speedMultiplier` (1 = no handicap) |
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
-| bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt` |
+| bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt`, `bot.driftHeatLiftAt` |
+| server/network bots too good / too plain | `bot.skill` (0 plain, 1 drifts, 2 drifts + nitro) |
+| skilled bots drift too much / too little / crash in drifts | `bot.driftMinCurvature`, `bot.driftLookAhead`, `bot.driftHoldAhead` |
+| skilled bots waste nitro / overheat with it | `bot.nitroMaxHeat` |
+| teamwork pays too much / too little (balance test fails) | `bot.balanceGain` [min, max] share of race time; tune drift/nitro, not the test |
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |
 | own car shimmers / snaps after bumps | `net.predictCorrectionRate` (lower = softer corrections) |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |

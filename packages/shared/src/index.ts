@@ -39,7 +39,7 @@ export { step, type InputsByCar } from './sim/step';
 export { hashWorld } from './sim/hash';
 export { isStalled } from './sim/heat';
 export { botSteer, lookAheadPoint } from './bot/pilot';
-export { botPedals, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
+export { botPedals, cornerAhead, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
 export { botInput } from './bot/driver';
 export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';
 export {

@@ -107,6 +107,19 @@ const BotSchema = z.strictObject({
   stuckSeconds: pos(),
   /** Engineer: lets go of the gas at this engine heat (0–1) so the engine never stalls. */
   heatLiftAt: z.number().min(0).max(1),
+  /** Skill 1+: while drifting it stays on the gas up to this heat, so letting go still boosts. */
+  driftHeatLiftAt: z.number().min(0).max(1),
+  /** Skill of server and network bots: 0 = plain driving, 1 = also drifts, 2 = drifts + nitro. */
+  skill: z.number().int().min(0).max(2),
+  /** Skill 1+: tap for a drift when a corner this tight (1/m) is within `driftLookAhead` m... */
+  driftMinCurvature: pos(),
+  driftLookAhead: pos(),
+  /** ...and hold it only while the road within `driftHoldAhead` m still turns that way that tightly. */
+  driftHoldAhead: pos(),
+  /** Skill 2: burn nitro on a clear straight while the engine is below this heat (0–1). */
+  nitroMaxHeat: z.number().min(0).max(1),
+  /** Balance test: a skill-2 bot must be this much faster than a plain one (share of race time, min–max). */
+  balanceGain: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
 });
 
 /** Three increasing values, one per drift level (blue, orange, pink). */

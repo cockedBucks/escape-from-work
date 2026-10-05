@@ -24,11 +24,11 @@ const hairpin = track.samples.reduce((best, s, i) =>
 describe('bot pilot', () => {
   it('holds straight on the straight and corrects when turned away', () => {
     const car = createCar('a', STATS, track);
-    expect(Math.abs(botSteer(car, track, cfg.bot))).toBeLessThan(0.15);
+    expect(Math.abs(botSteer(car, track, cfg))).toBeLessThan(0.15);
     car.yaw += 0.4; // turned left of the road: steer right
-    expect(botSteer(car, track, cfg.bot)).toBeGreaterThan(0.5);
+    expect(botSteer(car, track, cfg)).toBeGreaterThan(0.5);
     car.yaw -= 0.8; // turned right: steer left
-    expect(botSteer(car, track, cfg.bot)).toBeLessThan(-0.5);
+    expect(botSteer(car, track, cfg)).toBeLessThan(-0.5);
   });
 });
 
@@ -130,5 +130,82 @@ describe('golden: replay determinism', () => {
     expect(hashWorld(a)).not.toBe(hashWorld(b));
     placeAtGate(b.cars[0]!, track, track.gates[0]!);
     expect(hashWorld(a)).toBe(hashWorld(b));
+  });
+});
+
+describe('bot skills (drift, nitro)', () => {
+  /** A car 10 m before the hairpin, moving along the track at `speed`, wheel turned into it. */
+  function beforeHairpin(speed: number) {
+    const i = (hairpin - 5 + track.samples.length) % track.samples.length;
+    const s = track.samples[i]!;
+    const car = createCar('a', STATS, track);
+    car.x = s.pos.x;
+    car.z = s.pos.z;
+    car.yaw = Math.atan2(s.dir.x, s.dir.z);
+    car.vx = s.dir.x * speed;
+    car.vz = s.dir.z * speed;
+    car.segment = i;
+    car.steer = -Math.sign(track.samples[hairpin]!.curvature); // hard into the corner
+    return car;
+  }
+  const fast = cfg.car.topSpeed * cfg.drift.minSpeedRatio * 1.2;
+
+  it('a plain bot never taps for a drift or burns nitro', () => {
+    const car = beforeHairpin(fast);
+    car.nitro = 1;
+    const p = botPedals(car, track, cfg, newBotMemory(0));
+    expect(p.nitro).toBe(false);
+    expect(p.brake && p.gas).toBe(false);
+  });
+
+  it('a skilled Engineer taps the brake for one tick into a tight corner, then holds the gas while drifting', () => {
+    const car = beforeHairpin(fast);
+    const memory = newBotMemory(1);
+    expect(botPedals(car, track, cfg, memory)).toMatchObject({ brake: true });
+    expect(botPedals(car, track, cfg, memory).brake).toBe(false); // a tap, not a hold
+    car.driftDir = car.steer;
+    car.heat = cfg.bot.heatLiftAt; // hot, but still under the drift limit
+    expect(botPedals(car, track, cfg, memory)).toMatchObject({ gas: true, brake: false });
+  });
+
+  it('a skilled Pilot turns in hard before a tight corner and never sits near straight mid-drift', () => {
+    const car = beforeHairpin(fast);
+    car.steer = 0;
+    const into = -Math.sign(track.samples[hairpin]!.curvature);
+    expect(botSteer(car, track, cfg, 1) * into).toBeGreaterThanOrEqual(cfg.drift.minSteer);
+    car.driftDir = into;
+    expect(Math.abs(botSteer(car, track, cfg, 1))).toBeGreaterThan(cfg.drift.releaseSteer);
+  });
+
+  it('skill 2 burns nitro only with meter, on a clear straight, with a cool engine', () => {
+    const car = createCar('a', STATS, track); // start line: a long straight ahead
+    const f = forward(car.yaw);
+    car.vx = f.x * 15;
+    car.vz = f.z * 15;
+    expect(botPedals(car, track, cfg, newBotMemory(2)).nitro).toBe(false); // empty meter
+    car.nitro = 1;
+    expect(botPedals(car, track, cfg, newBotMemory(2)).nitro).toBe(true);
+    car.heat = cfg.bot.nitroMaxHeat;
+    expect(botPedals(car, track, cfg, newBotMemory(2)).nitro).toBe(false);
+    expect(botPedals(beforeHairpin(fast), track, cfg, newBotMemory(2)).nitro).toBe(false);
+  });
+});
+
+describe('balance: teamwork pays, without being overpowered', () => {
+  // A skilled bot team (drifts, boosts, nitro, heat) against a plain one on the Test Loop.
+  const plain = runBotRace(track, cfg, { cars: 1, laps: 3, maxSeconds: 300, skill: 0 });
+  const skilled = runBotRace(track, cfg, { cars: 1, laps: 3, maxSeconds: 300, skill: 2 });
+  const total = (r: typeof plain) => r.cars[0]!.lapTimes.reduce((a, b) => a + b, 0);
+
+  it('the skilled bot finishes cleanly', () => {
+    expect(skilled.finished).toBe(true);
+    expect(skilled.cars[0]!.respawns).toBe(0);
+  });
+
+  it('is faster by a share of race time inside bot.balanceGain', () => {
+    const gain = 1 - total(skilled) / total(plain);
+    const [min, max] = cfg.bot.balanceGain;
+    expect(gain).toBeGreaterThan(min);
+    expect(gain).toBeLessThan(max);
   });
 });

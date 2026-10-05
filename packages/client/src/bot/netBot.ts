@@ -10,8 +10,11 @@ import {
   carIdForSlot,
   carStateFromView,
   newBotMemory,
+  type BotMemory,
+  type CarState,
   type CarStats,
   type CarViewLike,
+  type InputMessage,
   type LobbyError,
   type Track,
   type Tuning,
@@ -125,21 +128,27 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const carId = carIdForSlot(slot);
   await waitFor(engineer, (s) => s.cars?.get(carId) !== undefined, CONFIRM_MS);
 
-  // Pilot half: steer toward the look-ahead point on every state update.
+  // Each client plays the seat it has right now: the swap lane trades Pilot and Engineer,
+  // and the server ignores controls a seat may not use.
+  const halfFor = (seat: string | undefined, car: CarState, memory: BotMemory): Omit<InputMessage, 'seq'> =>
+    seat === 'engineer' ? botPedals(car, track, tuning, memory) : { steer: botSteer(car, track, tuning, tuning.bot.skill) };
+
+  // Pilot half (until a swap): steer toward the look-ahead point on every state update.
   let pilotSeq = 0;
   let pilotHint: number | undefined;
+  const pilotMemory = newBotMemory(tuning.bot.skill);
   pilot.onStateChange((s) => {
     const view = s.cars?.get(carId);
     if (!view) return;
     const car = carStateFromView(carId, view, track, stats, pilotHint);
     pilotHint = car.segment;
-    pilot.send(MSG.input, { seq: ++pilotSeq, steer: botSteer(car, track, tuning.bot) });
+    pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(s.players?.get(pilot.sessionId)?.seat, car, pilotMemory) });
   });
 
   // Engineer half: gas/brake for the next corners, respawn when stuck; also counts laps.
   let engSeq = 0;
   let engHint: number | undefined;
-  const memory = newBotMemory();
+  const memory = newBotMemory(tuning.bot.skill);
   let lastProgress = -1;
   let wraps = 0;
   let lapStart = 0;
@@ -149,8 +158,9 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     if (!view) return;
     const car = carStateFromView(carId, view, track, stats, engHint);
     engHint = car.segment;
-    const pedals = botPedals(car, track, tuning, memory);
-    engineer.send(MSG.input, { seq: ++engSeq, ...pedals });
+    // Engineer half (until a swap): pedals, heat, drift taps, nitro.
+    const seat = s.players?.get(engineer.sessionId)?.seat;
+    engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(seat === 'pilot' ? 'pilot' : 'engineer', car, memory) });
     if (lastProgress > WRAP && view.progress < 1 - WRAP) {
       wraps++;
       const now = performance.now();

@@ -13,6 +13,8 @@ export interface BotRaceOptions {
   /** Give up after this much race time (s). */
   maxSeconds: number;
   stats?: CarStats;
+  /** Bot skill for every car (`BotMemory.skill`): 0 = plain (the default), 2 = drifts + nitro. */
+  skill?: number;
   /** Called with every tick's inputs (for recording replays). */
   onInputs?: (inputs: Record<string, CarInput>) => void;
 }
@@ -52,7 +54,7 @@ function startingCars(track: Track, count: number, stats: CarStats): ReturnType<
  */
 export function runBotRace(track: Track, cfg: Tuning, opts: BotRaceOptions): BotRaceResult {
   const world = createWorld(track, startingCars(track, opts.cars, opts.stats ?? DEFAULT_STATS));
-  const memory = new Map<string, BotMemory>(world.cars.map((c) => [c.id, newBotMemory()]));
+  const memory = new Map<string, BotMemory>(world.cars.map((c) => [c.id, newBotMemory(opts.skill ?? 0)]));
   const results = new Map<string, BotCarResult>(
     world.cars.map((c) => [c.id, { id: c.id, lapTimes: [], finished: false, respawns: 0, wallHits: 0 }]),
   );
