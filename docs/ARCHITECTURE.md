@@ -159,6 +159,10 @@ installed types for the API. Anything not on this list → ask the human first.
 - Sim at 60 Hz. State patches every `cfg.net.patchRateMs` (start: 33 ms).
 - Clients render about `cfg.net.interpDelayMs` (start: 50 ms) in the past and interpolate
   between snapshots. On a LAN this keeps total input-to-screen delay under ~100 ms.
+- Snapshots are placed on a timeline from the server tick (`tick × dt` + the smallest arrival
+  offset seen, drifting up 0.5 ms per snapshot), not by arrival time, so network jitter does not
+  wobble the cars. Each player's `ackSeq` (last input applied) rides in the state; the F3 overlay
+  shows ping, snapshot age and "input → screen" = echo time + `net.interpDelayMs`.
 - Phase 2 measures real latency and the human decides at the fun gate whether to add
   client-side prediction (predict own car using own fresh input + teammate's last input).
 

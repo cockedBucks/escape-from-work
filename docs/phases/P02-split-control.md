@@ -26,7 +26,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
 - [x] **P2.5 Bot clients.** `scripts/bots.mjs` + `npm run bots -- --cars N --seconds S [--url]`:
   for each car, one pilot-bot client and one engineer-bot client over real WebSockets.
   Integration test version in `tests/`: 2 cars, 4 clients, 1 lap completes.
-- [ ] **P2.6 Latency visibility.** Overlay shows ping, snapshot age, and measured
+- [x] **P2.6 Latency visibility.** Overlay shows ping, snapshot age, and measured
   input-to-motion delay (input seq echoed back with the state that applied it).
   Interpolation delay and patch rate tunable live.
 - [ ] **P2.7 LAN guide.** `docs/LAN.md`: find the host IP, the Windows firewall rule for the

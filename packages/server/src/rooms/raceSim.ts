@@ -87,6 +87,11 @@ export class RaceSim {
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   }
 
+  /** Last input `seq` applied for a player (-1 = none yet); echoed so clients can measure delay. */
+  ackSeq(id: string): number {
+    return this.players.get(id)?.lastSeq ?? -1;
+  }
+
   /** A new player arrives, not in a car yet (they pick a seat next). */
   addPlayer(id: string): void {
     if (this.players.has(id)) return;

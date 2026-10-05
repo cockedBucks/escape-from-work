@@ -7,6 +7,7 @@ import { DEFAULT_TRACK, loadTrack, loadTuning } from './content';
 import { Game } from './game';
 import { KeyboardControls } from './input/keyboard';
 import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
+import { InputDelayMeter } from './net/latency';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
@@ -15,6 +16,8 @@ import { RoleBadge } from './ui/roleBadge';
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
+/** Weight of the newest measurement in the smoothed input delay shown on F3. */
+const INPUT_DELAY_SMOOTHING = 0.2;
 
 function el(id: string): HTMLElement {
   const found = document.getElementById(id);
@@ -112,7 +115,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   // Ping again now and then so the F3 overlay stays current.
   const pingTimer = window.setInterval(() => room.ping((ms) => (liveStats.pingMs = ms)), PING_EVERY_MS);
 
-  const source = new ServerCarSource(tuning.net.interpDelayMs);
+  const source = new ServerCarSource(tuning.net.interpDelayMs, tuning.sim.dt * 1000);
+  const delayMeter = new InputDelayMeter();
   // Live tuning: the server sends the current values on join and after every change.
   const tuningListeners: ((t: Tuning) => void)[] = [(t) => (source.interpDelayMs = t.net.interpDelayMs)];
   let latestTuning = tuning;
@@ -138,11 +142,17 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const badge = new RoleBadge(container);
   let mySlot = -1;
   room.onStateChange((state) => {
-    source.push(performance.now(), state);
+    const now = performance.now();
+    source.push(now, state);
     liveStats.tickMs = state.tickMs;
     const players: JoinPlayer[] = [];
     state.players.forEach((p, id) => players.push({ id, name: p.name, slot: p.slot, seat: p.seat, connected: p.connected }));
     const me = state.players.get(room.sessionId);
+    const delay = me ? delayMeter.acked(me.ackSeq, now) : null;
+    if (delay !== null) {
+      const prev = liveStats.inputDelayMs;
+      liveStats.inputDelayMs = prev === null ? delay : prev + (delay - prev) * INPUT_DELAY_SMOOTHING;
+    }
     mySlot = me?.slot ?? -1;
     badge.set(me?.role ?? '');
     join.update(players, room.sessionId);
@@ -157,11 +167,18 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     view: 'chase',
     // Follow your own car; while watching, follow the first car.
     focus: () => (mySlot >= 0 ? carIdForSlot(mySlot) : null),
+    onFrame: (now) => {
+      liveStats.snapshotAgeMs = source.lastArrival < 0 ? null : now - source.lastArrival;
+      liveStats.interpDelayMs = source.interpDelayMs;
+    },
   });
   game.start();
   game.setTuning(latestTuning);
   tuningListeners.push((t) => game.setTuning(t));
-  const keyboard = new KeyboardControls((msg) => room.send(MSG.input, msg), latestTuning.net.inputResendMs);
+  const keyboard = new KeyboardControls((msg) => {
+    delayMeter.sentInput(msg.seq, performance.now());
+    room.send(MSG.input, msg);
+  }, latestTuning.net.inputResendMs);
   if (import.meta.env.DEV) {
     // Dev only: the F2 panel (lil-gui is not in production builds).
     const { TuningPanel } = await import('./ui/tuningPanel');

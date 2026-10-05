@@ -1,7 +1,11 @@
 import { Client, type EndpointSettings, type Room } from '@colyseus/sdk';
 import { ROOM_NAME, type Tuning } from '@escape/shared';
 import type { CarSource } from '../game';
+import { ServerTimeline } from './latency';
 import { SnapshotBuffer, type CarSnap } from './snapshots';
+
+/** How fast the snapshot timeline may slide later per snapshot (ms), to follow a slower network. */
+const TIMELINE_RELAX_MS = 0.5;
 
 /** One synced car as decoded by the SDK (see packages/server/src/schema/RaceState.ts). */
 export interface CarViewState {
@@ -23,6 +27,8 @@ export interface PlayerViewState {
   seat: string;
   role: string;
   connected: boolean;
+  /** Last input seq the server applied for this player. */
+  ackSeq: number;
 }
 
 /** What the client reads from the synced room state (decoded by reflection). */
@@ -112,9 +118,20 @@ export async function joinOrReconnect(tuning: Tuning): Promise<Room<unknown, Rac
  */
 export class ServerCarSource implements CarSource {
   private readonly buffer = new SnapshotBuffer();
+  private readonly timeline: ServerTimeline;
+  /** Client time the latest snapshot arrived (ms), for the F3 "snapshot age". */
+  lastArrival = -1;
 
-  /** How far in the past cars are drawn (ms): `net.interpDelayMs`, tunable live. */
-  constructor(public interpDelayMs: number) {}
+  /**
+   * @param interpDelayMs how far in the past cars are drawn (`net.interpDelayMs`, tunable live)
+   * @param dtMs one server tick in ms (`sim.dt × 1000`): snapshots are timed by tick, not arrival
+   */
+  constructor(
+    public interpDelayMs: number,
+    dtMs: number,
+  ) {
+    this.timeline = new ServerTimeline(dtMs, TIMELINE_RELAX_MS);
+  }
 
   /** Call on every state change. */
   push(now: number, state: RaceStateView): void {
@@ -122,7 +139,8 @@ export class ServerCarSource implements CarSource {
     state.cars.forEach((c, id) => {
       cars.set(id, { x: c.x, y: c.y, z: c.z, yaw: c.yaw, speed: c.speed, steer: c.steer, respawning: c.respawning, ghost: c.ghost });
     });
-    this.buffer.push(now, cars);
+    this.lastArrival = now;
+    this.buffer.push(this.timeline.timeOf(state.tick, now), cars);
   }
 
   sample(now: number, out: Map<string, CarSnap>): void {

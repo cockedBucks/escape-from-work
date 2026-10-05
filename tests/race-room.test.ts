@@ -9,6 +9,7 @@ interface PlayerView {
   slot: number;
   seat: string;
   role: string;
+  ackSeq: number;
 }
 
 interface StateView {
@@ -77,6 +78,8 @@ describe('race room (real server, real clients)', () => {
     room.send(MSG.input, { seq: 2, gas: true });
     await waitForState(room, (s) => (myX(s) ?? startX) > startX + 5, 'car moved 5 m forward');
     expect(myX(room.state)!).toBeLessThan(100);
+    // The server echoes the last input it applied, for the client's input-delay meter.
+    await waitForState(room, (s) => s.players?.get(room.sessionId)?.ackSeq === 2, 'input seq 2 echoed');
 
     await room.leave();
   });

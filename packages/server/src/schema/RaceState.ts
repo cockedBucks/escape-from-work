@@ -13,6 +13,8 @@ export const PlayerState = schema(
     role: t.string().default(''),
     /** False while disconnected and their seat is held (P2.4). */
     connected: t.boolean().default(true),
+    /** Last input `seq` the server applied, so the client can measure input delay (-1 = none). */
+    ackSeq: t.int32().default(-1),
   },
   'PlayerState',
 );

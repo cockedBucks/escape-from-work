@@ -178,6 +178,10 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   /** Copy the sim's cars into the synced state (Colyseus sends only what changed). */
   private syncCars(world: World): void {
     this.state.tick = world.tick;
+    // Input echo: sent with the same patch as the motion it caused.
+    this.state.players.forEach((view, id) => {
+      view.ackSeq = this.sim.ackSeq(id);
+    });
     for (const id of [...this.state.cars.keys()]) {
       if (!world.cars.some((c) => c.id === id)) this.state.cars.delete(id);
     }

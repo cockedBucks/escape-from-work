@@ -3,7 +3,11 @@ import type { GameStats } from '../test-hooks';
 /** Text refreshes this often (ms): readable, and no layout work every frame. */
 const REFRESH_MS = 250;
 
-const fmt = (v: number | null, digits = 0): string => (v === null ? '–' : v.toFixed(digits));
+/** Key press to car moving on screen: input echo time plus interpolation delay. */
+const screenMs = (s: GameStats): string =>
+  s.inputDelayMs === null || s.interpDelayMs === null ? '–' : (s.inputDelayMs + s.interpDelayMs).toFixed(0);
+
+const fmt =(v: number | null, digits = 0): string => (v === null ? '–' : v.toFixed(digits));
 
 /** F3 debug overlay: fps, ping, draw calls, triangles, server tick cost. DOM, top-left. */
 export class DebugOverlay {
@@ -35,6 +39,8 @@ export class DebugOverlay {
       `fps   ${fmt(s.fps)}\n` +
       `ping  ${fmt(s.pingMs)} ms\n` +
       `tick  ${fmt(s.tickMs, 2)} ms\n` +
+      `snap  ${fmt(s.snapshotAgeMs)} ms old\n` +
+      `input ${fmt(s.inputDelayMs)} ms + ${fmt(s.interpDelayMs)} ms interp = ${screenMs(s)} ms to screen\n` +
       `draws ${s.drawCalls}\n` +
       `tris  ${s.triangles}\n` +
       `cars  ${s.cars}`;

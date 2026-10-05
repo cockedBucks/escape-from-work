@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.6 (latency visibility)
-- Status: P2.5 done. `npm run verify` passes (177 tests + bot race, ~1 min).
+- Next task: P2.7 (LAN guide)
+- Status: P2.6 done. `npm run verify` passes (181 tests + bot race, ~1 min).
 
 ## Half-done
 - (nothing)
@@ -21,8 +21,6 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - Host LAN IP 192.168.0.105 (office Wi-Fi is a Public network; firewall rule D030 opens 2567 + 5173)
 
 ## Known issues
-- Snapshots are timed by arrival, not by server tick (slight jitter possible). Revisit in P2.6
-  (latency visibility) — `RaceState.tick` is already synced for it.
 - In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
   playtests; it never exists with `npm start`.
 - A client could call `create('race')` and make a second room. Lock this down when the
@@ -53,6 +51,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   SDK auto-reconnect + saved token for reopened tabs; integration tests + browser reload smoke. D042.
 - 2026-10-04: P2.5 bot clients — `npm run bots` (pilot + engineer bot per car over WebSockets),
   `carStateFromView` adapter, integration lap test; 4 cars lapped in 36.9–37.3 s. D043.
+- 2026-10-04: P2.6 latency visibility — `ackSeq` echo, input-delay meter, tick-based snapshot
+  timeline, F3 shows snapshot age + input→screen (88 ms on localhost). D044.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -12,6 +12,12 @@ export interface GameStats {
   tickMs: number | null;
   /** Round trip to the game server; null until measured. */
   pingMs: number | null;
+  /** Time since the latest server snapshot arrived; null until one has. */
+  snapshotAgeMs: number | null;
+  /** Key press until the server state that applied it arrives (smoothed); null until measured. */
+  inputDelayMs: number | null;
+  /** Interpolation delay added on top before it is drawn (net.interpDelayMs). */
+  interpDelayMs: number | null;
 }
 
 export interface GameHooks {
@@ -53,6 +59,9 @@ export const liveStats: GameStats = {
   cars: 0,
   tickMs: null,
   pingMs: null,
+  snapshotAgeMs: null,
+  inputDelayMs: null,
+  interpDelayMs: null,
 };
 
 /** Weight of the newest frame in the smoothed frame time (exponential moving average). */

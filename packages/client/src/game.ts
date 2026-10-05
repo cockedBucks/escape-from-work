@@ -25,6 +25,8 @@ export interface GameOptions {
   view: View;
   /** Car the chase cam follows (null = first car). */
   focus: () => string | null;
+  /** Called at the start of every frame with the client time (ms), for per-frame stats. */
+  onFrame?: (now: number) => void;
 }
 
 /** Team color: by car slot for server cars ("car3" → slot 3), else by arrival order (scenario bots). */
@@ -81,6 +83,7 @@ export class Game {
   renderFrame(now: number, snapCamera = false): void {
     const dt = this.lastTime < 0 ? 0 : Math.min((now - this.lastTime) / 1000, MAX_FRAME_DT);
     this.lastTime = now;
+    this.opts.onFrame?.(now);
     this.opts.source.sample(now, this.snaps);
     this.syncCars(dt);
 
