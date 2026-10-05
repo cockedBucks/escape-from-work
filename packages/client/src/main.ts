@@ -13,6 +13,7 @@ import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
+import { RaceHud, hudText } from './ui/raceHud';
 import { RoleBadge } from './ui/roleBadge';
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
@@ -155,6 +156,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.showError(e.reason);
   });
   const badge = new RoleBadge(container);
+  const hud = new RaceHud(container);
   let mySlot = -1;
   let myRole: Role | null = null;
   let phase: RacePhase = 'lobby';
@@ -197,6 +199,18 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
+    hud.set(
+      hudText({
+        phase: state.phase,
+        tick: state.tick,
+        phaseTick: state.phaseTick,
+        dt: latestTuning.sim.dt,
+        countdownSeconds: latestTuning.race.countdownSeconds,
+        laps: state.laps,
+        cars: state.cars.size,
+        me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
+      }),
+    );
     join.update({
       players,
       myId: room.sessionId,
@@ -244,6 +258,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     keyboard?.dispose();
     join.dispose();
     badge.dispose();
+    hud.dispose();
     setStatus('Disconnected from the game server. Reload to rejoin.', true);
   });
   void markReady(hooks);

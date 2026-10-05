@@ -1,6 +1,18 @@
 import {
   NO_INPUT,
   Rng,
+  applyEvents,
+  dropCar,
+  gridOrder,
+  isWrongWay,
+  newRun,
+  raceOver,
+  results,
+  standings,
+  updateWrongWay,
+  type CarRun,
+  type RaceRun,
+  type ResultRow,
   carIdForSlot,
   defaultTeamName,
   shuffleSeats,
@@ -69,6 +81,12 @@ export class RaceSim {
   readonly flow: RaceFlow;
   /** Team name per car slot (editable in the lobby). */
   readonly teamNames: string[];
+  /** The race in progress (or the last one, until the next start). */
+  run: RaceRun | null = null;
+  /** Results of the last finished race (grid order for the next one). */
+  lastResults: ResultRow[] | null = null;
+  /** Current place per car id (1 = leading), updated every racing tick. */
+  private readonly places = new Map<string, number>();
   /** Host switch: bots drive empty cars (bot cars arrive in P3.4). */
   botsEnabled = false;
 
@@ -198,10 +216,20 @@ export class RaceSim {
     if (problem) return problem;
     startCountdown(this.flow, this.world.tick);
     for (const p of this.players.values()) p.ready = false;
+    // Grid: random for the first race, then the last results reversed (leaders at the back).
+    const order = gridOrder(this.world.cars.map((c) => c.id), this.lastResults, new Rng(this.world.tick + 7));
     for (const car of this.world.cars) {
-      Object.assign(car, createCarOnGrid(car.id, car.stats, this.world.track, slotOfCar(car.id), this.cfg.race));
+      Object.assign(car, createCarOnGrid(car.id, car.stats, this.world.track, order.indexOf(car.id), this.cfg.race));
     }
+    this.run = null;
     return null;
+  }
+
+  /** Race info for one car (null outside a race). */
+  carRace(id: string): { run: CarRun; place: number; wrongWay: boolean } | null {
+    const r = this.run?.cars.get(id);
+    if (!r) return null;
+    return { run: r, place: this.places.get(id) ?? 0, wrongWay: isWrongWay(r, this.cfg.race, this.cfg.sim.dt) };
   }
 
   /** Ready (or not) in the lobby. */
@@ -271,7 +299,10 @@ export class RaceSim {
   private syncCars(): void {
     const wanted = new Set(usedSlots(this.seating()).map(carIdForSlot));
     for (let i = this.world.cars.length - 1; i >= 0; i--) {
-      if (!wanted.has(this.world.cars[i]!.id)) this.world.cars.splice(i, 1);
+      const id = this.world.cars[i]!.id;
+      if (wanted.has(id)) continue;
+      this.world.cars.splice(i, 1);
+      if (this.run) dropCar(this.run, id);
     }
     for (const id of wanted) {
       if (this.world.cars.some((c) => c.id === id)) continue;
@@ -328,8 +359,26 @@ export class RaceSim {
     for (const p of this.players.values()) p.respawnPending = false;
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);
-    // Race over comes from the race rules in P3.3; until then a race only ends via the lobby.
-    stepFlow(this.flow, this.world.tick, this.cfg.race, this.cfg.sim.dt, false);
+    const { race, sim } = this.cfg;
+    const tick = this.world.tick;
+    let over = false;
+    if (this.flow.phase === 'racing' && this.run) {
+      applyEvents(this.run, events, tick);
+      updateWrongWay(this.run, this.world, race);
+      over = raceOver(this.run, tick, race, sim.dt);
+    }
+    const changed = stepFlow(this.flow, tick, race, sim.dt, over);
+    if (changed === 'racing') {
+      // GO: the race clock starts now.
+      this.run = newRun(this.world.cars.map((c) => c.id), this.flow.laps, tick);
+    } else if (changed === 'results' && this.run) {
+      this.lastResults = results(this.run, this.world);
+    }
+    // Places after any phase change, so the first racing tick already has them.
+    if (this.run && this.flow.phase === 'racing') {
+      this.places.clear();
+      standings(this.run, this.world).forEach((id, i) => this.places.set(id, i + 1));
+    }
     return events;
   }
 }

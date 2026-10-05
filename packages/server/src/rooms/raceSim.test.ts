@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../config';
-import { gridSpot } from '@escape/shared';
+import { botInput, gridSpot, newBotMemory } from '@escape/shared';
 import { RaceSim } from './raceSim';
 
 const cfg = loadTuningFile();
@@ -278,5 +278,29 @@ describe('RaceSim lobby', () => {
     expect(sim.setBots('b', true)).toMatch(/only the host/);
     expect(sim.setBots('a', true)).toBeNull();
     expect(sim.botsEnabled).toBe(true);
+  });
+});
+
+describe('RaceSim full race', () => {
+  it('lobby → countdown → racing → results with laps, places and results', () => {
+    const sim = soloSim('a');
+    expect(sim.setLaps('a', 1)).toBeNull();
+    expect(sim.startRace('a')).toBeNull();
+    const memory = newBotMemory();
+    for (let t = 0; t < 60 * 120 && sim.flow.phase !== 'results'; t++) {
+      // Drive car0 with the bot driver as player "a" (solo, so it has every control).
+      const car = sim.world.cars[0]!;
+      const input = botInput(car, track, cfg, memory);
+      sim.handleInput('a', { seq: t + 1, steer: input.steer, gas: input.gas, brake: input.brake });
+      sim.tick();
+      if (sim.flow.phase === 'racing') expect(sim.carRace('car0')?.place).toBe(1);
+    }
+    expect(sim.flow.phase).toBe('results');
+    expect(sim.lastResults).toEqual([
+      expect.objectContaining({ id: 'car0', place: 1, dnf: false, lapsDone: 1 }),
+    ]);
+    // Rematch: allowed from results, and the grid comes from the results.
+    expect(sim.startRace('a')).toBeNull();
+    expect(sim.flow.phase).toBe('countdown');
   });
 });

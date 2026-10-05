@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P3 — Race loop (`docs/phases/P03-race-loop.md`)
-- Next task: P3.3 (race rules)
-- Status: P3.2 done. `npm run verify` passes (224 tests + bot race). `/shots lobby` ok.
+- Next task: P3.4 (bot cars)
+- Status: P3.3 done. `npm run verify` passes (238 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -51,6 +51,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   countdown), RaceSim + room host controls, synced phase/host/laps. D050.
 - 2026-10-05: P3.2 lobby UI — team names (config/teams.json, editable), Ready, host Shuffle/Bots/
   Laps/Start, `lobby` scenario; join screen removed. Live two-browser check passed. D051.
+- 2026-10-05: P3.3 race rules — sector laps, live places, wrong way, finish window + DNF, grid
+  order (random, then reversed results), countdown + lap/place HUD. D052.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

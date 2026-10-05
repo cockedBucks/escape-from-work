@@ -115,6 +115,12 @@ const RaceSchema = z.strictObject({
   defaultLaps: z.number().int().min(1),
   minLaps: z.number().int().min(1),
   maxLaps: z.number().int().min(1),
+  /** After the winner finishes, the others have this long to cross the line (s), then DNF. */
+  finishWindowSeconds: pos(),
+  /** Driving against the track faster than this (m/s)… */
+  wrongWayMinSpeed: nonNeg(),
+  /** …for this long (s) shows the wrong-way warning. */
+  wrongWaySeconds: pos(),
   /** People who may watch on top of the 2 × maxCars seats. */
   maxSpectators: z.number().int().nonnegative(),
   /** Car slots in the lobby (2 players each, so players = 2 × maxCars). Team colors cover 8. */

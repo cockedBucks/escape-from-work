@@ -21,7 +21,7 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
 - [x] **P3.2 Lobby UI.** Replaces the temporary join screen: name (remembered locally), team list
   with slot colors and generated IT-pun names (editable), seat picker, solo indicator, Ready,
   host controls (Shuffle, bots, laps, Start). Scenario `lobby`. `/shots lobby`.
-- [ ] **P3.3 Race rules.** Countdown "3… 2… 1… CLOCK OUT!", sector-ordered laps, live positions,
+- [x] **P3.3 Race rules.** Countdown "3… 2… 1… CLOCK OUT!", sector-ordered laps, live positions,
   wrong-way detection, finish order, post-winner finish window and DNF, grid order (random
   first race, then reversed results). Tests.
 - [ ] **P3.4 Bot cars.** Server-side bot driver controls empty cars when the host enables bots.

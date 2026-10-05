@@ -195,6 +195,13 @@ solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules li
 missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
 slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
 `maxClients` = 2 × `race.maxCars`.
+Race rules (P3.3): `packages/shared/src/race/rules.ts` — a `RaceRun` starts at GO; every in-order
+checkpoint event is a sector, gate 0 after the others is a lap, the last lap finishes the car.
+Places: finishers in order, then sectors done + how far into the next sector (negative behind
+the gate, so cars on the grid rank by grid spot). Winner opens `race.finishWindowSeconds`, then
+DNF. Grid: random first race, then the last results reversed. Each car syncs lapsDone, place,
+finished, dnf, wrongWay, finishMs, bestLapMs; the client HUD (`ui/raceHud.ts`) shows
+"3… 2… 1… CLOCK OUT!", lap, place, wrong way and the finish banner.
 Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:ready {ready}`,
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
@@ -267,6 +274,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |
 | room too small / too big | `race.maxCars` (players = 2 × cars; colors exist for 8), `race.maxSpectators` |
 | countdown too long / short | `race.countdownSeconds` |
+| stragglers wait too long / get cut off | `race.finishWindowSeconds` |
+| wrong-way warning too eager / too late | `race.wrongWaySeconds`, `race.wrongWayMinSpeed` |
 | races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |
 | name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |
 | respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds`, `race.offTrackRespawnDistance` |

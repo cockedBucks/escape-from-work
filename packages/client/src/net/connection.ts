@@ -24,6 +24,13 @@ export interface CarViewState {
   inSteer: number;
   inGas: boolean;
   inBrake: boolean;
+  lapsDone: number;
+  place: number;
+  finished: boolean;
+  dnf: boolean;
+  wrongWay: boolean;
+  finishMs: number;
+  bestLapMs: number;
 }
 
 /** One synced player (see PlayerState on the server). */

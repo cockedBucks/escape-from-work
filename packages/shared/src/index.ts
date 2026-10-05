@@ -91,3 +91,18 @@ export {
 } from './race/flow';
 export { TEAM_NAME_MAX_LENGTH, TeamsSchema, defaultTeamName, parseTeams, type TeamsConfig } from './config/teams';
 export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby';
+export {
+  applyEvents,
+  dropCar,
+  gridOrder,
+  isWrongWay,
+  newRun,
+  raceDistance,
+  raceOver,
+  results,
+  standings,
+  updateWrongWay,
+  type CarRun,
+  type RaceRun,
+  type ResultRow,
+} from './race/rules';

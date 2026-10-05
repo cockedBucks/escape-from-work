@@ -40,6 +40,15 @@ export const CarView = schema(
     vx: t.float32().default(0),
     vz: t.float32().default(0),
     vy: t.float32().default(0),
+    /** Race info (0 / false outside a race): laps completed, place (1 = leading). */
+    lapsDone: t.uint8().default(0),
+    place: t.uint8().default(0),
+    finished: t.boolean().default(false),
+    dnf: t.boolean().default(false),
+    wrongWay: t.boolean().default(false),
+    /** Race time at the finish and best lap (ms, 0 = none yet). */
+    finishMs: t.uint32().default(0),
+    bestLapMs: t.uint32().default(0),
     /** The merged input the server applied this tick (prediction uses the partner's half). */
     inSteer: t.float32().default(0),
     inGas: t.boolean().default(false),

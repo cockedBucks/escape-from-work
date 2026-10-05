@@ -413,3 +413,90 @@ body {
   min-height: 0;
   margin: 0.2rem 0;
 }
+
+/* Race HUD (P3.3): countdown, lap/place, wrong way, finish banner. */
+.race-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hud-countdown {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(4rem, 14vw, 9rem);
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0.06em 0.06em 0 var(--ui-dark);
+  white-space: nowrap;
+}
+
+.hud-countdown.pop {
+  animation: hud-pop 0.45s ease-out;
+}
+
+@keyframes hud-pop {
+  from {
+    transform: translateX(-50%) scale(1.6) rotate(-6deg);
+    opacity: 0.2;
+  }
+  to {
+    transform: translateX(-50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.hud-info {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+}
+
+.hud-info span {
+  padding: 0.3rem 0.9rem;
+  border-radius: 0.8rem;
+  background: rgba(30, 34, 48, 0.82);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.hud-banner {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  padding: 0.5rem 1.5rem;
+  border-radius: 1rem;
+  background: var(--red);
+  color: #fff;
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 600;
+  box-shadow: 0 0.35rem 0 var(--ui-dark);
+  white-space: nowrap;
+}
+
+.hud-wrong {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 1.2rem;
+  border-radius: 0.8rem;
+  background: #ffb703;
+  color: var(--ui-dark);
+  font-size: 2rem;
+  font-weight: 600;
+  animation: hud-blink 0.6s steps(2) infinite;
+}
+
+@keyframes hud-blink {
+  50% {
+    opacity: 0.35;
+  }
+}

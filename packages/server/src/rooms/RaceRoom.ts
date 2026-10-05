@@ -270,6 +270,16 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.vx = car.vx;
       view.vz = car.vz;
       view.vy = car.vy;
+      const race = this.sim.carRace(car.id);
+      const tickMs = this.tuning.sim.dt * 1000;
+      view.lapsDone = race?.run.lapsDone ?? 0;
+      view.place = race?.place ?? 0;
+      view.finished = race?.run.finishTick != null;
+      view.dnf = race?.run.dnf ?? false;
+      view.wrongWay = race?.wrongWay ?? false;
+      const start = this.sim.run?.startTick ?? 0;
+      view.finishMs = race && race.run.finishTick !== null ? Math.round((race.run.finishTick - start) * tickMs) : 0;
+      view.bestLapMs = race && race.run.bestLapTicks !== null ? Math.round(race.run.bestLapTicks * tickMs) : 0;
       const input = this.sim.lastInputs[car.id];
       view.inSteer = input?.steer ?? 0;
       view.inGas = input?.gas ?? false;
