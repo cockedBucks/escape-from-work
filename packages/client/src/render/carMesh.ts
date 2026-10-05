@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { BOX_CAR, PALETTE } from './look';
+import { BOX_CAR, COCKPIT, PALETTE } from './look';
 
 /** Shared by every car (built once). */
 interface CarAssets {
   body: THREE.BufferGeometry;
+  dash: THREE.BufferGeometry;
+  dashMat: THREE.Material;
   wheel: THREE.BufferGeometry;
   shadow: THREE.BufferGeometry;
   wheelMat: THREE.Material;
@@ -28,11 +30,32 @@ function getAssets(): CarAssets {
   const wheel = new THREE.CylinderGeometry(C.wheelRadius, C.wheelRadius, C.wheelWidth, 14);
   wheel.rotateZ(Math.PI / 2); // axle along X
 
+  // Cockpit pieces (seen from inside): a low dashboard and the windshield frame (two
+  // pillars and a roof bar), merged into one mesh = one extra draw call for your car only.
+  const cabinW = C.width * 0.86;
+  const bodyTop = C.ride + C.bodyHeight;
+  const t = COCKPIT.frameThickness;
+  const dashBox = new THREE.BoxGeometry(cabinW, COCKPIT.dashHeight, COCKPIT.dashDepth);
+  dashBox.translate(0, bodyTop + COCKPIT.dashHeight / 2, COCKPIT.dashForward - COCKPIT.dashDepth / 2);
+  const pillar = (side: number): THREE.BufferGeometry => {
+    const g = new THREE.BoxGeometry(t, C.cabinHeight, t);
+    g.translate(side * (cabinW / 2 - t / 2), bodyTop + C.cabinHeight / 2, COCKPIT.dashForward - t / 2);
+    return g;
+  };
+  const roofBar = new THREE.BoxGeometry(cabinW, t, t);
+  roofBar.translate(0, bodyTop + C.cabinHeight - t / 2, COCKPIT.dashForward - t / 2);
+  const parts = [dashBox, pillar(1), pillar(-1), roofBar];
+  const dash = mergeGeometries(parts);
+  for (const p of parts) p.dispose();
+  if (!dash) throw new Error('could not merge the cockpit');
+
   const shadow = new THREE.CircleGeometry(C.shadowRadius, 20);
   shadow.rotateX(-Math.PI / 2);
 
   assets = {
     body: merged,
+    dash,
+    dashMat: new THREE.MeshLambertMaterial({ color: COCKPIT.dashColor, flatShading: true }),
     wheel,
     shadow,
     wheelMat: new THREE.MeshLambertMaterial({ color: PALETTE.tire, flatShading: true }),
@@ -52,6 +75,8 @@ export class BoxCar {
   private readonly wheels: THREE.Mesh[] = [];
   private readonly frontWheels: THREE.Mesh[] = [];
   private spin = 0;
+  /** Dashboard block, only for your own car while you sit in the cockpit cam. */
+  private dash: THREE.Mesh | null = null;
 
   constructor(teamColor: number) {
     const a = getAssets();
@@ -95,6 +120,19 @@ export class BoxCar {
       this.bodyMat.opacity = ghost ? BOX_CAR.ghostOpacity : 1;
       this.bodyMat.needsUpdate = true;
     }
+  }
+
+  /** Show the inside (dashboard) when you look from this car's seat. */
+  setCockpit(on: boolean): void {
+    if (on && !this.dash) {
+      const a = getAssets();
+      this.dash = new THREE.Mesh(a.dash, a.dashMat);
+      this.root.add(this.dash);
+    } else if (!on && this.dash) {
+      this.dash.removeFromParent();
+      this.dash = null;
+    }
+    if (this.dash) this.dash.position.y = this.body.position.y;
   }
 
   dispose(): void {

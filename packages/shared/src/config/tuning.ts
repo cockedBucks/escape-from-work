@@ -145,6 +145,18 @@ const CameraSchema = z.strictObject({
   lookHeight: nonNeg(),
   /** How quickly the camera catches up with the car (1/s). Higher = stiffer, lower = floatier. */
   followRate: pos(),
+  /** Cockpit cam: field of view (degrees). */
+  cockpitFov: z.number().min(30).max(120),
+  /** Mouse look: radians of head turn per pixel of mouse movement. */
+  mouseSensitivity: pos(),
+  /** How far the head may turn left/right and up/down (rad). */
+  headYawLimit: z.number().min(0).max(Math.PI),
+  headPitchLimit: z.number().min(0).max(Math.PI / 2),
+  /** With the mouse free, how fast the head turns back to straight ahead (1/s). */
+  headRecenterRate: pos(),
+  /** Head bob: how much a bump moves the head (m per m/s of impact), and how stiff the spring is (1/s). */
+  headBob: nonNeg(),
+  headBobStiffness: pos(),
 });
 
 const QualityPresetSchema = z.strictObject({

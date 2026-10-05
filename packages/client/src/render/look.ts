@@ -81,6 +81,23 @@ export const BOX_CAR = {
   ghostOpacity: 0.45,
 } as const;
 
+/** Cockpit: eye position in the box car (m) and the dashboard block in front of you. */
+export const COCKPIT = {
+  /** Sideways from the car center to each seat. */
+  seatOffset: 0.42,
+  /** Seats sit this far behind the car center. */
+  seatBack: 0.45,
+  /** Eye height above the top of the body (inside the cabin). */
+  eyeAboveBody: 0.38,
+  dashDepth: 0.22,
+  dashHeight: 0.1,
+  /** Dashboard front edge, ahead of the car center (the windshield line). */
+  dashForward: 0.55,
+  /** Windshield frame: pillar and roof-bar thickness. */
+  frameThickness: 0.07,
+  dashColor: 0x2b2b2b,
+} as const;
+
 /** Top-down overview camera: field of view and empty border around the track (1.1 = 10%). */
 export const OVERVIEW = {
   fov: 50,

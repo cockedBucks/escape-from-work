@@ -82,7 +82,14 @@
     "chaseHeight": 3.2,
     "lookAhead": 5,
     "lookHeight": 1,
-    "followRate": 8
+    "followRate": 8,
+    "cockpitFov": 80,
+    "mouseSensitivity": 0.0025,
+    "headYawLimit": 1.75,
+    "headPitchLimit": 0.6,
+    "headRecenterRate": 3,
+    "headBob": 0.15,
+    "headBobStiffness": 10
   },
   "quality": {
     "default": "medium",

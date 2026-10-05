@@ -15,7 +15,7 @@ a dashboard HUD, a rear-view mirror, and a goofy horn.
 
 ## Tasks
 
-- [ ] **P4.1 Cockpit camera.** Seat position per seat (left Pilot, right Engineer), Pointer Lock
+- [x] **P4.1 Cockpit camera.** Seat position per seat (left Pilot, right Engineer), Pointer Lock
   mouse look with yaw/pitch limits, light head bob on bumps, C toggle, preference saved.
 - [ ] **P4.2 Head sync.** `head` message (~20/s, validated, rate-limited) → state → teammates
   interpolate the head angle. Test for validation and clamping.

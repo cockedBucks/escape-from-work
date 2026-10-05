@@ -1,6 +1,7 @@
 import type { Track, Tuning } from '@escape/shared';
 import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
+import { CockpitCam, type SeatSide } from './render/cockpitCam';
 import { BoxCar } from './render/carMesh';
 import { TEAM_COLORS } from './render/look';
 import { createStage, type Stage } from './render/renderer';
@@ -14,7 +15,7 @@ export interface CarSource {
   sample(now: number, out: Map<string, CarSnap>): void;
 }
 
-export type View = 'chase' | 'overview';
+export type View = 'chase' | 'cockpit' | 'overview';
 
 export interface GameOptions {
   container: HTMLElement;
@@ -25,6 +26,10 @@ export interface GameOptions {
   view: View;
   /** Car the chase cam follows (null = first car). */
   focus: () => string | null;
+  /** Cockpit cam: which seat you sit in (default left). */
+  seatSide?: () => SeatSide;
+  /** Cockpit cam: is the mouse captured for looking around? */
+  mouseLocked?: () => boolean;
   /** Called at the start of every frame with the client time (ms), for per-frame stats. */
   onFrame?: (now: number) => void;
 }
@@ -44,6 +49,9 @@ export class Game {
   private readonly stage: Stage;
   private readonly trackMeshes: TrackMeshes;
   private readonly chase: ChaseCam;
+  private readonly cockpit: CockpitCam;
+  /** Car currently showing its dashboard (your car in cockpit view). */
+  private dashCar: string | null = null;
   private readonly overlay: DebugOverlay;
   private readonly cars = new Map<string, BoxCar>();
   private readonly snaps = new Map<string, CarSnap>();
@@ -56,6 +64,7 @@ export class Game {
     this.trackMeshes = buildTrackMeshes(opts.track);
     this.stage.scene.add(this.trackMeshes.group);
     this.chase = new ChaseCam(this.stage.camera);
+    this.cockpit = new CockpitCam(this.stage.camera);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
@@ -67,6 +76,30 @@ export class Game {
   /** New tuning from the server or the F2 panel (camera feel applies at once). */
   setTuning(t: Tuning): void {
     this.opts.tuning = t;
+  }
+
+  get view(): View {
+    return this.opts.view;
+  }
+
+  /** Switch between chase and cockpit (overview is only for the overview scenario). */
+  setView(view: View): void {
+    this.opts.view = view;
+  }
+
+  /** The canvas (for Pointer Lock). */
+  get canvas(): HTMLCanvasElement {
+    return this.stage.renderer.domElement;
+  }
+
+  /** Mouse moved while captured (cockpit look). */
+  mouse(dx: number, dy: number): void {
+    if (this.opts.view === 'cockpit') this.cockpit.mouse(dx, dy, this.opts.tuning.camera);
+  }
+
+  /** Something jolted your car (wall, landing, bump): shake the cockpit head a little. */
+  bump(strength: number): void {
+    this.cockpit.bump(strength, this.opts.tuning.camera);
   }
 
   start(): void {
@@ -87,10 +120,18 @@ export class Game {
     this.opts.source.sample(now, this.snaps);
     this.syncCars(dt);
 
-    if (this.opts.view === 'chase') {
+    const view = this.opts.view;
+    if (view === 'chase' || view === 'cockpit') {
       const id = this.opts.focus() ?? this.snaps.keys().next().value ?? null;
       const car = id === null ? undefined : this.snaps.get(id);
-      if (car) this.chase.update(this.opts.tuning.camera, car.x, car.y, car.z, car.yaw, dt, snapCamera);
+      const cam = this.opts.tuning.camera;
+      if (car && view === 'cockpit') {
+        const locked = this.opts.mouseLocked?.() ?? false;
+        this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked);
+      } else if (car) {
+        this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera);
+      }
+      this.showDash(view === 'cockpit' && id !== null ? id : null);
       focusPose.set = car !== undefined;
       if (car) {
         focusPose.x = car.x;
@@ -109,6 +150,17 @@ export class Game {
     liveStats.textures = info.memory.textures;
     liveStats.cars = this.cars.size;
     this.overlay.update(now);
+  }
+
+  /** Only your own car, only in the cockpit, shows its dashboard. */
+  private showDash(id: string | null): void {
+    if (id === this.dashCar) {
+      if (id) this.cars.get(id)?.setCockpit(true); // keep it on the car (height follows jumps)
+      return;
+    }
+    if (this.dashCar) this.cars.get(this.dashCar)?.setCockpit(false);
+    this.dashCar = id;
+    if (id) this.cars.get(id)?.setCockpit(true);
   }
 
   private syncCars(dt: number): void {

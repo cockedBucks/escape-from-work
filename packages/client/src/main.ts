@@ -2,13 +2,16 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type LobbyError, type RacePhase, type Role, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSource } from './game';
+import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
+import { MouseLook } from './input/mouseLook';
 import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
 import { InputDelayMeter } from './net/latency';
 import { OwnCarPredictor } from './net/predictor';
+import { seatSideFor } from './render/cockpitCam';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
@@ -172,7 +175,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   });
   // Sim events (bumps, jumps, …) drive sounds and effects later (P7). Listening now keeps the
   // SDK from warning about every unhandled one.
-  room.onMessage(MSG.events, () => {});
+  // Sim events (bumps, jumps, …): for now they shake the cockpit head; sounds and effects in P7.
+  let onEvents: (events: SimEvent[]) => void = () => {};
+  room.onMessage(MSG.events, (events: SimEvent[]) => onEvents(events));
   const race = latestTuning.race;
   const join = new LobbyScreen(container, { maxCars: race.maxCars, minLaps: race.minLaps, maxLaps: race.maxLaps }, {
     setName: (name) => room.send(MSG.setName, { name }),
@@ -207,6 +212,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const spectator = new Spectator(container, (carId) => teamNames[Number(carId.slice('car'.length))] ?? carId);
   let mySlot = -1;
   let myRole: Role | null = null;
+  let mySeat = '';
   let phase: RacePhase = 'lobby';
   const track = loadTrack(DEFAULT_TRACK, tuning);
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
@@ -244,6 +250,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     mySlot = me?.slot ?? -1;
     myCarId = mySlot >= 0 ? carIdForSlot(mySlot) : null;
     myRole = me && me.role !== '' ? (me.role as Role) : null;
+    mySeat = me?.seat ?? '';
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
@@ -301,11 +308,33 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     view: 'chase',
     // Follow your own car; while watching, the spectator cam picks the car.
     focus: () => myCarId ?? spectator.target,
+    seatSide: () => seatSideFor(mySeat),
+    mouseLocked: () => mouseLook.locked,
     onFrame: (now) => {
       liveStats.snapshotAgeMs = source.lastArrival < 0 ? null : now - source.lastArrival;
       liveStats.interpDelayMs = source.interpDelayMs;
     },
   });
+  // Camera: C toggles chase ↔ cockpit (remembered). Watching always uses the chase cam.
+  // (applyView is defined below; the toggle only fires on a key press, after setup.)
+  const cameraToggle = new CameraToggle(() => applyView());
+  const mouseLook = new MouseLook(game.canvas, () => game.view === 'cockpit', (dx, dy) => game.mouse(dx, dy));
+  const applyView = (): void => {
+    const want = myCarId !== null && cameraToggle.mode === 'cockpit' ? 'cockpit' : 'chase';
+    if (game.view !== want) {
+      game.setView(want);
+      if (want === 'chase') mouseLook.release();
+    }
+  };
+  room.onStateChange(applyView);
+  onEvents = (events) => {
+    for (const e of events) {
+      const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);
+      if (!hitsMe) continue;
+      if (e.type === 'wallHit' || e.type === 'carHit') game.bump(e.speed);
+      else if (e.type === 'land') game.bump(e.impact);
+    }
+  };
   game.start();
   game.setTuning(latestTuning);
   tuningListeners.push((t) => game.setTuning(t));
@@ -329,6 +358,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.dispose();
     badge.dispose();
     hud.dispose();
+    cameraToggle.dispose();
+    mouseLook.dispose();
     endRace.remove();
     board.dispose();
     resultsScreen.dispose();
