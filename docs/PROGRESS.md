@@ -5,13 +5,14 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P3 — Race loop (`docs/phases/P03-race-loop.md`)
-- Next task: P3.7 (load test)
-- Status: P3.6 done. `npm run verify` passes (250 tests + bot race). Shots results/lobby ok.
+- Next task: HUMAN GATE — first real race (then P3.8)
+- Status: P3.7 done. `npm run verify` passes (250 tests + bot race). `npm run test:load` passes. Waiting on the human.
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
+- P3 HUMAN GATE "first real race": 4+ people (or bots), 3 races, Shuffle, Rematch, mid-race join.
 - Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
 
 ## Environment
@@ -22,6 +23,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Public network; firewall rule D030 opens 2567 + 5173. See docs/LAN.md.
 
 ## Known issues
+- Load test (server + 17 clients in one process): average tick 0.40 ms, but rare GC pauses make 1–2
+  ticks per race overrun (max seen 24 ms). Measure the standalone server under `npm run bots` in
+  the P7 performance pass.
 - In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
   playtests; it never exists with `npm start`.
 - A client could call `create('race')` and make a second room. Lock this down when the
@@ -59,6 +63,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   hold-Tab scoreboard with time-split gaps. Live check passed. D054.
 - 2026-10-05: P3.6 results screen — places, times, best lap (fastest marked), host Rematch/Lobby;
   live loop lobby → race → results → rematch → results → lobby passed. D055.
+- 2026-10-05: P3.7 load test — `npm run test:load`: 8 cars / 16 clients finish 3 laps (109 s), tick avg
+  0.40 ms, overruns 2/6370 (GC). D056.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

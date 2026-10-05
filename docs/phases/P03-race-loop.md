@@ -29,7 +29,7 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
   Tab scoreboard (place, team, lap, gap).
 - [x] **P3.6 Results screen.** Positions, total time, best lap; Rematch and Lobby buttons.
   Scenario `results`. `/shots results`.
-- [ ] **P3.7 Load test.** Integration test: 8 cars driven by 16 bot clients finish a 3-lap race.
+- [x] **P3.7 Load test.** Integration test: 8 cars driven by 16 bot clients finish a 3-lap race.
   Record average and max server tick time; it must stay well under the 16.7 ms tick budget.
 - [ ] **HUMAN GATE — first real race.**
   1. Get 4+ people (or fewer + bots on). Everyone opens the LAN URL, forms teams, picks seats.

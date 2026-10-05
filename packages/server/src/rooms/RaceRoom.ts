@@ -146,12 +146,38 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       const started = performance.now();
       const events = this.sim.tick();
       // Smoothed so the overlay number is readable (weight of the newest tick).
-      this.tickMsAvg += (performance.now() - started - this.tickMsAvg) * TICK_MS_SMOOTHING;
+      const cost = performance.now() - started;
+      this.tickMsAvg += (cost - this.tickMsAvg) * TICK_MS_SMOOTHING;
+      this.recordRaceTick(cost);
       // Rounded, so an idle room does not send a patch every tick just for this number.
       this.state.tickMs = Math.round(this.tickMsAvg * TICK_MS_ROUND) / TICK_MS_ROUND;
       this.syncCars(this.sim.world);
       if (events.length > 0) this.broadcast(MSG.events, events);
     }, Math.round(1 / this.tuning.sim.dt));
+  }
+
+  /** Race tick stats: reset when a countdown starts, measured while racing. */
+  private raceTicks = { count: 0, sum: 0, max: 0, over: 0 };
+
+  private recordRaceTick(cost: number): void {
+    const phase = this.sim.flow.phase;
+    if (phase === 'countdown') {
+      this.raceTicks = { count: 0, sum: 0, max: 0, over: 0 };
+      this.state.tickOverBudget = 0;
+    }
+    if (phase !== 'racing') return;
+    const r = this.raceTicks;
+    r.count++;
+    r.sum += cost;
+    r.max = Math.max(r.max, cost);
+    if (cost > this.tuning.sim.dt * 1000) {
+      r.over++;
+      this.state.tickOverBudget = r.over;
+    }
+    this.state.tickMsMax = r.max;
+    this.state.raceTicks = r.count;
+    // Rounded like tickMs so it does not force a patch every tick.
+    this.state.tickMsAvg = Math.round((r.sum / r.count) * TICK_MS_ROUND) / TICK_MS_ROUND;
   }
 
   private refuse(client: Client, reason: string): void {

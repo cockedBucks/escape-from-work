@@ -88,6 +88,12 @@ export const RaceState = schema(
     tick: t.uint32().default(0),
     /** Server cost of one sim tick (ms, smoothed), for the F3 overlay. */
     tickMs: t.float32().default(0),
+    /** Slowest and average sim tick during the current/last race (ms), for load tests. */
+    tickMsMax: t.float32().default(0),
+    tickMsAvg: t.float32().default(0),
+    /** Racing ticks so far, and how many took longer than one tick slot (sim.dt). */
+    raceTicks: t.uint32().default(0),
+    tickOverBudget: t.uint32().default(0),
   },
   'RaceState',
 );

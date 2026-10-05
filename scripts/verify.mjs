@@ -53,7 +53,9 @@ function typecheck() {
 function tests() {
   rmSync(VITEST_JSON, { force: true });
   mkdirSync(path.dirname(VITEST_JSON), { recursive: true });
-  const r = runNode([VITEST, 'run', '--reporter=json', `--outputFile=${VITEST_JSON}`]);
+  // The load test (project "load") takes minutes: run it with `npm run test:load`, not here.
+  const projects = ['shared', 'server', 'client', 'integration'].flatMap((p) => ['--project', p]);
+  const r = runNode([VITEST, 'run', ...projects, '--reporter=json', `--outputFile=${VITEST_JSON}`]);
   if (!existsSync(VITEST_JSON)) {
     const lines = nonEmptyLines(`${r.stdout}${r.stderr}`);
     return { passed: 0, failed: 1, failures: [{ name: 'vitest crashed', lines: lines.slice(-MAX_LINES) }] };
