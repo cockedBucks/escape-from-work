@@ -285,6 +285,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | countdown too long / short | `race.countdownSeconds` |
 | too few / too many bot cars | `race.botFillCars` (bots fill empty cars up to this many cars) |
 | stragglers wait too long / get cut off | `race.finishWindowSeconds` |
+| a race nobody finishes ends too soon / late | `race.maxRaceSeconds` (host can also press End race) |
 | wrong-way warning too eager / too late | `race.wrongWaySeconds`, `race.wrongWayMinSpeed` |
 | races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |
 | name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |

@@ -58,6 +58,7 @@ export class RaceHud {
   constructor(parent: HTMLElement) {
     this.root.className = 'race-hud';
     this.countdown.className = 'hud-countdown';
+    this.countdown.hidden = true;
     this.info.className = 'hud-info';
     this.banner.className = 'hud-banner';
     this.wrong.className = 'hud-wrong';
@@ -71,12 +72,14 @@ export class RaceHud {
     const key = JSON.stringify(t);
     if (key === this.last) return;
     this.last = key;
-    this.countdown.textContent = t.countdown ?? '';
-    this.countdown.hidden = t.countdown === null;
-    // Restart the pop animation for each new countdown number.
-    this.countdown.classList.remove('pop');
-    void this.countdown.offsetWidth;
-    if (t.countdown) this.countdown.classList.add('pop');
+    if (this.countdown.textContent !== (t.countdown ?? '')) {
+      this.countdown.textContent = t.countdown ?? '';
+      this.countdown.hidden = t.countdown === null;
+      // Restart the pop animation only for a new countdown number (forces one reflow).
+      this.countdown.classList.remove('pop');
+      void this.countdown.offsetWidth;
+      if (t.countdown) this.countdown.classList.add('pop');
+    }
     this.info.innerHTML = [t.lap, t.place].filter(Boolean).map((s) => `<span>${s}</span>`).join('');
     this.info.hidden = !t.lap && !t.place;
     this.banner.textContent = t.banner ?? '';

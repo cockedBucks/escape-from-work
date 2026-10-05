@@ -129,7 +129,8 @@ export function standings(run: RaceRun, world: World): string[] {
       const r = run.cars.get(c.id);
       return r !== undefined && r.finishTick === null;
     })
-    .map((c) => ({ id: c.id, d: run.cars.get(c.id)!.dnf ? -Infinity : raceDistance(run, world, c) }))
+    // DNFs too: they are ordered by how far they got.
+    .map((c) => ({ id: c.id, d: raceDistance(run, world, c) }))
     .sort((a, b) => b.d - a.d || (a.id < b.id ? -1 : 1));
   return [...finished, ...racing.map((x) => x.id)];
 }
@@ -142,6 +143,10 @@ export function updateWrongWay(run: RaceRun, world: World, race: RaceCfg): void 
   for (const car of world.cars) {
     const r = run.cars.get(car.id);
     if (!r) continue;
+    if (r.finishTick !== null || r.dnf) {
+      r.wrongWayTicks = 0; // finished: free to drive any way
+      continue;
+    }
     const s = world.track.samples[car.segment] as TrackSample | undefined;
     const along = s ? car.vx * s.dir.x + car.vz * s.dir.z : 0;
     r.wrongWayTicks = along < -race.wrongWayMinSpeed ? r.wrongWayTicks + 1 : 0;
@@ -152,14 +157,18 @@ export const isWrongWay = (r: CarRun, race: RaceCfg, dt: number): boolean =>
   r.wrongWayTicks >= Math.round(race.wrongWaySeconds / dt);
 
 /**
- * Is the race over? Yes when every car finished, or when the finish window after the
- * winner has closed (everyone still out becomes DNF), or when no cars are left.
+ * Is the race over? Yes when every car finished, when the finish window after the winner
+ * has closed, or when `race.maxRaceSeconds` ran out (everyone still out becomes DNF), or
+ * when no cars are left.
  */
 export function raceOver(run: RaceRun, tick: number, race: RaceCfg, dt: number): boolean {
   const cars = [...run.cars.values()];
   if (cars.length === 0) return true;
   if (cars.every((c) => c.finishTick !== null || c.dnf)) return true;
-  if (run.winnerTick !== null && tick - run.winnerTick >= Math.round(race.finishWindowSeconds / dt)) {
+  const windowClosed = run.winnerTick !== null && tick - run.winnerTick >= Math.round(race.finishWindowSeconds / dt);
+  // Safety: no finisher (everyone idle or stuck) must not keep the room racing forever.
+  const timeUp = tick - run.startTick >= Math.round(race.maxRaceSeconds / dt);
+  if (windowClosed || timeUp) {
     for (const c of cars) if (c.finishTick === null) c.dnf = true;
     return true;
   }

@@ -332,3 +332,54 @@ describe('RaceSim bot cars', () => {
     expect(sim.lastResults!.filter((r) => !r.dnf).length).toBe(cfg.race.botFillCars);
   });
 });
+
+describe('RaceSim review fixes (P3.8)', () => {
+  it('the host can end a race nobody finishes; everyone unfinished is DNF', () => {
+    const sim = soloSim('a');
+    sim.startRace('a');
+    expect(sim.endRace('a')).toBeNull(); // countdown → lobby
+    expect(sim.flow.phase).toBe('lobby');
+    sim.startRace('a');
+    for (let i = 0; i < 300; i++) sim.tick(); // racing, nobody moves
+    expect(sim.flow.phase).toBe('racing');
+    sim.addPlayer('b');
+    expect(sim.endRace('b')).toMatch(/only the host/);
+    expect(sim.endRace('a')).toBeNull();
+    sim.tick();
+    expect(sim.flow.phase).toBe('results');
+    expect(sim.lastResults!.every((r) => r.dnf)).toBe(true);
+  });
+
+  it('no new bot appears mid-race when a seat empties', () => {
+    const sim = soloSim('a', 'b');
+    sim.setBots('a', true);
+    const before = sim.world.cars.map((c) => c.id);
+    sim.startRace('a');
+    sim.removePlayer('b'); // e.g. reconnect window ran out
+    expect(sim.world.cars.map((c) => c.id)).not.toContain('car1');
+    expect(sim.world.cars.length).toBe(before.length - 1);
+  });
+
+  it('results keep every car until the lobby, even if its players leave', () => {
+    const sim = soloSim('a', 'b');
+    sim.setLaps('a', 1);
+    sim.startRace('a');
+    sim.endRace('a'); // countdown → lobby
+    sim.startRace('a');
+    for (let i = 0; i < 200; i++) sim.tick();
+    sim.endRace('a');
+    sim.tick();
+    expect(sim.flow.phase).toBe('results');
+    sim.removePlayer('b');
+    expect(sim.world.cars.map((c) => c.id)).toEqual(['car0', 'car1']);
+    expect(sim.backToLobby('a')).toBeNull();
+    expect(sim.world.cars.map((c) => c.id)).toEqual(['car0']);
+  });
+
+  it('shuffle keeps players whose seat is held while they reconnect', () => {
+    const sim = soloSim('a', 'b');
+    sim.setConnected('b', false);
+    sim.shuffle('a');
+    expect(sim.seating().find((s) => s.id === 'b')!.seat).not.toBeNull();
+  });
+});

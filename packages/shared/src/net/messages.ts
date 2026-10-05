@@ -32,6 +32,8 @@ export const MSG = {
   hostStart: 'host:start',
   /** client (host) → server: `{ laps }` for the next race. */
   hostLaps: 'host:laps',
+  /** client (host) → server: stop the race now (countdown → lobby, racing → results with DNFs). */
+  hostEndRace: 'host:endRace',
   /** client (host) → server: from the results back to the lobby. */
   hostLobby: 'host:lobby',
   /** server → one client: `{ reason }` when a lobby request was refused. */

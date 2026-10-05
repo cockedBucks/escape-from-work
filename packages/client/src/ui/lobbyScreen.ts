@@ -183,7 +183,12 @@ export class LobbyScreen {
   }
 
   private readonly onKey = (e: KeyboardEvent): void => {
+    // Esc while typing just leaves the field; it must not hide the lobby under you.
     if (e.code !== 'Escape' || !this.view) return;
+    if (e.target instanceof HTMLInputElement) {
+      e.target.blur();
+      return;
+    }
     if (this.view.phase === 'lobby') this.show(!this.visible);
   };
 
@@ -218,6 +223,7 @@ export class LobbyScreen {
 
   show(visible: boolean): void {
     this.root.hidden = !visible;
+    if (visible) this.render(true);
   }
 
   get visible(): boolean {
@@ -236,7 +242,8 @@ export class LobbyScreen {
     if (me && document.activeElement !== this.nameInput && !this.nameInput.value) this.nameInput.value = me.name;
     const between = view.phase === 'lobby'; // the results screen covers the results phase
     if (!prev || prev.phase !== view.phase) this.show(between);
-    this.render(false);
+    // Hidden (during a race): skip the work; show() draws it fresh when it opens.
+    if (this.visible) this.render(false);
   }
 
   private render(force: boolean): void {

@@ -619,3 +619,22 @@ body {
   color: #9b5de5;
   font-weight: 600;
 }
+
+/* Host: end the race (top-right, only during a race). */
+.end-race {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.4rem 0.8rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: rgba(30, 34, 48, 0.82);
+  color: #fff;
+  cursor: pointer;
+}
+
+.end-race:hover {
+  background: var(--red);
+}

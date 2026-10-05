@@ -86,7 +86,8 @@ export class Scoreboard {
   }
 
   private readonly onDown = (e: KeyboardEvent): void => {
-    if (e.code !== 'Tab') return;
+    // In a text field Tab keeps its normal job (next field).
+    if (e.code !== 'Tab' || e.target instanceof HTMLInputElement) return;
     e.preventDefault(); // Tab must not move focus around the page
     this.el.hidden = false;
     this.render();

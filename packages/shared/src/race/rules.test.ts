@@ -130,3 +130,23 @@ describe('gaps', () => {
     expect(gapTicks(newRun(['x', 'y'], 1, 0), 'x', 'y')).toBe(0); // nobody passed anything yet
   });
 });
+
+describe('race end safety and DNF order', () => {
+  it('the race ends after race.maxRaceSeconds even if nobody finishes', () => {
+    const { world, run } = race(2, 3);
+    const limit = Math.round(cfg.race.maxRaceSeconds / dt);
+    expect(raceOver(run, limit - 1, cfg.race, dt)).toBe(false);
+    expect(raceOver(run, limit, cfg.race, dt)).toBe(true);
+    expect(results(run, world).every((r) => r.dnf)).toBe(true);
+  });
+
+  it('several DNFs are ordered by how far they got, not by car id', () => {
+    const { world, run } = race(3, 1);
+    drive(world, run, 6, ['car0']); // car0 never moves; car1 and car2 drive off
+    expect(raceOver(run, world.tick + Math.round(cfg.race.maxRaceSeconds / dt), cfg.race, dt)).toBe(true); // time up
+    expect([...run.cars.values()].every((c) => c.dnf)).toBe(true);
+    const order = results(run, world).map((r) => r.id);
+    expect(order[order.length - 1]).toBe('car0');
+    expect(results(run, world).every((r) => r.dnf)).toBe(true);
+  });
+});

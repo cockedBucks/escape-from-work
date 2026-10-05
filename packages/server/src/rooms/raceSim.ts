@@ -89,6 +89,10 @@ export class RaceSim {
   run: RaceRun | null = null;
   /** Results of the last finished race (grid order for the next one). */
   lastResults: ResultRow[] | null = null;
+  /** Host asked to end the race (applied on the next tick). */
+  private endRequested = false;
+  /** Car in first place (racing). */
+  private leaderId: string | undefined;
   /** Current place per car id (1 = leading), updated every racing tick. */
   private readonly places = new Map<string, number>();
   /** Host switch: bots drive empty cars up to `race.botFillCars` cars. */
@@ -221,6 +225,9 @@ export class RaceSim {
   startRace(by: string): string | null {
     const problem = startProblem(this.flow, by, this.world.cars.length);
     if (problem) return problem;
+    // Rematch: drop cars that were only kept for the results screen.
+    if (this.flow.phase === 'results') this.syncCars(false);
+    if (this.world.cars.length === 0) return 'there are no cars (sit in one, or turn bots on)';
     startCountdown(this.flow, this.world.tick);
     for (const p of this.players.values()) p.ready = false;
     // Grid: random for the first race, then the last results reversed (leaders at the back).
@@ -236,7 +243,7 @@ export class RaceSim {
   carRace(id: string): { run: CarRun; place: number; wrongWay: boolean; gapTicks: number } | null {
     const r = this.run?.cars.get(id);
     if (!r || !this.run) return null;
-    const leader = [...this.places].find(([, place]) => place === 1)?.[0];
+    const leader = this.leaderId;
     return {
       run: r,
       place: this.places.get(id) ?? 0,
@@ -268,7 +275,8 @@ export class RaceSim {
   shuffle(by: string): string | null {
     if (by !== this.flow.host) return 'only the host can shuffle';
     if (!seatChangesAllowed(this.flow.phase)) return SEATS_LOCKED;
-    const ids = [...this.players.values()].filter((p) => p.connected).map((p) => p.id);
+    // Everyone, including players whose seat is held while they reconnect.
+    const ids = [...this.players.keys()];
     const plan = shuffleSeats(ids, this.cfg.race.maxCars, new Rng(this.world.tick + 1));
     for (const p of this.players.values()) {
       p.slot = -1;
@@ -305,8 +313,14 @@ export class RaceSim {
    */
   private refreshBots(): void {
     const humans = new Set(usedSlots(this.seating()));
-    for (const slot of [...this.botSlots]) if (!this.botsEnabled || humans.has(slot)) this.botSlots.delete(slot);
-    if (!this.botsEnabled) return;
+    for (const slot of [...this.botSlots]) {
+      if (this.botsEnabled && !humans.has(slot)) continue;
+      this.botSlots.delete(slot);
+      this.botMemory.delete(slot);
+    }
+    // New bots only between races: never a phantom car on the grid or a bot taking over a
+    // human team mid-race (e.g. when a reconnect hold runs out).
+    if (!this.botsEnabled || !seatChangesAllowed(this.flow.phase)) return;
     for (let slot = 0; slot < this.cfg.race.maxCars && humans.size + this.botSlots.size < this.cfg.race.botFillCars; slot++) {
       if (humans.has(slot) || this.botSlots.has(slot)) continue;
       this.botSlots.add(slot);
@@ -327,18 +341,36 @@ export class RaceSim {
     if (by !== this.flow.host) return 'only the host can do that';
     if (this.flow.phase !== 'results') return 'only after a race';
     toLobby(this.flow, this.world.tick);
+    this.syncCars(false); // cars kept for the results screen can go now
+    return null;
+  }
+
+  /**
+   * Host: stop the race now. In the countdown: back to the lobby. While racing: everyone
+   * not finished is DNF and the results show (also the way out of a race nobody finishes).
+   */
+  endRace(by: string): string | null {
+    if (by !== this.flow.host) return 'only the host can end the race';
+    if (this.flow.phase === 'countdown') {
+      toLobby(this.flow, this.world.tick);
+      return null;
+    }
+    if (this.flow.phase !== 'racing') return 'no race is running';
+    this.endRequested = true;
     return null;
   }
 
   /** Make the world's cars match the occupied slots (new cars start on the start line). */
-  private syncCars(): void {
+  private syncCars(keepForResults = this.flow.phase === 'results'): void {
     this.refreshBots();
     const wanted = new Set([...usedSlots(this.seating()), ...this.botSlots].map(carIdForSlot));
     for (let i = this.world.cars.length - 1; i >= 0; i--) {
       const id = this.world.cars[i]!.id;
       if (wanted.has(id)) continue;
+      // Keep every car on the results screen until the lobby (or a rematch) clears them.
+      if (keepForResults) continue;
       this.world.cars.splice(i, 1);
-      if (this.run) dropCar(this.run, id);
+      if (this.run && this.flow.phase === 'racing') dropCar(this.run, id);
     }
     for (const id of wanted) {
       if (this.world.cars.some((c) => c.id === id)) continue;
@@ -406,7 +438,11 @@ export class RaceSim {
     if (this.flow.phase === 'racing' && this.run) {
       applyEvents(this.run, events, tick);
       updateWrongWay(this.run, this.world, race);
-      over = raceOver(this.run, tick, race, sim.dt);
+      if (this.endRequested) {
+        for (const c of this.run.cars.values()) if (c.finishTick === null) c.dnf = true;
+      }
+      over = this.endRequested || raceOver(this.run, tick, race, sim.dt);
+      this.endRequested = false;
     }
     const changed = stepFlow(this.flow, tick, race, sim.dt, over);
     if (changed === 'racing') {
@@ -418,7 +454,9 @@ export class RaceSim {
     // Places after any phase change, so the first racing tick already has them.
     if (this.run && this.flow.phase === 'racing') {
       this.places.clear();
-      standings(this.run, this.world).forEach((id, i) => this.places.set(id, i + 1));
+      const order = standings(this.run, this.world);
+      order.forEach((id, i) => this.places.set(id, i + 1));
+      this.leaderId = order[0];
     }
     return events;
   }

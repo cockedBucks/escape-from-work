@@ -55,6 +55,7 @@
     "defaultLaps": 3,
     "minLaps": 1,
     "maxLaps": 10,
+    "maxRaceSeconds": 600,
     "finishWindowSeconds": 30,
     "wrongWayMinSpeed": 3,
     "wrongWaySeconds": 1.5,

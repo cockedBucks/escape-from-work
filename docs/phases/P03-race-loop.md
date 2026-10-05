@@ -35,4 +35,4 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
   1. Get 4+ people (or fewer + bots on). Everyone opens the LAN URL, forms teams, picks seats.
   2. Race 3 times. Try Shuffle, Rematch, someone joining mid-race.
   3. Reply: what was confusing in the lobby, what broke, what was fun.
-- [ ] **P3.8 Phase end.** Reviewer, fixes, `git tag p3-done`, report.
+- [x] **P3.8 Phase end.** Reviewer, fixes, `git tag p3-done`, report.

@@ -115,6 +115,8 @@ const RaceSchema = z.strictObject({
   defaultLaps: z.number().int().min(1),
   minLaps: z.number().int().min(1),
   maxLaps: z.number().int().min(1),
+  /** Safety limit: a race that runs this long (s) ends, and everyone not finished is DNF. */
+  maxRaceSeconds: pos(),
   /** After the winner finishes, the others have this long to cross the line (s), then DNF. */
   finishWindowSeconds: pos(),
   /** Driving against the track faster than this (m/s)… */

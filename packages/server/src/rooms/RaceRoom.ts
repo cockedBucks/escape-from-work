@@ -135,6 +135,13 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (problem) this.refuse(client, problem);
     });
 
+    this.onMessage(MSG.hostEndRace, (client) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const problem = this.sim.endRace(client.sessionId);
+      if (problem) return this.refuse(client, problem);
+      console.log('[room] race ended by the host');
+    });
+
     this.onMessage(MSG.hostLobby, (client) => {
       if (!this.limits.get(client.sessionId)?.lobby.take()) return;
       const problem = this.sim.backToLobby(client.sessionId);
@@ -144,7 +151,10 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     // The tick rate is fixed when the room starts: changing sim.dt needs a server restart.
     this.setFixedTimestep(() => {
       const started = performance.now();
+      const phaseBefore = this.sim.flow.phase;
+      const hostBefore = this.sim.flow.host;
       const events = this.sim.tick();
+      this.logChanges(phaseBefore, hostBefore);
       // Smoothed so the overlay number is readable (weight of the newest tick).
       const cost = performance.now() - started;
       this.tickMsAvg += (cost - this.tickMsAvg) * TICK_MS_SMOOTHING;
@@ -154,6 +164,28 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       this.syncCars(this.sim.world);
       if (events.length > 0) this.broadcast(MSG.events, events);
     }, Math.round(1 / this.tuning.sim.dt));
+  }
+
+  /** One log line per race start/end and host change (never per tick). */
+  private logChanges(phaseBefore: string, hostBefore: string | null): void {
+    const flow = this.sim.flow;
+    if (phaseBefore === 'racing' && flow.phase === 'results') {
+      const done = (this.sim.lastResults ?? []).filter((r) => !r.dnf).length;
+      console.log(`[room] race end (${done}/${this.sim.lastResults?.length ?? 0} finished)`);
+    }
+    if (hostBefore !== flow.host) this.logHost();
+  }
+
+  /** Run a player change and log if the host moved because of it. */
+  private trackHost(change: () => void): void {
+    const before = this.sim.flow.host;
+    change();
+    if (before !== this.sim.flow.host) this.logHost();
+  }
+
+  private logHost(): void {
+    const host = this.sim.flow.host;
+    console.log(`[room] host is now ${host === null ? 'nobody' : (this.state.players.get(host)?.name ?? host)}`);
   }
 
   /** Race tick stats: reset when a countdown starts, measured while racing. */
@@ -215,7 +247,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     player.name = `Player ${this.joinCount}`;
     this.state.players.set(client.sessionId, player);
     this.limits.set(client.sessionId, this.newLimits());
-    this.sim.addPlayer(client.sessionId);
+    this.trackHost(() => this.sim.addPlayer(client.sessionId));
     this.syncPlayers();
     // The page bundles tuning.json at build time; this makes sure it uses the live values.
     client.send(MSG.tuning, this.tuning);
@@ -224,7 +256,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
 
   /** Connection lost without saying goodbye (Wi-Fi blip, tab closed): hold the seat for a while. */
   override onDrop(client: Client): void {
-    this.sim.setConnected(client.sessionId, false);
+    this.trackHost(() => this.sim.setConnected(client.sessionId, false));
     this.syncPlayers();
     console.log(`[room] drop  ${client.sessionId} (seat held ${this.tuning.net.reconnectSeconds}s)`);
     // Resolves on reconnect (onReconnect). On timeout it rejects and Colyseus calls onLeave,
@@ -233,7 +265,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   }
 
   override onReconnect(client: Client): void {
-    this.sim.setConnected(client.sessionId, true);
+    this.trackHost(() => this.sim.setConnected(client.sessionId, true));
     this.syncPlayers();
     client.send(MSG.tuning, this.tuning);
     console.log(`[room] back  ${client.sessionId}`);
@@ -242,7 +274,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   override onLeave(client: Client): void {
     this.state.players.delete(client.sessionId);
     this.limits.delete(client.sessionId);
-    this.sim.removePlayer(client.sessionId);
+    this.trackHost(() => this.sim.removePlayer(client.sessionId));
     this.syncPlayers();
     console.log(`[room] leave ${client.sessionId} (${this.state.players.size} connected)`);
   }

@@ -4,9 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P3 — Race loop (`docs/phases/P03-race-loop.md`)
-- Next task: P3.8 (phase end)
-- Status: P3 gate passed ("all good"). `npm run verify` passes (250 tests + bot race).
+- Phase: P4 — Cockpit cam and bobbleheads (`docs/phases/P04-cockpit.md`)
+- Next task: P4.1 (cockpit camera)
+- Status: P3 done and tagged `p3-done`. `npm run verify` passes (256 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -50,20 +50,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   networked bot clients (`npm run bots`), latency overlay (input → screen), docs/LAN.md, FUN GATE
   ("a bit laggy, fun, physics weird") → physics feel pass + client prediction. Review fixes D049
   (critical: reconnect controls). Decisions D039–D049.
-- 2026-10-05: P3.1 race state machine — shared flow rules (phases, host, laps, seat lock, frozen
-  countdown), RaceSim + room host controls, synced phase/host/laps. D050.
-- 2026-10-05: P3.2 lobby UI — team names (config/teams.json, editable), Ready, host Shuffle/Bots/
-  Laps/Start, `lobby` scenario; join screen removed. Live two-browser check passed. D051.
-- 2026-10-05: P3.3 race rules — sector laps, live places, wrong way, finish window + DNF, grid
-  order (random, then reversed results), countdown + lap/place HUD. D052.
-- 2026-10-05: P3.4 bot cars — server bots fill empty cars up to race.botFillCars when the host turns
-  bots on; people take over bot cars; bots-only races allowed. D053.
-- 2026-10-05: P3.5 spectators + scoreboard — spectator cam (auto-cycle, A/D), late joiners watch,
-  hold-Tab scoreboard with time-split gaps. Live check passed. D054.
-- 2026-10-05: P3.6 results screen — places, times, best lap (fastest marked), host Rematch/Lobby;
-  live loop lobby → race → results → rematch → results → lobby passed. D055.
-- 2026-10-05: P3.7 load test — `npm run test:load`: 8 cars / 16 clients finish 3 laps (109 s), tick avg
-  0.40 ms, overruns 2/6370 (GC). D056.
+- 2026-10-05: **P3 done** — race state machine (lobby/countdown/racing/results, host handover, seat
+  lock), lobby UI (teams, Ready, Shuffle, Bots, Laps, Start), race rules (sector laps, places, wrong
+  way, finish window/DNF, time limit, reversed grid, time-split gaps), server bot cars, spectator cam
+  + Tab scoreboard, results + rematch, host End race, load test (`npm run test:load`). Gate: all
+  good. Decisions D050–D057.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

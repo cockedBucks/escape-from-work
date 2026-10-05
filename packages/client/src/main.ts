@@ -191,6 +191,13 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   });
   const badge = new RoleBadge(container);
   const hud = new RaceHud(container);
+  // Host only, during a race: the way out of a race nobody finishes.
+  const endRace = document.createElement('button');
+  endRace.className = 'end-race';
+  endRace.textContent = '⏹ End race';
+  endRace.hidden = true;
+  endRace.addEventListener('click', () => room.send(MSG.hostEndRace, {}));
+  container.appendChild(endRace);
   const board = new Scoreboard(container);
   const resultsScreen = new ResultsScreen(container, {
     rematch: () => room.send(MSG.hostStart, {}),
@@ -240,6 +247,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
+    endRace.hidden = !(state.host === room.sessionId && (state.phase === 'countdown' || state.phase === 'racing'));
     teamNames = [...state.teams];
     const boardCars: BoardCar[] = [];
     state.cars.forEach((c, id) => {
@@ -321,6 +329,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     join.dispose();
     badge.dispose();
     hud.dispose();
+    endRace.remove();
     board.dispose();
     resultsScreen.dispose();
     spectator.dispose();
