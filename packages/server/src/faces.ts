@@ -5,8 +5,11 @@ import { REPO_ROOT } from './config';
 /** Coworker face images live here on the host PC only (gitignored). */
 export const FACES_DIR = path.join(REPO_ROOT, 'assets', 'faces');
 
-/** Image files a face may be: simple names, common web image types. */
-const FACE_FILE = /^[A-Za-z0-9][A-Za-z0-9 _.-]{0,60}\.(png|jpe?g|webp)$/i;
+/**
+ * Image files a face may be: letters and digits in any language (Arabic names too), spaces
+ * and `_ . -`, then a common web image type. No slashes, so never a path.
+ */
+const FACE_FILE = /^[\p{L}\p{N}][\p{L}\p{N}\p{M} _.-]{0,60}\.(png|jpe?g|webp)$/iu;
 
 export const isFaceFile = (name: string): boolean => FACE_FILE.test(name) && !name.includes('..');
 

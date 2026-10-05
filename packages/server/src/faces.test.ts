@@ -41,3 +41,17 @@ describe('faces', () => {
     expect(writeManifest(dir).faces).toEqual([]);
   });
 });
+
+describe('faces with non-English names', () => {
+  it('accepts Arabic (any language) file names and keeps them as display names', () => {
+    const m = buildManifest(['عمران.jpg', 'كود اوف مقتدى.jpg', 'Zoë.png']);
+    expect(m.faces.map((f) => f.file)).toEqual(expect.arrayContaining(['عمران.jpg', 'كود اوف مقتدى.jpg', 'Zoë.png']));
+    expect(m.faces.find((f) => f.file === 'عمران.jpg')!.name).toBe('عمران');
+  });
+
+  it('still rejects path tricks in any language', () => {
+    expect(isFaceFile('عمران/../x.png')).toBe(false);
+    expect(isFaceFile('عمران\\x.png')).toBe(false);
+    expect(isFaceFile('..عمران.png')).toBe(false);
+  });
+});

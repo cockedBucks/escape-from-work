@@ -131,6 +131,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   const trackId = new URLSearchParams(window.location.search).get('track') ?? DEFAULT_TRACK;
   const track = loadTrack(trackId, tuning);
   const world = frozenBotRace(track, tuning, scenario);
+  const previewFace = new URLSearchParams(window.location.search).get('face') ?? '';
   const container = el('game');
   container.hidden = false;
   const game = new Game({
@@ -148,7 +149,8 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     // In the cockpit shot you are bot1's Pilot and your teammate turns to look at you.
     occupants: (carId) => {
       const head = (side: string, yaw = 0): SeatPerson => ({
-        id: `${carId}-${side}`, face: '', yaw, pitch: 0, me: carId === 'bot1' && side === 'l',
+        // `&face=<file>` previews a face from assets/faces/ on the heads (default: placeholder).
+        id: `${carId}-${side}`, face: previewFace, yaw, pitch: 0, me: carId === 'bot1' && side === 'l',
       });
       if (carId === 'bot2') return { left: head('l'), right: 'duck' };
       return { left: head('l', 0.5), right: head('r', carId === 'bot1' ? 1.2 : 0) };
@@ -245,8 +247,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   let onEvents: (events: SimEvent[]) => void = () => {};
   room.onMessage(MSG.events, (events: SimEvent[]) => onEvents(events));
   // Faces on the host PC (none = everyone gets the drawn placeholder).
-  let faces: { file: string; name: string }[] = [];
-  void fetchFaces().then((list) => (faces = list));
+  // Loaded before the lobby is drawn, so the face picker does not appear late and push the
+  // seat buttons down under the player's mouse.
+  const faces = await fetchFaces();
   const race = latestTuning.race;
   const join = new LobbyScreen(container, { maxCars: race.maxCars, minLaps: race.minLaps, maxLaps: race.maxLaps }, {
     setName: (name) => room.send(MSG.setName, { name }),

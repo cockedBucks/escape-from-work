@@ -11,7 +11,8 @@ import { FaceMaterials } from './render/faceTexture';
 import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
 import { TEAM_COLORS } from './render/look';
-import { createStage, type Stage } from './render/renderer';
+import { LIGHT } from './render/look';
+import { CAMERA_NEAR, createStage, type Stage } from './render/renderer';
 import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
 import { focusPose, liveStats } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
@@ -189,6 +190,9 @@ export class Game {
       const id = this.opts.focus() ?? this.snaps.keys().next().value ?? null;
       const car = id === null ? undefined : this.snaps.get(id);
       const cam = this.opts.tuning.camera;
+      // No car to follow (empty lobby, everyone watching): show the whole track instead of a
+      // camera stuck at the origin; switch back the moment a car appears.
+      this.setBackdrop(car === undefined);
       if (car && view === 'cockpit') {
         const locked = this.opts.mouseLocked?.() ?? false;
         this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked);
@@ -223,6 +227,27 @@ export class Game {
     liveStats.textures = info.memory.textures;
     liveStats.cars = this.cars.size;
     this.overlay.update(now);
+  }
+
+  /** Showing the track overview because there is no car to follow. */
+  private backdrop = false;
+  private sceneFog: THREE.Fog | THREE.FogExp2 | null = null;
+
+  private setBackdrop(on: boolean): void {
+    if (on === this.backdrop) return;
+    this.backdrop = on;
+    const { scene, camera } = this.stage;
+    if (on) {
+      // From high above, fog would hide the whole track.
+      this.sceneFog = scene.fog;
+      scene.fog = null;
+      placeOverview(camera, this.trackMeshes.bounds);
+    } else {
+      scene.fog = this.sceneFog;
+      camera.near = CAMERA_NEAR;
+      camera.far = LIGHT.fogFar * 2;
+      camera.updateProjectionMatrix(); // the chase/cockpit cams set the fov themselves
+    }
   }
 
   /** Only your own car, only in the cockpit, shows its dashboard (block + screen). */

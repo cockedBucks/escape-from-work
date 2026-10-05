@@ -7,7 +7,8 @@ export default defineConfig({
     projects: [
       { test: { name: 'shared', include: ['packages/shared/src/**/*.test.ts'] } },
       { test: { name: 'server', include: ['packages/server/src/**/*.test.ts'] } },
-      { test: { name: 'client', include: ['packages/client/src/**/*.test.ts'] } },
+      // Real CSS text (not Vitest's empty stub) so the stylesheet guard test can read it.
+      { test: { name: 'client', include: ['packages/client/src/**/*.test.ts'], css: { include: [/style\.css/] } } },
       // Real server + real Colyseus clients in-process; allow time for sockets.
       { test: { name: 'integration', include: ['tests/*.test.ts'], testTimeout: 15_000 } },
       // Opt-in, minutes long: `npm run test:load` (not part of verify).

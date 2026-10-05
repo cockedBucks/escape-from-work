@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import type { QualityLevel, QualityPreset, Tuning } from '@escape/shared';
 import { LIGHT } from './look';
 
+/** Near clip plane for the chase and cockpit cams (m). */
+export const CAMERA_NEAR = 0.1;
+
 export interface Stage {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
@@ -40,7 +43,7 @@ export function createStage(container: HTMLElement, tuning: Tuning, quality: Qua
   }
   scene.add(sun, sun.target);
 
-  const camera = new THREE.PerspectiveCamera(tuning.camera.fov, container.clientWidth / container.clientHeight, 0.1, LIGHT.fogFar * 2);
+  const camera = new THREE.PerspectiveCamera(tuning.camera.fov, container.clientWidth / container.clientHeight, CAMERA_NEAR, LIGHT.fogFar * 2);
 
   const onResize = (): void => {
     const w = container.clientWidth;
