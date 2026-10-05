@@ -234,6 +234,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | If it feels… | Look at |
 |---|---|
 | twitchy / too slow steering | `car.steerRiseRate`, `car.steerFallRate`, `car.steerAtTopSpeed`, `car.maxYawRate` |
+| turning feels like a box spinning / like on rails | `car.carve` (higher = follows the nose), `car.grip` |
+| pickup fades near top speed / too punchy | `car.accelCurve`, `car.accel` |
 | can't turn when slow / spins on the spot | `car.steerFullSpeed`, `car.maxYawRate` |
 | floaty / too sticky | `car.grip`, `car.drag` (`car.driftGrip` arrives in P5) |
 | slow / too fast | `car.topSpeed`, `car.accel`, `car.drag`, car `stats.speed` (cars.json) |

@@ -15,6 +15,8 @@ const CarSchema = z.strictObject({
   topSpeed: pos().max(100),
   /** Engine acceleration from standstill (m/s²). Scaled by car `stats.speed`. */
   accel: pos(),
+  /** Shape of the engine pull: 1 = fades evenly toward top speed, 2+ = stays strong until near the top. */
+  accelCurve: z.number().min(0.5).max(6),
   /** Braking deceleration while moving forward (m/s²). */
   brake: pos(),
   /** Top speed in reverse (m/s). */
@@ -35,6 +37,8 @@ const CarSchema = z.strictObject({
   steerFallRate: pos(),
   /** Turn rate at full lock (rad/s). */
   maxYawRate: pos(),
+  /** How much of each turn the car's movement follows at once (0 = spins, grip catches up; 1 = on rails). */
+  carve: fraction(),
   /** Turn-rate multiplier at top speed (0–1): lower = calmer steering when fast. */
   steerAtTopSpeed: fraction(),
   /** Below this speed the car turns less, down to nothing when stopped (m/s). */

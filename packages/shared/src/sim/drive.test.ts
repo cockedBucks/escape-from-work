@@ -133,3 +133,36 @@ describe('drive (whole ground step)', () => {
     expect(s.steer).toBe(1);
   });
 });
+
+describe('carve and engine curve (P2.8 feel pass)', () => {
+  /** Sideways slide speed after turning at full lock for `ticks`, with a given carve. */
+  function slideAfterTurn(carve: number, onSlick = false): number {
+    const tuned = { ...car, carve };
+    const s = state({ vx: forward(0).x * 20, vz: forward(0).z * 20, steer: 1, onSlick });
+    for (let i = 0; i < 30; i++) drive(s, { ...NO_INPUT, gas: true, steer: 1 }, tuned, dt);
+    return Math.abs(dot({ x: s.vx, z: s.vz }, right(s.yaw)));
+  }
+
+  it('carve makes the car follow its nose instead of sliding sideways', () => {
+    expect(slideAfterTurn(0.8)).toBeLessThan(slideAfterTurn(0) * 0.5);
+    expect(slideAfterTurn(1)).toBeLessThan(0.01);
+  });
+
+  it('on a slick the car carves less and slides more', () => {
+    expect(slideAfterTurn(0.8, true)).toBeGreaterThan(slideAfterTurn(0.8) * 2);
+  });
+
+  it('a higher engine curve keeps the pull strong near top speed', () => {
+    const timeTo90 = (accelCurve: number): number => {
+      const tuned = { ...car, accelCurve };
+      let v = 0;
+      let t = 0;
+      while (v < car.topSpeed * 0.9 && t < 30) {
+        v = longitudinal(v, gas, car.topSpeed, car.accel, tuned, dt);
+        t += dt;
+      }
+      return t;
+    };
+    expect(timeTo90(2)).toBeLessThan(timeTo90(1) * 0.75);
+  });
+});

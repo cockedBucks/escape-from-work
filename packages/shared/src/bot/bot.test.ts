@@ -68,7 +68,7 @@ describe('bot engineer', () => {
 
 describe('golden: bot laps on the Test Loop', () => {
   // GOLDEN: change these windows only for an intended feel change, and say so in the commit.
-  // Measured at P1.4: lap 1 (standing start) 37.40 s, flying laps 36.00 s.
+  // Measured at P2.8 (carve + engine curve + gentler coasting): lap 1 35.57 s, flying 34.60 s.
   const race = runBotRace(track, cfg, { cars: 1, laps: 3, maxSeconds: 300 });
 
   it('finishes 3 laps without respawning', () => {
@@ -78,11 +78,11 @@ describe('golden: bot laps on the Test Loop', () => {
 
   it('lap times stay inside the golden window', () => {
     const [first, ...flying] = race.cars[0]!.lapTimes;
-    expect(first).toBeGreaterThan(35.5);
-    expect(first).toBeLessThan(39.5);
+    expect(first).toBeGreaterThan(33.8);
+    expect(first).toBeLessThan(37.4);
     for (const lap of flying) {
-      expect(lap).toBeGreaterThan(34.2);
-      expect(lap).toBeLessThan(37.8);
+      expect(lap).toBeGreaterThan(32.9);
+      expect(lap).toBeLessThan(36.4);
     }
   });
 });
@@ -105,7 +105,7 @@ describe('golden: replay determinism', () => {
     // GOLDEN: any change to physics, bot or Test Loop changes this. Update it only when the
     // change is intended, and say so in the commit message.
     const race = runBotRace(track, cfg, { cars: 2, laps: 1, maxSeconds: 120 });
-    expect(race.hash).toBe('27703279');
+    expect(race.hash).toBe('f1135e86');
   });
 
   it('hash notices a tiny difference', () => {

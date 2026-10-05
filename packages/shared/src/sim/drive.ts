@@ -35,9 +35,10 @@ export function longitudinal(vF: number, input: CarInput, top: number, accel: nu
   if (input.gas) {
     // Rolling backwards: gas brakes first.
     if (vF < 0) return moveToward(vF, 0, car.brake * dt);
-    // Pull toward top speed: strong from a standstill, fading near the top. Above top
-    // speed (after a ramp or later nitro) this turns negative and settles back down.
-    return vF + accel * (1 - vF / top) * dt;
+    // Pull toward top speed. With accelCurve 1 the pull fades evenly (sluggish near the
+    // top); higher values keep it strong until close to top speed. Above top speed (after
+    // a ramp or later nitro) this turns negative and settles back down.
+    return vF + accel * (1 - Math.pow(vF / top, car.accelCurve)) * dt;
   }
   return moveToward(vF, 0, (car.rollingResistance + Math.abs(vF) * car.drag) * dt);
 }
@@ -66,8 +67,15 @@ export function drive(state: CarState, input: CarInput, car: CarTuning, dt: numb
 
   // Steer +1 = right = yaw goes down. Reversing flips the turn, like a real car.
   const yawRate = -state.steer * car.maxYawRate * steerSpeedFactor(vF, top, car) * Math.sign(vF);
-  state.yaw = wrapAngle(state.yaw + yawRate * dt);
+  const turn = yawRate * dt;
+  state.yaw = wrapAngle(state.yaw + turn);
 
-  state.vx = f.x * vF + r.x * vS;
-  state.vz = f.z * vF + r.z * vS;
+  // Carve: the movement turns with the car (by `carve` of the turn), so the car follows the
+  // corner instead of spinning in place and waiting for grip to catch up. On a slick, it
+  // carves less and slides more.
+  const carve = car.carve * (state.onSlick ? car.slickGrip : 1);
+  const fc = forward(state.yaw - turn + turn * carve);
+  const rc = right(state.yaw - turn + turn * carve);
+  state.vx = fc.x * vF + rc.x * vS;
+  state.vz = fc.z * vF + rc.z * vS;
 }
