@@ -86,3 +86,4 @@ roll old "Last sessions" lines into one summary line per finished phase.
   close/reopen not tried yet. F3 number not reported. → P2.8: prediction + physics feel pass.
 - 2026-10-05 P3 gate "first real race": "all good" — no confusion or breakage reported.
 - 2026-10-05 P4 gate (in progress): "npm run faces says not images" → Arabic file names were rejected; fixed (D064) along with the missing face-picker styles and the empty-lobby backdrop.
+- 2026-10-05 P4 gate: faces work, "but the faces are not at the same height" → per-photo framing in faces.json (D065); both photos framed.

@@ -14,6 +14,8 @@ import { HeadSender } from './net/heads';
 import { InputDelayMeter } from './net/latency';
 import { OwnCarPredictor } from './net/predictor';
 import { seatSideFor } from './render/cockpitCam';
+import { setFaceFraming } from './render/faceTexture';
+import type { FaceFraming } from './render/facePlacement';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
@@ -58,13 +60,20 @@ function carSeatsFrom(
   return seats;
 }
 
-/** The host's face list (/faces/faces.json, built by `npm run faces`); [] if missing. */
-async function fetchFaces(): Promise<{ file: string; name: string }[]> {
+type FaceListEntry = { file: string; name: string } & FaceFraming;
+
+/**
+ * The host's face list (/faces/faces.json, built by `npm run faces`); [] if missing. Also
+ * hands each photo's framing to the head textures.
+ */
+async function fetchFaces(): Promise<FaceListEntry[]> {
   try {
     const res = await fetch('/faces/faces.json');
     if (!res.ok) return [];
-    const data = (await res.json()) as { faces?: { file: string; name: string }[] };
-    return Array.isArray(data.faces) ? data.faces : [];
+    const data = (await res.json()) as { faces?: FaceListEntry[] };
+    const faces = Array.isArray(data.faces) ? data.faces : [];
+    setFaceFraming(faces);
+    return faces;
   } catch {
     return [];
   }
@@ -132,6 +141,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   const track = loadTrack(trackId, tuning);
   const world = frozenBotRace(track, tuning, scenario);
   const previewFace = new URLSearchParams(window.location.search).get('face') ?? '';
+  if (previewFace !== '') await fetchFaces(); // its framing
   const container = el('game');
   container.hidden = false;
   const game = new Game({

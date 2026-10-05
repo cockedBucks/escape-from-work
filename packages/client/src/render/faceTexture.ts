@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { type FaceFraming, photoPlacement } from './facePlacement';
 import { HEAD } from './look';
 
 // Bobblehead textures. A sphere's texture wraps all the way round, so the face goes on the
@@ -51,17 +52,23 @@ function drawPlaceholder(ctx: CanvasRenderingContext2D): void {
   ctx.stroke();
 }
 
-/** Draw a photo into the face oval (cover-fit, clipped round). */
-function drawPhoto(ctx: CanvasRenderingContext2D, img: HTMLImageElement): void {
+/** Framing per face file, from the host's faces.json (set before any photo is drawn). */
+const framings = new Map<string, FaceFraming>();
+
+export function setFaceFraming(faces: readonly ({ file: string } & FaceFraming)[]): void {
+  framings.clear();
+  for (const { file, eyes, chin, x } of faces) framings.set(file, { eyes, chin, x });
+}
+
+/** Draw a photo into the face oval (eyes and chin on fixed lines, clipped round). */
+function drawPhoto(ctx: CanvasRenderingContext2D, img: HTMLImageElement, framing: FaceFraming | undefined): void {
   const { cx, cy, rx, ry } = FACE;
   ctx.save();
   ctx.beginPath();
   ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
   ctx.clip();
-  const scale = Math.max((2 * rx) / img.width, (2 * ry) / img.height);
-  const w = img.width * scale;
-  const h = img.height * scale;
-  ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+  const p = photoPlacement(img.width, img.height, FACE, framing);
+  ctx.drawImage(img, p.x, p.y, p.w, p.h);
   ctx.restore();
 }
 
@@ -86,7 +93,7 @@ export class FaceMaterials {
       img.onload = () => {
         ctx.fillStyle = HEAD.helmetColor;
         ctx.fillRect(0, 0, W, H);
-        drawPhoto(ctx, img);
+        drawPhoto(ctx, img, framings.get(face));
         tex.needsUpdate = true;
       };
       img.src = `/faces/${encodeURIComponent(face)}`;

@@ -225,7 +225,9 @@ texture shown (flipped) under your windshield roof in the cockpit; `quality.pres
 Dashboard (P4.4): `ui/gauges.ts` (speed km/h, lap, place, heat/nitro bars, item slot; heat, nitro and
 item stay empty until P5/P6) drawn twice: a canvas screen on your cockpit dashboard
 (`render/dashboard.ts`, redrawn ≤ 10/s and only on change) and a DOM panel bottom-right in chase view.
-Bobbleheads (P4.3): `npm run faces` writes `assets/faces/faces.json` (`packages/server/src/faces.ts`);
+Bobbleheads (P4.3): `npm run faces` writes `assets/faces/faces.json` (`packages/server/src/faces.ts`;
+entries may carry hand-typed framing `eyes`/`chin`/`x`, 0–1 of the photo, kept on re-runs, so every
+photo's eyes land on the same line of the head — `render/facePlacement.ts`);
 the game server serves `/faces/*` (Vite proxies it in dev). `lobby:setFace {face}` is accepted
 only for files that exist; `players.face` syncs. Each seat shows a sphere head (face painted on
 the front of a wrap-around canvas texture, placeholder smiley until/unless a photo loads),

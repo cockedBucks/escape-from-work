@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildManifest, faceExists, isFaceFile, writeManifest } from './faces';
+import { buildManifest, faceExists, framingOf, isFaceFile, writeManifest } from './faces';
 
 describe('faces', () => {
   it('keeps only image files with safe names, sorted, with display names', () => {
@@ -53,5 +53,47 @@ describe('faces with non-English names', () => {
     expect(isFaceFile('عمران/../x.png')).toBe(false);
     expect(isFaceFile('عمران\\x.png')).toBe(false);
     expect(isFaceFile('..عمران.png')).toBe(false);
+  });
+});
+
+describe('face framing', () => {
+  it('npm run faces keeps hand-typed framing, drops bad values and removed files', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'efw-faces-'));
+    try {
+      writeFileSync(path.join(dir, 'sara.png'), 'x');
+      writeFileSync(path.join(dir, 'ali.png'), 'x');
+      writeFileSync(
+        path.join(dir, 'faces.json'),
+        JSON.stringify({ faces: [
+          { file: 'sara.png', name: 'sara', eyes: 0.4, chin: 0.9, x: 0.55 },
+          { file: 'ali.png', name: 'ali', eyes: 0.9, chin: 0.4, x: 7 },
+          { file: 'gone.png', name: 'gone', eyes: 0.3, chin: 0.8 },
+        ] }),
+      );
+      expect(writeManifest(dir).faces).toEqual([
+        { file: 'ali.png', name: 'ali' },
+        { file: 'sara.png', name: 'sara', eyes: 0.4, chin: 0.9, x: 0.55 },
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('a broken faces.json is replaced, not fatal', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'efw-faces-'));
+    try {
+      writeFileSync(path.join(dir, 'sara.png'), 'x');
+      writeFileSync(path.join(dir, 'faces.json'), '{ oops');
+      expect(writeManifest(dir).faces).toEqual([{ file: 'sara.png', name: 'sara' }]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('framingOf needs eyes above the chin, all within the photo', () => {
+    expect(framingOf({ eyes: 0.4, chin: 0.9 })).toEqual({ eyes: 0.4, chin: 0.9 });
+    expect(framingOf({ eyes: 0.4 })).toEqual({});
+    expect(framingOf({ eyes: -0.1, chin: 0.9, x: 0.5 })).toEqual({ x: 0.5 });
+    expect(framingOf(null)).toEqual({});
   });
 });

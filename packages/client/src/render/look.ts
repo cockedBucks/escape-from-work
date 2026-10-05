@@ -140,6 +140,15 @@ export const HEAD = {
   /** The non-face part of the head (a light helmet) and the placeholder face color. */
   helmetColor: '#d9dde3',
   placeholderSkin: '#f6d7b0',
+  /**
+   * Photo framing in the face oval, as fractions of the oval's half-height from its center
+   * (− = up): every photo is scaled and moved so its eyes and chin land here. Photos without
+   * framing in faces.json assume a typical portrait: eyes 40% and chin 80% down the photo.
+   */
+  ovalEyes: -0.1,
+  ovalChin: 0.85,
+  photoEyes: 0.4,
+  photoChin: 0.8,
   /** Wobble spring: stiffness (1/s), damping ratio (<1 = bouncy), tilt per m/s² and max tilt (rad). */
   wobbleStiffness: 9,
   wobbleDamping: 0.35,

@@ -1,6 +1,8 @@
 // npm run faces: list the face images in assets/faces/ into assets/faces/faces.json.
 // Faces are coworker photos (only people who agreed); they stay on this PC (gitignored).
 // The game works with none: everyone then gets the drawn placeholder face.
+// Faces at different heights? Add "eyes" and "chin" (0 = top of the photo, 1 = bottom) and
+// optionally "x" (middle of the face, 0 = left) to an entry in faces.json; re-runs keep them.
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tsImport } from 'tsx/esm/api';
