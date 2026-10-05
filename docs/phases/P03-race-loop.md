@@ -24,7 +24,7 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
 - [x] **P3.3 Race rules.** Countdown "3… 2… 1… CLOCK OUT!", sector-ordered laps, live positions,
   wrong-way detection, finish order, post-winner finish window and DNF, grid order (random
   first race, then reversed results). Tests.
-- [ ] **P3.4 Bot cars.** Server-side bot driver controls empty cars when the host enables bots.
+- [x] **P3.4 Bot cars.** Server-side bot driver controls empty cars when the host enables bots.
 - [ ] **P3.5 Spectators and scoreboard.** Late joiners watch with a spectator cam that cycles cars;
   Tab scoreboard (place, team, lap, gap).
 - [ ] **P3.6 Results screen.** Positions, total time, best lap; Rematch and Lobby buttons.

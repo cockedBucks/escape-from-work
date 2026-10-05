@@ -121,6 +121,8 @@ const RaceSchema = z.strictObject({
   wrongWayMinSpeed: nonNeg(),
   /** …for this long (s) shows the wrong-way warning. */
   wrongWaySeconds: pos(),
+  /** With bots on, bots fill empty cars until there are this many cars. */
+  botFillCars: z.number().int().min(0).max(8),
   /** People who may watch on top of the 2 × maxCars seats. */
   maxSpectators: z.number().int().nonnegative(),
   /** Car slots in the lobby (2 players each, so players = 2 × maxCars). Team colors cover 8. */

@@ -58,6 +58,7 @@
     "finishWindowSeconds": 30,
     "wrongWayMinSpeed": 3,
     "wrongWaySeconds": 1.5,
+    "botFillCars": 4,
     "maxSpectators": 8,
     "maxCars": 8
   },

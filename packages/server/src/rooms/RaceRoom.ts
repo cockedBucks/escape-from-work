@@ -270,6 +270,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.vx = car.vx;
       view.vz = car.vz;
       view.vy = car.vy;
+      view.bot = this.sim.isBot(car.id);
       const race = this.sim.carRace(car.id);
       const tickMs = this.tuning.sim.dt * 1000;
       view.lapsDone = race?.run.lapsDone ?? 0;

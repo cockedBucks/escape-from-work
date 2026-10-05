@@ -276,8 +276,8 @@ describe('RaceSim lobby', () => {
     sim.startRace('a');
     expect(sim.isReady('b')).toBe(false);
     expect(sim.setBots('b', true)).toMatch(/only the host/);
-    expect(sim.setBots('a', true)).toBeNull();
-    expect(sim.botsEnabled).toBe(true);
+    expect(sim.setBots('a', true)).toMatch(/not during a race/); // bots change between races only
+    expect(sim.botsEnabled).toBe(false);
   });
 });
 
@@ -302,5 +302,33 @@ describe('RaceSim full race', () => {
     // Rematch: allowed from results, and the grid comes from the results.
     expect(sim.startRace('a')).toBeNull();
     expect(sim.flow.phase).toBe('countdown');
+  });
+});
+
+describe('RaceSim bot cars', () => {
+  it('bots fill empty cars up to botFillCars; a person can take over a bot car', () => {
+    const sim = soloSim('a');
+    expect(sim.setBots('a', true)).toBeNull();
+    expect(sim.world.cars.length).toBe(cfg.race.botFillCars);
+    expect(sim.isBot('car0')).toBe(false);
+    expect(sim.isBot('car1')).toBe(true);
+    sim.addPlayer('b');
+    expect(sim.setSeat('b', 1, 'solo')).toBeNull();
+    expect(sim.isBot('car1')).toBe(false);
+    expect(sim.world.cars.length).toBe(cfg.race.botFillCars); // another bot filled in
+    expect(sim.setBots('a', false)).toBeNull();
+    expect(sim.world.cars.map((c) => c.id)).toEqual(['car0', 'car1']);
+  });
+
+  it('a bots-only race runs to the results with the host watching', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('h');
+    sim.setBots('h', true);
+    sim.setLaps('h', 1);
+    expect(sim.startRace('h')).toBeNull();
+    expect(sim.setBots('h', false)).toMatch(/not during a race/);
+    for (let t = 0; t < 60 * 90 && sim.flow.phase !== 'results'; t++) sim.tick();
+    expect(sim.flow.phase).toBe('results');
+    expect(sim.lastResults!.filter((r) => !r.dnf).length).toBe(cfg.race.botFillCars);
   });
 });

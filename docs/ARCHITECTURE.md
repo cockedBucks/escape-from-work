@@ -195,6 +195,10 @@ solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules li
 missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
 slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
 `maxClients` = 2 × `race.maxCars`.
+Bot cars (P3.4): with the host's bots switch on, `RaceSim` adds server-driven cars in the lowest
+empty slots until there are `race.botFillCars` cars; the bot driver gives both halves of the input.
+A person sitting in a bot car takes it over. The switch only changes between races. Cars sync
+`bot`; the lobby shows "🤖 bot". A bots-only race is allowed (host watches).
 Race rules (P3.3): `packages/shared/src/race/rules.ts` — a `RaceRun` starts at GO; every in-order
 checkpoint event is a sector, gate 0 after the others is a lap, the last lap finishes the car.
 Places: finishers in order, then sectors done + how far into the next sector (negative behind
@@ -274,6 +278,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |
 | room too small / too big | `race.maxCars` (players = 2 × cars; colors exist for 8), `race.maxSpectators` |
 | countdown too long / short | `race.countdownSeconds` |
+| too few / too many bot cars | `race.botFillCars` (bots fill empty cars up to this many cars) |
 | stragglers wait too long / get cut off | `race.finishWindowSeconds` |
 | wrong-way warning too eager / too late | `race.wrongWaySeconds`, `race.wrongWayMinSpeed` |
 | races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |

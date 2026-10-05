@@ -22,6 +22,8 @@ export interface LobbyView {
   laps: number;
   teams: string[];
   bots: boolean;
+  /** Car slots currently driven by server bots. */
+  botSlots: number[];
 }
 
 export interface LobbyHandlers {
@@ -82,7 +84,8 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
       const mine = who?.id === v.myId;
       const taken = who !== undefined && !mine;
       const blocked = seat === 'solo' && inCar.some((p) => p.id !== v.myId);
-      const name = who ? `${who.ready ? '✓ ' : ''}${escapeHtml(who.name)}${who.connected ? '' : ' (away)'}` : 'free';
+      const bot = !who && v.botSlots.includes(slot) && seat !== 'solo';
+      const name = who ? `${who.ready ? '✓ ' : ''}${escapeHtml(who.name)}${who.connected ? '' : ' (away)'}` : bot ? '🤖 bot' : 'free';
       return `<button class="seat${mine ? ' mine' : ''}" data-slot="${slot}" data-seat="${seat}" ${taken || blocked ? 'disabled' : ''}>
         <span class="seat-role">${label}</span><span class="seat-who">${name}</span></button>`;
     };

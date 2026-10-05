@@ -35,7 +35,7 @@ describe('race flow', () => {
   it('only the host may start, only between races, only with someone in a car', () => {
     const f = hosted();
     expect(startProblem(f, 'other', 1)).toMatch(/only the host/);
-    expect(startProblem(f, 'h', 0)).toMatch(/nobody/);
+    expect(startProblem(f, 'h', 0)).toMatch(/no cars/);
     expect(startProblem(f, 'h', 1)).toBeNull();
     startCountdown(f, 10);
     expect(startProblem(f, 'h', 1)).toMatch(/already/);

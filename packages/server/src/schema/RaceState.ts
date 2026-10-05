@@ -40,6 +40,8 @@ export const CarView = schema(
     vx: t.float32().default(0),
     vz: t.float32().default(0),
     vy: t.float32().default(0),
+    /** Driven by a server bot (no players in it). */
+    bot: t.boolean().default(false),
     /** Race info (0 / false outside a race): laps completed, place (1 = leading). */
     lapsDone: t.uint8().default(0),
     place: t.uint8().default(0),

@@ -14,6 +14,7 @@ const base = (over: Partial<LobbyView> = {}): LobbyView => ({
   laps: 3,
   teams: ['Ctrl Freaks', '404 Not Found', 'C', 'D'],
   bots: false,
+  botSlots: [],
   ...over,
 });
 
@@ -46,5 +47,12 @@ describe('lobbyHtml', () => {
 
   it('is identical for identical input (so redraws can be skipped)', () => {
     expect(lobbyHtml(base(), limits)).toBe(lobbyHtml(base(), limits));
+  });
+});
+
+describe('lobbyHtml bots', () => {
+  it('shows bot cars as "🤖 bot" and lets you take them over', () => {
+    const html = lobbyHtml(base({ botSlots: [2] }), limits);
+    expect(html).toMatch(/data-slot="2" data-seat="pilot" >\s*<span class="seat-role">Pilot<\/span><span class="seat-who">🤖 bot/);
   });
 });

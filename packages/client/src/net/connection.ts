@@ -24,6 +24,7 @@ export interface CarViewState {
   inSteer: number;
   inGas: boolean;
   inBrake: boolean;
+  bot: boolean;
   lapsDone: number;
   place: number;
   finished: boolean;

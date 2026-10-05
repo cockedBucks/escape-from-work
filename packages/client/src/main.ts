@@ -16,6 +16,15 @@ import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScr
 import { RaceHud, hudText } from './ui/raceHud';
 import { RoleBadge } from './ui/roleBadge';
 
+/** Car slots driven by server bots (car ids are "car<slot>"). */
+function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: string) => void): void } }): number[] {
+  const slots: number[] = [];
+  state.cars.forEach((c, id) => {
+    if (c.bot) slots.push(Number(id.slice('car'.length)));
+  });
+  return slots;
+}
+
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
 /** Weight of the newest measurement in the smoothed input delay shown on F3. */
@@ -94,7 +103,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     };
     const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
-    lobby.update({ players: fakePlayers, myId: 'me', host: 'me', phase: 'lobby', laps: r.defaultLaps, teams, bots: false });
+    lobby.update({ players: fakePlayers, myId: 'me', host: 'me', phase: 'lobby', laps: r.defaultLaps, teams, bots: true, botSlots: [4] });
   });
 }
 
@@ -219,6 +228,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       laps: state.laps,
       teams: [...state.teams],
       bots: state.bots,
+      botSlots: botSlotsOf(state),
     });
   });
 

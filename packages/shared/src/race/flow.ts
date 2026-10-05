@@ -38,10 +38,10 @@ export function countdownLeft(flow: RaceFlow, tick: number, race: RaceCfg, dt: n
 }
 
 /** Why the host may not start a race now, or null if they may. */
-export function startProblem(flow: RaceFlow, by: string, carsWithDrivers: number): string | null {
+export function startProblem(flow: RaceFlow, by: string, cars: number): string | null {
   if (by !== flow.host) return 'only the host can start the race';
   if (flow.phase !== 'lobby' && flow.phase !== 'results') return 'a race is already on';
-  if (carsWithDrivers < 1) return 'nobody is sitting in a car';
+  if (cars < 1) return 'there are no cars (sit in one, or turn bots on)';
   return null;
 }
 

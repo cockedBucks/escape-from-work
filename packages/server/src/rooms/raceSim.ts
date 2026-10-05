@@ -2,6 +2,9 @@ import {
   NO_INPUT,
   Rng,
   applyEvents,
+  botInput,
+  newBotMemory,
+  type BotMemory,
   dropCar,
   gridOrder,
   isWrongWay,
@@ -87,8 +90,11 @@ export class RaceSim {
   lastResults: ResultRow[] | null = null;
   /** Current place per car id (1 = leading), updated every racing tick. */
   private readonly places = new Map<string, number>();
-  /** Host switch: bots drive empty cars (bot cars arrive in P3.4). */
+  /** Host switch: bots drive empty cars up to `race.botFillCars` cars. */
   botsEnabled = false;
+  /** Car slots driven by server bots, and each bot's memory. */
+  private readonly botSlots = new Set<number>();
+  private readonly botMemory = new Map<number, BotMemory>();
 
   constructor(
     track: Track,
@@ -212,7 +218,7 @@ export class RaceSim {
 
   /** Host: start the race (or a rematch). Cars go to the grid and wait out the countdown. */
   startRace(by: string): string | null {
-    const problem = startProblem(this.flow, by, usedSlots(this.seating()).length);
+    const problem = startProblem(this.flow, by, this.world.cars.length);
     if (problem) return problem;
     startCountdown(this.flow, this.world.tick);
     for (const p of this.players.values()) p.ready = false;
@@ -275,8 +281,30 @@ export class RaceSim {
   /** Host: bots fill empty cars on/off. */
   setBots(by: string, on: boolean): string | null {
     if (by !== this.flow.host) return 'only the host can change bots';
+    if (!seatChangesAllowed(this.flow.phase)) return 'not during a race';
     this.botsEnabled = on;
+    this.syncCars();
     return null;
+  }
+
+  /** Is this car driven by a server bot? */
+  isBot(carId: string): boolean {
+    return this.botSlots.has(slotOfCar(carId));
+  }
+
+  /**
+   * Bots fill empty cars until there are `race.botFillCars` cars (when the host turned bots on).
+   * A person who sits in a bot's car takes it over.
+   */
+  private refreshBots(): void {
+    const humans = new Set(usedSlots(this.seating()));
+    for (const slot of [...this.botSlots]) if (!this.botsEnabled || humans.has(slot)) this.botSlots.delete(slot);
+    if (!this.botsEnabled) return;
+    for (let slot = 0; slot < this.cfg.race.maxCars && humans.size + this.botSlots.size < this.cfg.race.botFillCars; slot++) {
+      if (humans.has(slot) || this.botSlots.has(slot)) continue;
+      this.botSlots.add(slot);
+      this.botMemory.set(slot, newBotMemory());
+    }
   }
 
   /** Host: laps for the next race. */
@@ -297,7 +325,8 @@ export class RaceSim {
 
   /** Make the world's cars match the occupied slots (new cars start on the start line). */
   private syncCars(): void {
-    const wanted = new Set(usedSlots(this.seating()).map(carIdForSlot));
+    this.refreshBots();
+    const wanted = new Set([...usedSlots(this.seating()), ...this.botSlots].map(carIdForSlot));
     for (let i = this.world.cars.length - 1; i >= 0; i--) {
       const id = this.world.cars[i]!.id;
       if (wanted.has(id)) continue;
@@ -356,6 +385,11 @@ export class RaceSim {
     // During the countdown everyone waits on the grid: controls are ignored.
     const live = inputsAllowed(this.flow.phase);
     for (const slot of usedSlots(seating)) inputs[carIdForSlot(slot)] = live ? this.carInput(slot, seating) : NO_INPUT;
+    for (const slot of this.botSlots) {
+      const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
+      const memory = this.botMemory.get(slot);
+      if (car && memory) inputs[car.id] = live ? botInput(car, this.world.track, this.cfg, memory) : NO_INPUT;
+    }
     for (const p of this.players.values()) p.respawnPending = false;
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);
