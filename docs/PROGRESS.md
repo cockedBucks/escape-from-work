@@ -4,9 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.9 (phase end)
-- Status: P2.8 done (physics feel pass + client prediction). `npm run verify` passes (190 tests).
+- Phase: P3 — Race loop (`docs/phases/P03-race-loop.md`)
+- Next task: P3.1 (race state machine)
+- Status: P2 done and tagged `p2-done`. `npm run verify` passes (193 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -42,22 +42,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   driver + golden lap/replay tests + bot race in verify, 60 Hz server sim with validated input,
   greybox client (track, box car, chase cam, interpolation, F3), live tuning (F2 panel, Save,
   config hot reload). Gate "drive it": all good. Review fixes D038. Decisions D031–D038.
-- 2026-10-04: P2.1 players, cars and seats — shared seat rules, lobby messages, players in state
-  (name, slot, seat, role, connected), cars per slot, temporary join screen + `join` scenario. D039.
-- 2026-10-04: P2.2 input merge — shared role permission table + `mergeCarInput`, server merges per car
-  each tick, role badge (PILOT / ENGINEER / SOLO + keys, flashes on change). D040.
-- 2026-10-04: P2.3 multiple cars — starting grid (rows of two behind the line), car-to-car bumps by
-  weight (`carHit` event), cars spawn on their slot's grid spot. Golden hash a71bcb87 → 27703279. D041.
-- 2026-10-04: P2.4 disconnect and rejoin — seat held `net.reconnectSeconds` on drop (partner solo),
-  SDK auto-reconnect + saved token for reopened tabs; integration tests + browser reload smoke. D042.
-- 2026-10-04: P2.5 bot clients — `npm run bots` (pilot + engineer bot per car over WebSockets),
-  `carStateFromView` adapter, integration lap test; 4 cars lapped in 36.9–37.3 s. D043.
-- 2026-10-04: P2.6 latency visibility — `ackSeq` echo, input-delay meter, tick-based snapshot
-  timeline, F3 shows snapshot age + input→screen (88 ms on localhost). D044.
-- 2026-10-05: P2.7 LAN guide — docs/LAN.md (host, firewall command + GUI, testing, problems);
-  `npm start` confirmed (builds, serves page, prints LAN URL).
-- 2026-10-05: P2.8 act on the fun gate — physics feel pass (carve, engine curve, gentler coasting,
-  calmer steering; D047) and client prediction for your own car (turn shows 14 ms after the key; D048).
+- 2026-10-05: **P2 done** — seats (Pilot/Engineer/Solo) + temporary join screen, role-filtered
+  input merge, multiple cars with grid + bumps, disconnect/rejoin (seat held, partner solo),
+  networked bot clients (`npm run bots`), latency overlay (input → screen), docs/LAN.md, FUN GATE
+  ("a bit laggy, fun, physics weird") → physics feel pass + client prediction. Review fixes D049
+  (critical: reconnect controls). Decisions D039–D049.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

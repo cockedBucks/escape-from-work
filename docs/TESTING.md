@@ -46,7 +46,11 @@ split-control networking end to end. Bots also fill empty cars in real races.
    requests (HTTP ≥ 400) per scenario.
 4. An unknown scenario sets `window.__game.error`, so that shot fails at once instead of
    timing out. Hooks live in `packages/client/src/test-hooks.ts` (`KNOWN_SCENARIOS`).
-   `stats()` returns `tickMs`/`pingMs` as `null` until measured.
+   `stats()` returns `tickMs`/`pingMs`/`inputDelayMs`/`snapshotAgeMs` as `null` until measured.
+   `focusCar()` returns the drawn pose `{ x, z, yaw, speed }` of the followed car (or `null`), for
+   browser checks of motion and prediction. Drive with Playwright's trusted key presses
+   (`page.keyboard.down`), not synthetic in-page `KeyboardEvent`s, and press slowly (~250 ms)
+   when checking DOM buttons that live updates touch.
 
 ### Scenarios
 

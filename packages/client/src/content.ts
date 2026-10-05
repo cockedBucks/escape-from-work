@@ -1,3 +1,4 @@
+export { DEFAULT_TRACK } from '@escape/shared';
 import { buildTrack, parseCars, parseTrack, parseTuning, type CarsConfig, type Track, type Tuning } from '@escape/shared';
 import rawCars from '../../../config/cars.json';
 import rawTuning from '../../../config/tuning.json';
@@ -5,7 +6,6 @@ import rawTuning from '../../../config/tuning.json';
 // Config files are bundled into the page at build time (offline, no fetches).
 const trackFiles = import.meta.glob<unknown>('../../../config/tracks/*.json', { eager: true, import: 'default' });
 
-export const DEFAULT_TRACK = 'test-loop';
 
 // Dev: tuning.json and cars.json changes arrive live from the server (MSG.tuning), so the
 // page must not reload for them. Track edits are not accepted here: Vite reloads the page.

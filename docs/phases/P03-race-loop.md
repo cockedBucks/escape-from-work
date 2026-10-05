@@ -15,6 +15,9 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
 
 - [ ] **P3.1 Race state machine.** Phases lobby / countdown / racing / results in shared rules;
   server drives them. Host = first player, passes on leave. Tests for every transition.
+  Lock seat changes once the countdown starts (P2 review: leave + retake a seat mid-race
+  would be a free "teleport to the grid" and would reset laps). `maxClients` should count
+  only seats, not watchers/held seats (P2 review).
 - [ ] **P3.2 Lobby UI.** Replaces the temporary join screen: name (remembered locally), team list
   with slot colors and generated IT-pun names (editable), seat picker, solo indicator, Ready,
   host controls (Shuffle, bots, laps, Start). Scenario `lobby`. `/shots lobby`.

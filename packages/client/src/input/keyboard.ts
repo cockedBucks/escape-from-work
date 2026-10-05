@@ -67,10 +67,13 @@ export class KeyboardControls {
     this.emit();
   };
 
-  /** The controls held right now (for predicting your own car). */
-  current(): CarInput {
-    const c = controlsFrom(this.held);
-    return { steer: c.steer ?? 0, gas: c.gas ?? false, brake: c.brake ?? false, respawn: c.respawn ?? false };
+  /** Write the controls held right now into `out` (per-frame safe: no allocation). */
+  readInto(out: CarInput): CarInput {
+    out.steer = (this.held.has('right') ? 1 : 0) - (this.held.has('left') ? 1 : 0);
+    out.gas = this.held.has('gas');
+    out.brake = this.held.has('brake');
+    out.respawn = this.held.has('respawn');
+    return out;
   }
 
   private emit(): void {

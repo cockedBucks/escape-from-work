@@ -12,12 +12,16 @@ import {
   newBotMemory,
   type CarStats,
   type CarViewLike,
+  type LobbyError,
   type Track,
   type Tuning,
 } from '@escape/shared';
 
 interface BotStateView {
-  players?: { forEach(cb: (p: { slot: number; seat: string }, id: string) => void): void };
+  players?: {
+    forEach(cb: (p: { slot: number; seat: string }, id: string) => void): void;
+    get(id: string): { slot: number; seat: string } | undefined;
+  };
   cars?: { get(id: string): (CarViewLike & { progress: number }) | undefined };
 }
 
@@ -73,7 +77,25 @@ const CONFIRM_MS = 5000;
 
 /** Bots do not need these broadcasts; listening keeps the SDK from warning about each one. */
 function ignoreBroadcasts(room: Room): void {
-  for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.lobbyError]) room.onMessage(type, () => {});
+  for (const type of [MSG.events, MSG.tuning, MSG.reload]) room.onMessage(type, () => {});
+}
+
+/**
+ * Ask for a seat and wait until the server confirms it. Fails loudly when the server
+ * refuses (a person or another bot run took it), instead of driving from no seat.
+ */
+async function takeSeat(room: Room<unknown, BotStateView>, slot: number, seat: 'pilot' | 'engineer'): Promise<void> {
+  let refused: (reason: Error) => void = () => {};
+  const refusal = new Promise<never>((_, reject) => (refused = reject));
+  room.onMessage(MSG.lobbyError, (e: LobbyError) => refused(new Error(`bot: car ${slot + 1} ${seat} seat refused: ${e.reason}`)));
+  room.send(MSG.setSeat, { slot, seat });
+  await Promise.race([
+    waitFor(room, (s) => {
+      const me = s.players?.get(room.sessionId);
+      return me?.slot === slot && me.seat === seat;
+    }, CONFIRM_MS),
+    refusal,
+  ]);
 }
 
 /** Start one bot car (two clients). Resolves once both bots are seated. */
@@ -81,7 +103,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const { endpoint, tuning, track, stats } = opts;
   const pilot = await new Client(endpoint).join<BotStateView>(ROOM_NAME);
   ignoreBroadcasts(pilot);
-  const first =await waitFor(pilot, (s) => s.players !== undefined, CONFIRM_MS);
+  const first = await waitFor(pilot, (s) => s.players !== undefined, CONFIRM_MS);
   const slot = opts.slot !== undefined && opts.slot >= 0 ? opts.slot : freeSlot(first, tuning.race.maxCars);
   if (slot < 0) {
     await pilot.leave();
@@ -89,11 +111,16 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   }
   const label = opts.name ?? `Bot ${slot + 1}`;
   pilot.send(MSG.setName, { name: `${label} P` });
-  pilot.send(MSG.setSeat, { slot, seat: 'pilot' });
   const engineer = await new Client(endpoint).join<BotStateView>(ROOM_NAME);
   ignoreBroadcasts(engineer);
   engineer.send(MSG.setName, { name: `${label} E` });
-  engineer.send(MSG.setSeat, { slot, seat: 'engineer' });
+  try {
+    await takeSeat(pilot, slot, 'pilot');
+    await takeSeat(engineer, slot, 'engineer');
+  } catch (err) {
+    await Promise.allSettled([pilot.leave(), engineer.leave()]);
+    throw err;
+  }
 
   const carId = carIdForSlot(slot);
   await waitFor(engineer, (s) => s.cars?.get(carId) !== undefined, CONFIRM_MS);

@@ -166,3 +166,13 @@ describe('RaceSim role permissions', () => {
     expect(moved(sim, 'car0')).toBeGreaterThan(5);
   });
 });
+
+describe('RaceSim new cars', () => {
+  it('a car that appears mid-race starts ghosted', () => {
+    const sim = soloSim('a');
+    for (let i = 0; i < 120; i++) sim.tick();
+    sim.addPlayer('b');
+    sim.setSeat('b', 1, 'solo');
+    expect(car(sim, 'car1').ghostUntilTick).toBeGreaterThan(sim.world.tick);
+  });
+});

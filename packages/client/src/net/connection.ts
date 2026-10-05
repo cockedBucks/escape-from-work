@@ -127,6 +127,8 @@ export class ServerCarSource implements CarSource {
   private readonly timeline: ServerTimeline;
   /** Client time the latest snapshot arrived (ms), for the F3 "snapshot age". */
   lastArrival = -1;
+  /** Timeline time of the latest snapshot (ms): when it happened, without arrival jitter. */
+  lastTime = -1;
 
   /**
    * @param interpDelayMs how far in the past cars are drawn (`net.interpDelayMs`, tunable live)
@@ -146,7 +148,8 @@ export class ServerCarSource implements CarSource {
       cars.set(id, { x: c.x, y: c.y, z: c.z, yaw: c.yaw, speed: c.speed, steer: c.steer, respawning: c.respawning, ghost: c.ghost });
     });
     this.lastArrival = now;
-    this.buffer.push(this.timeline.timeOf(state.tick, now), cars);
+    this.lastTime = this.timeline.timeOf(state.tick, now);
+    this.buffer.push(this.lastTime, cars);
   }
 
   sample(now: number, out: Map<string, CarSnap>): void {

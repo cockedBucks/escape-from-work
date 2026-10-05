@@ -2,8 +2,8 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, type LobbyError, type Role, type Tuning } from '@escape/shared';
-import { DEFAULT_TRACK, loadTrack, loadTuning } from './content';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, type CarInput, type LobbyError, type Role, type Tuning } from '@escape/shared';
+import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSource } from './game';
 import { KeyboardControls } from './input/keyboard';
 import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
@@ -145,15 +145,19 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   let myRole: Role | null = null;
   const track = loadTrack(DEFAULT_TRACK, tuning);
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
-  const predictor = new OwnCarPredictor(track);
+  const predictor = new OwnCarPredictor(track, loadCars().cars[0]!.stats);
+  const localInput: CarInput = { ...NO_INPUT };
+  /** Your car id, cached so the frame loop does not build a string every frame. */
+  let myCarId: string | null = null;
   let keyboard: KeyboardControls | null = null;
   const carSource: CarSource = {
     sample(now, out) {
       source.sample(now, out);
-      const mine = mySlot >= 0 ? out.get(carIdForSlot(mySlot)) : undefined;
+      const mine = myCarId === null ? undefined : out.get(myCarId);
       if (!mine) return;
       const lead = liveStats.inputDelayMs ?? liveStats.pingMs ?? 0;
-      predictor.predict(now, keyboard?.current() ?? NO_INPUT, myRole, lead, latestTuning, mine);
+      if (keyboard) keyboard.readInto(localInput);
+      predictor.predict(now, localInput, myRole, lead, latestTuning, mine);
     },
   };
   room.onStateChange((state) => {
@@ -169,9 +173,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       liveStats.inputDelayMs = prev === null ? delay : prev + (delay - prev) * INPUT_DELAY_SMOOTHING;
     }
     mySlot = me?.slot ?? -1;
+    myCarId = mySlot >= 0 ? carIdForSlot(mySlot) : null;
     myRole = me && me.role !== '' ? (me.role as Role) : null;
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
-    if (myCar) predictor.onServer(carIdForSlot(mySlot), myCar, now);
+    if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
     join.update(players, room.sessionId);
   });

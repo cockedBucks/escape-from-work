@@ -110,6 +110,9 @@ export class RaceSim {
     if (!p) return;
     p.connected = connected;
     p.input = { ...NO_INPUT };
+    // A reopened page counts its inputs from 1 again: forget the old page's numbering, or
+    // every new input would look "older" than the last one and be dropped.
+    if (connected) p.lastSeq = -1;
     p.respawnHeld = false;
     p.respawnPending = false;
   }
@@ -150,6 +153,8 @@ export class RaceSim {
     for (const id of wanted) {
       if (this.world.cars.some((c) => c.id === id)) continue;
       const car = createCarOnGrid(id, this.stats, this.world.track, slotOfCar(id), this.cfg.race);
+      // A car appearing mid-race is ghosted for a moment, so it can't land on a passing car.
+      car.ghostUntilTick = this.world.tick + Math.round(this.cfg.race.respawnGhostSeconds / this.cfg.sim.dt);
       // Keep cars sorted by id: the sim iterates them in this order (determinism).
       const at = this.world.cars.findIndex((c) => c.id > id);
       if (at < 0) this.world.cars.push(car);

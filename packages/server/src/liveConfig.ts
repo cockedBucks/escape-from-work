@@ -1,6 +1,6 @@
 import { renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { ConfigError, checkTrack, parseTuning, type CarsConfig, type Track, type Tuning } from '@escape/shared';
+import { ConfigError, DEFAULT_TRACK, checkTrack, parseTuning, type CarsConfig, type Track, type Tuning } from '@escape/shared';
 import { REPO_ROOT, loadCarsFile, loadTrackFile, loadTuningFile } from './config';
 
 export type ConfigChange =
@@ -10,8 +10,6 @@ export type ConfigChange =
 
 type Listener = (change: ConfigChange) => void;
 
-/** Track used until the lobby can pick one (P3). */
-export const DEFAULT_TRACK = 'test-loop';
 
 /**
  * The server's current config (tuning, cars, track). Rooms and dev routes share it. In dev it

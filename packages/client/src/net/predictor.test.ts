@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { NO_INPUT, forward, type CarInput } from '@escape/shared';
 import { loadTrack, loadTuning } from '../content';
 import { OwnCarPredictor, type OwnCarView } from './predictor';
+
+const STATS = { speed: 1, grip: 1, weight: 1 };
 import type { CarSnap } from './snapshots';
 
 const cfg = loadTuning();
@@ -21,7 +23,7 @@ const GAS: CarInput = { ...NO_INPUT, gas: true };
 
 describe('OwnCarPredictor', () => {
   it('runs the car ahead by the time since the update plus the lead', () => {
-    const p = new OwnCarPredictor(track);
+    const p = new OwnCarPredictor(track, STATS);
     p.onServer('car0', view(20), 1000);
     const o = out();
     expect(p.predict(1000, NO_INPUT, 'solo', 100, cfg, o)).toBe(true);
@@ -31,8 +33,8 @@ describe('OwnCarPredictor', () => {
   });
 
   it('your own keys act at once: holding gas predicts further than coasting', () => {
-    const a = new OwnCarPredictor(track);
-    const b = new OwnCarPredictor(track);
+    const a = new OwnCarPredictor(track, STATS);
+    const b = new OwnCarPredictor(track, STATS);
     a.onServer('car0', view(10), 0);
     b.onServer('car0', view(10), 0);
     const oa = out();
@@ -43,11 +45,11 @@ describe('OwnCarPredictor', () => {
   });
 
   it('a Pilot predicts with their own steer but the Engineer\'s pedals from the server', () => {
-    const p = new OwnCarPredictor(track);
+    const p = new OwnCarPredictor(track, STATS);
     p.onServer('car0', view(10, { inGas: false }), 0);
     const pilotPressingGas = out();
     p.predict(0, { ...GAS, steer: 1 }, 'pilot', 150, cfg, pilotPressingGas);
-    const q = new OwnCarPredictor(track);
+    const q = new OwnCarPredictor(track, STATS);
     q.onServer('car0', view(10, { inGas: false }), 0);
     const coasting = out();
     q.predict(0, { ...NO_INPUT, steer: 1 }, 'pilot', 150, cfg, coasting);
@@ -56,7 +58,7 @@ describe('OwnCarPredictor', () => {
   });
 
   it('never runs further ahead than predictMaxMs; 0 turns prediction off', () => {
-    const p = new OwnCarPredictor(track);
+    const p = new OwnCarPredictor(track, STATS);
     p.onServer('car0', view(20), 0);
     const far = out();
     p.predict(10_000, NO_INPUT, 'solo', 0, cfg, far);
@@ -66,7 +68,7 @@ describe('OwnCarPredictor', () => {
   });
 
   it('a correction from the server fades in instead of jumping', () => {
-    const p = new OwnCarPredictor(track);
+    const p = new OwnCarPredictor(track, STATS);
     p.onServer('car0', view(0), 0);
     const o = out();
     p.predict(0, NO_INPUT, 'solo', 0, cfg, o);
@@ -82,7 +84,7 @@ describe('OwnCarPredictor', () => {
   });
 
   it('does not predict while watching or respawning', () => {
-    const p = new OwnCarPredictor(track);
+    const p = new OwnCarPredictor(track, STATS);
     p.onServer('car0', view(10), 0);
     expect(p.predict(0, NO_INPUT, null, 50, cfg, out())).toBe(false);
     p.onServer('car0', view(10, { respawning: true }), 10);

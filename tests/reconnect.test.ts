@@ -13,10 +13,11 @@ interface PlayerView {
   seat: string;
   role: string;
   connected: boolean;
+  ackSeq: number;
 }
 interface StateView {
   players?: { size: number; get(id: string): PlayerView | undefined };
-  cars?: { size: number };
+  cars?: { size: number; get(id: string): { x: number } | undefined };
 }
 
 /** Short seat-hold window so the timeout case finishes quickly. */
@@ -69,6 +70,25 @@ describe('disconnect and rejoin (real server)', () => {
     await waitForState(a, (s) => s.players?.get(bId)?.connected === true, 'B back');
     await waitForState(a, (s) => s.players?.get(a.sessionId)?.role === 'pilot', 'A is Pilot again');
     expect(a.state.players!.get(bId)!.role).toBe('engineer');
+
+    await back.leave();
+    await a.leave();
+  });
+
+  it('a reopened page can drive again (its input numbers restart at 1)', async () => {
+    const [a, b] = await pair(endpoint);
+    // The old page had sent many inputs (high seq numbers) before the tab closed.
+    b.send(MSG.input, { seq: 500, gas: false });
+    await waitForState(a, (s) => s.players?.get(b.sessionId)?.ackSeq === 500, 'old page input applied');
+    const token = b.reconnectionToken;
+    await b.leave(false);
+    await waitForState(a, (s) => s.players?.get(b.sessionId)?.connected === false, 'B away');
+
+    const back = await new Client(endpoint).reconnect<StateView>(token);
+    await waitForState(a, (s) => s.players?.get(back.sessionId)?.connected === true, 'B back');
+    const startX = a.state.cars!.get('car0')!.x;
+    back.send(MSG.input, { seq: 1, gas: true }); // a fresh page starts counting at 1
+    await waitForState(a, (s) => (s.cars?.get('car0')?.x ?? startX) > startX + 3, 'Engineer drives again after reconnect');
 
     await back.leave();
     await a.leave();
