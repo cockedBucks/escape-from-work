@@ -3,7 +3,7 @@ import { boardRows, raceTime, type BoardCar } from './scoreboard';
 import { pickWatched } from './spectator';
 
 const car = (slot: number, over: Partial<BoardCar> = {}): BoardCar => ({
-  slot, place: 0, lapsDone: 0, finished: false, dnf: false, gapMs: 0, finishMs: 0, bot: false, ...over,
+  slot, place: 0, lapsDone: 0, finished: false, dnf: false, gapMs: 0, finishMs: 0, bestLapMs: 0, bot: false, ...over,
 });
 const players = [
   { name: 'Dina', slot: 0, seat: 'pilot' },

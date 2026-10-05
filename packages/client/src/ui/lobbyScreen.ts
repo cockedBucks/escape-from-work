@@ -184,7 +184,7 @@ export class LobbyScreen {
 
   private readonly onKey = (e: KeyboardEvent): void => {
     if (e.code !== 'Escape' || !this.view) return;
-    if (this.view.phase === 'lobby' || this.view.phase === 'results') this.show(!this.visible);
+    if (this.view.phase === 'lobby') this.show(!this.visible);
   };
 
   private readonly onChange = (e: Event): void => {
@@ -234,7 +234,7 @@ export class LobbyScreen {
     this.view = view;
     const me = view.players.find((p) => p.id === view.myId);
     if (me && document.activeElement !== this.nameInput && !this.nameInput.value) this.nameInput.value = me.name;
-    const between = view.phase === 'lobby' || view.phase === 'results';
+    const between = view.phase === 'lobby'; // the results screen covers the results phase
     if (!prev || prev.phase !== view.phase) this.show(between);
     this.render(false);
   }

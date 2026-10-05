@@ -27,7 +27,7 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
 - [x] **P3.4 Bot cars.** Server-side bot driver controls empty cars when the host enables bots.
 - [x] **P3.5 Spectators and scoreboard.** Late joiners watch with a spectator cam that cycles cars;
   Tab scoreboard (place, team, lap, gap).
-- [ ] **P3.6 Results screen.** Positions, total time, best lap; Rematch and Lobby buttons.
+- [x] **P3.6 Results screen.** Positions, total time, best lap; Rematch and Lobby buttons.
   Scenario `results`. `/shots results`.
 - [ ] **P3.7 Load test.** Integration test: 8 cars driven by 16 bot clients finish a 3-lap race.
   Record average and max server tick time; it must stay well under the 16.7 ms tick budget.

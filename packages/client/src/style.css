@@ -562,3 +562,60 @@ body {
   font-size: 1.1rem;
   pointer-events: none;
 }
+
+/* Results (P3.6). */
+.results .join-panel {
+  width: min(48rem, 100%);
+}
+
+.results table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.2rem;
+}
+
+.results th {
+  text-align: left;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: var(--road);
+  padding: 0 0.6rem 0.3rem;
+}
+
+.results td {
+  padding: 0.45rem 0.6rem;
+  border-top: 2px solid rgba(30, 34, 48, 0.1);
+}
+
+.results .r-place {
+  font-size: 1.6rem;
+  font-weight: 600;
+  width: 3.2rem;
+}
+
+.results .winner .r-place {
+  color: var(--red);
+  font-size: 2rem;
+}
+
+.results .r-team {
+  font-weight: 600;
+  border-left: 0.5rem solid var(--team);
+}
+
+.results .r-team small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.95rem;
+  color: var(--road);
+}
+
+.results .r-time,
+.results .r-best {
+  font-variant-numeric: tabular-nums;
+}
+
+.results .fastest {
+  color: #9b5de5;
+  font-weight: 600;
+}

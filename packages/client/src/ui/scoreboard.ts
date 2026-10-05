@@ -10,6 +10,7 @@ export interface BoardCar {
   dnf: boolean;
   gapMs: number;
   finishMs: number;
+  bestLapMs: number;
   bot: boolean;
 }
 

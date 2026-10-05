@@ -64,7 +64,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `garage` | all roster cars side by side in team colors |
 | `lobby` | lobby with fake players in 4 teams |
 | `items` | frozen moment with several item effects active |
-| `results` | results screen with fake times, awards and points |
+| `results` | results screen with made-up times (awards and points join in P9) |
 | `menu` | main menu |
 
 Any scenario also takes `&quality=low|medium|high` (default `quality.default`).
