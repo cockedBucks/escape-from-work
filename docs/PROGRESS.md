@@ -5,14 +5,13 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P3 — Race loop (`docs/phases/P03-race-loop.md`)
-- Next task: HUMAN GATE — first real race (then P3.8)
-- Status: P3.7 done. `npm run verify` passes (250 tests + bot race). `npm run test:load` passes. Waiting on the human.
+- Next task: P3.8 (phase end)
+- Status: P3 gate passed ("all good"). `npm run verify` passes (250 tests + bot race).
 
 ## Half-done
 - (nothing)
 
 ## Waiting on the human
-- P3 HUMAN GATE "first real race": 4+ people (or bots), 3 races, Shuffle, Rematch, mid-race join.
 - Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
 
 ## Environment
@@ -79,3 +78,4 @@ roll old "Last sessions" lines into one summary line per finished phase.
   clicks; fixed, D045). Then: steering "a little bit laggy"; "it is fun" but physics "feels
   weird": turning feels like a box spinning, steering twitchy/slow, speed feels wrong. Tab
   close/reopen not tried yet. F3 number not reported. → P2.8: prediction + physics feel pass.
+- 2026-10-05 P3 gate "first real race": "all good" — no confusion or breakage reported.

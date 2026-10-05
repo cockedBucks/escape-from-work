@@ -31,7 +31,7 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
   Scenario `results`. `/shots results`.
 - [x] **P3.7 Load test.** Integration test: 8 cars driven by 16 bot clients finish a 3-lap race.
   Record average and max server tick time; it must stay well under the 16.7 ms tick budget.
-- [ ] **HUMAN GATE — first real race.**
+- [x] **HUMAN GATE — first real race.**
   1. Get 4+ people (or fewer + bots on). Everyone opens the LAN URL, forms teams, picks seats.
   2. Race 3 times. Try Shuffle, Rematch, someone joining mid-race.
   3. Reply: what was confusing in the lobby, what broke, what was fun.
