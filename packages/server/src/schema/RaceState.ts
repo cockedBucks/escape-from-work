@@ -57,6 +57,14 @@ export const RaceState = schema(
     players: t.map(PlayerState),
     /** Cars by id (for now: the sessionId of the solo player driving it). */
     cars: t.map(CarView),
+    /** Race phase: 'lobby' | 'countdown' | 'racing' | 'results'. */
+    phase: t.string().default('lobby'),
+    /** Tick the phase began (with `tick` and race.countdownSeconds, clients show the countdown). */
+    phaseTick: t.uint32().default(0),
+    /** Player id of the host ('' when nobody is here). */
+    host: t.string().default(''),
+    /** Laps for the next / current race. */
+    laps: t.uint8().default(3),
     /** Sim tick of the state being sent (clients use it to order snapshots). */
     tick: t.uint32().default(0),
     /** Server cost of one sim tick (ms, smoothed), for the F3 overlay. */

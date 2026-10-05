@@ -2,6 +2,7 @@ import { Room, type Client } from '@colyseus/core';
 import {
   MSG,
   NAME_MAX_LENGTH,
+  SetLapsSchema,
   SetNameSchema,
   SetSeatSchema,
   effectiveRole,
@@ -44,8 +45,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     const firstCar = live.cars.cars[0];
     if (!firstCar) throw new Error('config/cars.json has no cars');
     this.sim = new RaceSim(live.track, this.tuning, firstCar.stats);
-    // Two players per car; more would only be able to watch.
-    this.maxClients = this.tuning.race.maxCars * 2;
+    // Two players per car plus some watchers (seats themselves are limited by the seat rules).
+    this.maxClients = this.tuning.race.maxCars * 2 + this.tuning.race.maxSpectators;
     this.setPatchRate(this.tuning.net.patchRateMs);
     this.unsubscribe = live.subscribe((change) => this.onConfigChange(change));
 
@@ -74,8 +75,31 @@ export class RaceRoom extends Room<{ state: RaceState }> {
 
     this.onMessage(MSG.leaveSeat, (client) => {
       if (!this.limits.get(client.sessionId)?.lobby.take()) return;
-      this.sim.leaveSeat(client.sessionId);
+      const problem = this.sim.leaveSeat(client.sessionId);
+      if (problem) return this.refuse(client, problem);
       this.syncPlayers();
+    });
+
+    // Host controls. The race rules decide who may do what and when.
+    this.onMessage(MSG.hostStart, (client) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const problem = this.sim.startRace(client.sessionId);
+      if (problem) return this.refuse(client, problem);
+      console.log(`[room] race start (${this.sim.world.cars.length} cars, ${this.sim.flow.laps} laps)`);
+    });
+
+    this.onMessage(MSG.hostLaps, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = SetLapsSchema.safeParse(message);
+      if (!msg.success) return this.refuse(client, 'bad laps request');
+      const problem = this.sim.setLaps(client.sessionId, msg.data.laps);
+      if (problem) this.refuse(client, problem);
+    });
+
+    this.onMessage(MSG.hostLobby, (client) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const problem = this.sim.backToLobby(client.sessionId);
+      if (problem) this.refuse(client, problem);
     });
 
     // The tick rate is fixed when the room starts: changing sim.dt needs a server restart.
@@ -178,6 +202,11 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   /** Copy the sim's cars into the synced state (Colyseus sends only what changed). */
   private syncCars(world: World): void {
     this.state.tick = world.tick;
+    const flow = this.sim.flow;
+    this.state.phase = flow.phase;
+    this.state.phaseTick = flow.phaseTick;
+    this.state.host = flow.host ?? '';
+    this.state.laps = flow.laps;
     // Input echo: sent with the same patch as the motion it caused.
     this.state.players.forEach((view, id) => {
       view.ackSeq = this.sim.ackSeq(id);

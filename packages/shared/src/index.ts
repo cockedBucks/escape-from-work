@@ -45,6 +45,7 @@ export {
   InputMessageSchema,
   NAME_MAX_LENGTH,
   SetNameSchema,
+  SetLapsSchema,
   SetSeatSchema,
   TuningPostSchema,
   parseInputMessage,
@@ -69,3 +70,19 @@ export { ROLE_CONTROLS, mayUse, mergeCarInput, type Control, type InputPart } fr
 export { gridSpot, type GridSpot } from './race/grid';
 export { collideCars } from './sim/carCollisions';
 export { carStateFromView, type CarViewLike } from './bot/fromView';
+export {
+  RACE_PHASES,
+  chooseHost,
+  countdownLeft,
+  countdownTicks,
+  inputsAllowed,
+  lapsProblem,
+  newFlow,
+  seatChangesAllowed,
+  startCountdown,
+  startProblem,
+  stepFlow,
+  toLobby,
+  type RaceFlow,
+  type RacePhase,
+} from './race/flow';

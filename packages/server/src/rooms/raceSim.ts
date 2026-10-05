@@ -1,6 +1,16 @@
 import {
   NO_INPUT,
   carIdForSlot,
+  chooseHost,
+  inputsAllowed,
+  lapsProblem,
+  newFlow,
+  seatChangesAllowed,
+  startCountdown,
+  startProblem,
+  stepFlow,
+  toLobby,
+  type RaceFlow,
   createCarOnGrid,
   createWorld,
   effectiveRole,
@@ -21,6 +31,9 @@ import {
   type Tuning,
   type World,
 } from '@escape/shared';
+
+/** Refusal while a race is on (seat changes would teleport a car back to the grid). */
+const SEATS_LOCKED = 'seats are locked during the race';
 
 /** Grid position of a server car: its slot ("car3" → 3). */
 const slotOfCar = (id: string): number => Number(id.slice('car'.length));
@@ -43,6 +56,10 @@ export class RaceSim {
   readonly world: World;
   private stats: CarStats;
   private readonly players = new Map<string, Player>();
+  /** Player ids in the order they joined (the host is the earliest connected one). */
+  private readonly joinOrder: string[] = [];
+  /** Race phase, host and laps (shared rules in race/flow.ts). */
+  readonly flow: RaceFlow;
 
   constructor(
     track: Track,
@@ -51,6 +68,11 @@ export class RaceSim {
   ) {
     this.world = createWorld(track, []);
     this.stats = { ...stats };
+    this.flow = newFlow(cfg.race);
+  }
+
+  private updateHost(): void {
+    this.flow.host = chooseHost(this.joinOrder, (id) => this.players.get(id)?.connected === true, this.flow.host);
   }
 
   /**
@@ -99,6 +121,8 @@ export class RaceSim {
       id, slot: -1, seat: null, connected: true,
       lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false,
     });
+    this.joinOrder.push(id);
+    this.updateHost();
   }
 
   /**
@@ -115,17 +139,24 @@ export class RaceSim {
     if (connected) p.lastSeq = -1;
     p.respawnHeld = false;
     p.respawnPending = false;
+    this.updateHost();
   }
 
   removePlayer(id: string): void {
     this.players.delete(id);
+    const at = this.joinOrder.indexOf(id);
+    if (at >= 0) this.joinOrder.splice(at, 1);
+    this.updateHost();
     this.syncCars();
+    // Everyone left: start over in the lobby.
+    if (this.players.size === 0) toLobby(this.flow, this.world.tick);
   }
 
   /** Take a seat. Returns why not, or null on success. */
   setSeat(id: string, slot: number, seat: Seat): string | null {
     const p = this.players.get(id);
     if (!p) return 'unknown player';
+    if (!seatChangesAllowed(this.flow.phase)) return SEATS_LOCKED;
     const problem = seatProblem(this.seating(), id, slot, seat, this.cfg.race.maxCars);
     if (problem) return problem;
     p.slot = slot;
@@ -135,13 +166,42 @@ export class RaceSim {
     return null;
   }
 
-  /** Leave your seat and watch. */
-  leaveSeat(id: string): void {
+  /** Leave your seat and watch. Returns why not, or null on success. */
+  leaveSeat(id: string): string | null {
     const p = this.players.get(id);
-    if (!p) return;
+    if (!p) return 'unknown player';
+    if (!seatChangesAllowed(this.flow.phase)) return SEATS_LOCKED;
     p.slot = -1;
     p.seat = null;
     this.syncCars();
+    return null;
+  }
+
+  /** Host: start the race (or a rematch). Cars go to the grid and wait out the countdown. */
+  startRace(by: string): string | null {
+    const problem = startProblem(this.flow, by, usedSlots(this.seating()).length);
+    if (problem) return problem;
+    startCountdown(this.flow, this.world.tick);
+    for (const car of this.world.cars) {
+      Object.assign(car, createCarOnGrid(car.id, car.stats, this.world.track, slotOfCar(car.id), this.cfg.race));
+    }
+    return null;
+  }
+
+  /** Host: laps for the next race. */
+  setLaps(by: string, laps: number): string | null {
+    const problem = lapsProblem(this.flow, by, laps, this.cfg.race);
+    if (problem) return problem;
+    this.flow.laps = laps;
+    return null;
+  }
+
+  /** Host: from the results back to the lobby. */
+  backToLobby(by: string): string | null {
+    if (by !== this.flow.host) return 'only the host can do that';
+    if (this.flow.phase !== 'results') return 'only after a race';
+    toLobby(this.flow, this.world.tick);
+    return null;
   }
 
   /** Make the world's cars match the occupied slots (new cars start on the start line). */
@@ -199,9 +259,14 @@ export class RaceSim {
   tick(): SimEvent[] {
     const inputs: Record<string, CarInput> = {};
     const seating = this.seating();
-    for (const slot of usedSlots(seating)) inputs[carIdForSlot(slot)] = this.carInput(slot, seating);
+    // During the countdown everyone waits on the grid: controls are ignored.
+    const live = inputsAllowed(this.flow.phase);
+    for (const slot of usedSlots(seating)) inputs[carIdForSlot(slot)] = live ? this.carInput(slot, seating) : NO_INPUT;
     for (const p of this.players.values()) p.respawnPending = false;
     this.lastInputs = inputs;
-    return step(this.world, inputs, this.cfg);
+    const events = step(this.world, inputs, this.cfg);
+    // Race over comes from the race rules in P3.3; until then a race only ends via the lobby.
+    stepFlow(this.flow, this.world.tick, this.cfg.race, this.cfg.sim.dt, false);
+    return events;
   }
 }

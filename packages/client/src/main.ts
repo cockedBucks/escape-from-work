@@ -2,7 +2,7 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, type CarInput, type LobbyError, type Role, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type LobbyError, type RacePhase, type Role, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSource } from './game';
 import { KeyboardControls } from './input/keyboard';
@@ -143,6 +143,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const badge = new RoleBadge(container);
   let mySlot = -1;
   let myRole: Role | null = null;
+  let phase: RacePhase = 'lobby';
   const track = loadTrack(DEFAULT_TRACK, tuning);
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
   const predictor = new OwnCarPredictor(track, loadCars().cars[0]!.stats);
@@ -157,7 +158,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       if (!mine) return;
       const lead = liveStats.inputDelayMs ?? liveStats.pingMs ?? 0;
       if (keyboard) keyboard.readInto(localInput);
-      predictor.predict(now, localInput, myRole, lead, latestTuning, mine);
+      // While the server ignores controls (countdown), predicting would make the car creep.
+      predictor.predict(now, localInput, inputsAllowed(phase) ? myRole : null, lead, latestTuning, mine);
     },
   };
   room.onStateChange((state) => {
@@ -172,6 +174,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       const prev = liveStats.inputDelayMs;
       liveStats.inputDelayMs = prev === null ? delay : prev + (delay - prev) * INPUT_DELAY_SMOOTHING;
     }
+    phase = state.phase;
     mySlot = me?.slot ?? -1;
     myCarId = mySlot >= 0 ? carIdForSlot(mySlot) : null;
     myRole = me && me.role !== '' ? (me.role as Role) : null;

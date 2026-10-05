@@ -109,6 +109,14 @@ const RaceSchema = z.strictObject({
   gridRowSpacing: pos(),
   /** Starting grid: each car's sideways offset from the centerline (m, capped at half the road). */
   gridLateral: nonNeg(),
+  /** "3… 2… 1… CLOCK OUT!" length (s); cars wait on the grid meanwhile. */
+  countdownSeconds: pos(),
+  /** Laps for a new lobby, and the range the host may pick from. */
+  defaultLaps: z.number().int().min(1),
+  minLaps: z.number().int().min(1),
+  maxLaps: z.number().int().min(1),
+  /** People who may watch on top of the 2 × maxCars seats. */
+  maxSpectators: z.number().int().nonnegative(),
   /** Car slots in the lobby (2 players each, so players = 2 × maxCars). Team colors cover 8. */
   maxCars: z.number().int().min(1).max(8),
 });

@@ -51,6 +51,11 @@
     "offTrackRespawnDistance": 4,
     "gridRowSpacing": 7,
     "gridLateral": 3,
+    "countdownSeconds": 3,
+    "defaultLaps": 3,
+    "minLaps": 1,
+    "maxLaps": 10,
+    "maxSpectators": 8,
     "maxCars": 8
   },
   "net": {

@@ -176,3 +176,67 @@ describe('RaceSim new cars', () => {
     expect(car(sim, 'car1').ghostUntilTick).toBeGreaterThan(sim.world.tick);
   });
 });
+
+describe('RaceSim race flow', () => {
+  const countdown = Math.round(cfg.race.countdownSeconds / cfg.sim.dt);
+
+  it('the first player is host; the host passes on when they leave or drop', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('a');
+    sim.addPlayer('b');
+    sim.addPlayer('c');
+    expect(sim.flow.host).toBe('a');
+    sim.setConnected('a', false);
+    expect(sim.flow.host).toBe('b');
+    sim.removePlayer('b');
+    expect(sim.flow.host).toBe('c');
+    sim.setConnected('a', true); // back, but the host stays with c
+    expect(sim.flow.host).toBe('c');
+  });
+
+  it('only the host starts; cars go to the grid, wait out the countdown, then race', () => {
+    const sim = soloSim('a', 'b');
+    sim.handleInput('a', { seq: 1, gas: true });
+    for (let i = 0; i < 60; i++) sim.tick(); // lobby: free driving
+    expect(moved(sim, 'car0')).toBeGreaterThan(5);
+    expect(sim.startRace('b')).toMatch(/only the host/);
+    expect(sim.startRace('a')).toBeNull();
+    expect(sim.flow.phase).toBe('countdown');
+    expect(moved(sim, 'car0')).toBeCloseTo(0); // back on the grid
+    for (let i = 0; i < countdown - 1; i++) sim.tick(); // gas still held: ignored
+    expect(moved(sim, 'car0')).toBeCloseTo(0);
+    expect(sim.flow.phase).toBe('countdown');
+    for (let i = 0; i < 30; i++) sim.tick();
+    expect(sim.flow.phase).toBe('racing');
+    expect(moved(sim, 'car0')).toBeGreaterThan(1); // GO
+  });
+
+  it('seats are locked from the countdown on, and open again after the race', () => {
+    const sim = soloSim('a');
+    sim.addPlayer('late');
+    expect(sim.startRace('a')).toBeNull();
+    expect(sim.setSeat('late', 3, 'solo')).toMatch(/locked/);
+    expect(sim.leaveSeat('a')).toMatch(/locked/);
+    sim.flow.phase = 'results'; // (race end arrives with the race rules in P3.3)
+    expect(sim.setSeat('late', 3, 'solo')).toBeNull();
+  });
+
+  it('host sets laps between races and goes back to the lobby after the results', () => {
+    const sim = soloSim('a');
+    expect(sim.setLaps('a', 5)).toBeNull();
+    expect(sim.flow.laps).toBe(5);
+    expect(sim.setLaps('a', cfg.race.maxLaps + 1)).toMatch(/laps must be/);
+    expect(sim.backToLobby('a')).toMatch(/only after a race/);
+    sim.flow.phase = 'results';
+    expect(sim.backToLobby('a')).toBeNull();
+    expect(sim.flow.phase).toBe('lobby');
+  });
+
+  it('when everyone leaves the room returns to the lobby', () => {
+    const sim = soloSim('a');
+    sim.startRace('a');
+    sim.removePlayer('a');
+    expect(sim.flow.phase).toBe('lobby');
+    expect(sim.flow.host).toBeNull();
+  });
+});

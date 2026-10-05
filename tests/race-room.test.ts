@@ -16,6 +16,8 @@ interface StateView {
   /** Missing until the first full state arrives (join can resolve before it). */
   players?: { size: number; get(id: string): PlayerView | undefined };
   cars?: { get(id: string): { x: number } | undefined; size: number };
+  phase?: string;
+  host?: string;
 }
 
 describe('race room (real server, real clients)', () => {
@@ -82,5 +84,23 @@ describe('race room (real server, real clients)', () => {
     await waitForState(room, (s) => s.players?.get(room.sessionId)?.ackSeq === 2, 'input seq 2 echoed');
 
     await room.leave();
+  });
+
+  it('only the host starts the race; the phase goes countdown → racing', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId, 'A is host');
+    a.send(MSG.setSeat, { slot: 2, seat: 'solo' });
+    await waitForState(a, (s) => s.cars?.get('car2') !== undefined, 'car 3 exists');
+
+    const refused = new Promise<LobbyError>((resolve) => b.onMessage(MSG.lobbyError, resolve));
+    b.send(MSG.hostStart, {});
+    expect((await refused).reason).toMatch(/only the host/);
+
+    a.send(MSG.hostStart, {});
+    await waitForState(a, (s) => s.phase === 'countdown', 'countdown');
+    await waitForState(a, (s) => s.phase === 'racing', 'racing', 8000);
+    await b.leave();
+    await a.leave();
   });
 });

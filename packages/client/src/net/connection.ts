@@ -1,5 +1,5 @@
 import { Client, type EndpointSettings, type Room } from '@colyseus/sdk';
-import { ROOM_NAME, type Tuning } from '@escape/shared';
+import { ROOM_NAME, type RacePhase, type Tuning } from '@escape/shared';
 import type { CarSource } from '../game';
 import { ServerTimeline } from './latency';
 import { SnapshotBuffer, type CarSnap } from './snapshots';
@@ -43,6 +43,10 @@ export interface RaceStateView {
   cars: { forEach(cb: (car: CarViewState, id: string) => void): void; get(id: string): CarViewState | undefined; size: number };
   tick: number;
   tickMs: number;
+  phase: RacePhase;
+  phaseTick: number;
+  host: string;
+  laps: number;
 }
 
 export interface PageLocation {

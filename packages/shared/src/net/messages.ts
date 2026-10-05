@@ -19,6 +19,12 @@ export const MSG = {
   setSeat: 'lobby:setSeat',
   /** client → server: leave your seat and watch. */
   leaveSeat: 'lobby:leaveSeat',
+  /** client (host) → server: start the race / rematch. */
+  hostStart: 'host:start',
+  /** client (host) → server: `{ laps }` for the next race. */
+  hostLaps: 'host:laps',
+  /** client (host) → server: from the results back to the lobby. */
+  hostLobby: 'host:lobby',
   /** server → one client: `{ reason }` when a lobby request was refused. */
   lobbyError: 'lobby:error',
 } as const;
@@ -80,3 +86,8 @@ export const SetSeatSchema = z.strictObject({
 export interface LobbyError {
   reason: string;
 }
+
+/** `host:laps` (client → server). Range is checked against the config by the race rules. */
+export const SetLapsSchema = z.strictObject({
+  laps: z.number().int(),
+});

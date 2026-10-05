@@ -13,7 +13,7 @@ results and a rematch, for up to 16 players (8 cars), with bots filling gaps.
 
 ## Tasks
 
-- [ ] **P3.1 Race state machine.** Phases lobby / countdown / racing / results in shared rules;
+- [x] **P3.1 Race state machine.** Phases lobby / countdown / racing / results in shared rules;
   server drives them. Host = first player, passes on leave. Tests for every transition.
   Lock seat changes once the countdown starts (P2 review: leave + retake a seat mid-race
   would be a free "teleport to the grid" and would reset laps). `maxClients` should count

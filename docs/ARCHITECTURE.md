@@ -194,6 +194,13 @@ solo), `lobby:leaveSeat`; refusals come back as `lobby:error {reason}`. Rules li
 missing or disconnected drives solo. A car (id `car<slot>`) exists while someone sits in its
 slot. Lobby messages are rate-limited separately (`net.lobbyRatePerSec`, `net.lobbyBurst`);
 `maxClients` = 2 × `race.maxCars`.
+Race loop (P3.1): `packages/shared/src/race/flow.ts` — phases lobby → countdown → racing → results →
+lobby / rematch. The server owns a `RaceFlow` (phase, phaseTick, host, laps) and syncs it. Host =
+earliest-joined connected player, passed on automatically. `host:start` (host, between races, ≥1
+seated car) puts cars on the grid and starts the countdown, during which controls are ignored
+(clients also pause prediction). Seats lock from countdown to results. `host:laps {laps}`,
+`host:lobby` (after results). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
+`race.maxSpectators`.
 Disconnects (P2.4): an unplanned drop (`onDrop`: Wi-Fi blip, closed or reloaded tab) keeps the
 seat for `net.reconnectSeconds`; the player shows as away and their partner drives solo. The
 SDK reconnects by itself after a blip; a reopened tab reconnects with the token saved in
@@ -253,7 +260,9 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | slick patch too slippery / not slippery | `car.slickGrip` |
 | jumps too floaty / too small | `car.gravity`, `car.rampLaunch`, ramp zone `launch` (track file) |
 | too many / too few hit and landing effects | `car.wallHitMinSpeed`, `car.landingMinSpeed` |
-| room too small / too big | `race.maxCars` (players = 2 × cars; colors exist for 8) |
+| room too small / too big | `race.maxCars` (players = 2 × cars; colors exist for 8), `race.maxSpectators` |
+| countdown too long / short | `race.countdownSeconds` |
+| races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |
 | name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |
 | respawn too slow / too punishing | `race.respawnFadeSeconds`, `race.respawnGhostSeconds`, `race.offTrackRespawnDistance` |
 | low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots); try `?quality=low` in the URL |
