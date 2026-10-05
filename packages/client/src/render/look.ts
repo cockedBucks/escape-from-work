@@ -110,6 +110,26 @@ export const DASH_SCREEN = {
   raise: 0.06,
 } as const;
 
+/** Rear-view mirror (cockpit): panel size and placement (m), texture size (px), view. */
+export const MIRROR = {
+  width: 0.5,
+  /** Height as a fraction of the width. */
+  aspectHeight: 0.25,
+  /** Low resolution on purpose (ART_STYLE §7). */
+  pixelsWide: 256,
+  fov: 40,
+  /** How far back the mirror camera can see (m). */
+  far: 150,
+  /** Panel: just below the roof line, centered. */
+  below: 0.12,
+  offsetX: 0,
+  /** Width of the dark frame around the mirror (m). */
+  frame: 0.025,
+  /** Mirror camera: above the roof and a bit behind the car center, so it sees past the heads. */
+  cameraAbove: 0.5,
+  cameraBack: 1.9,
+} as const;
+
 /** Bobbleheads (ART_STYLE §4: heads ~1.6× scale, on a spring, wobbling). */
 export const HEAD = {
   radius: 0.36,

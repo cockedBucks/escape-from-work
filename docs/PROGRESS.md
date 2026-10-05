@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P4 — Cockpit cam and bobbleheads (`docs/phases/P04-cockpit.md`)
-- Next task: P4.5 (rear-view mirror)
-- Status: P4.4 done. `npm run verify` passes (275 tests + bot race).
+- Next task: P4.6 (honk)
+- Status: P4.5 done. `npm run verify` passes (276 tests + bot race).
 
 ## Half-done
 - (nothing)
@@ -63,6 +63,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   face-textured wobbly heads turning with synced look, duck in solo cars, `cockpit` scenario. D060.
 - 2026-10-05: P4.4 dashboard HUD — cockpit canvas screen + chase-cam gauge panel (speed, lap, place,
   heat/nitro/item slots); duck moved onto the roof so it is visible. D061.
+- 2026-10-05: P4.5 rear-view mirror — low-res render target, rate by quality preset, framed panel. D062.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

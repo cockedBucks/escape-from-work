@@ -4,6 +4,7 @@ import { ChaseCam, placeOverview } from './render/cameras';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
 import { BoxCar, type SeatContent } from './render/carMesh';
 import { DashboardScreen } from './render/dashboard';
+import { RearMirror } from './render/mirror';
 import { FaceMaterials } from './render/faceTexture';
 import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
@@ -78,6 +79,8 @@ export class Game {
   private readonly heads = new HeadSmoother();
   /** Last frame's speed and heading per car, to work out acceleration for the wobble. */
   private readonly motion = new Map<string, { speed: number; yaw: number }>();
+  /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
+  private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
   private dashScreen: DashboardScreen | null = null;
   /** Car currently showing its dashboard (your car in cockpit view). */
@@ -173,6 +176,10 @@ export class Game {
         this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera);
       }
       this.showDash(view === 'cockpit' && id !== null ? id : null);
+      if (view === 'cockpit' && car && this.mirror) {
+        this.mirror.mesh.position.y = car.y;
+        this.mirror.render(this.stage.renderer, this.stage.scene, car.x, car.y, car.z, car.yaw);
+      }
       if (view === 'cockpit' && car && this.dashScreen) {
         this.dashScreen.mesh.position.y = car.y;
         this.dashScreen.update(now, { speed: car.speed, ...(this.opts.gauges?.() ?? NO_GAUGES) });
@@ -205,12 +212,17 @@ export class Game {
     }
     if (this.dashCar) this.cars.get(this.dashCar)?.setCockpit(false);
     this.dashScreen?.mesh.removeFromParent();
+    this.mirror?.mesh.removeFromParent();
     this.dashCar = id;
     const car = id ? this.cars.get(id) : undefined;
     if (car) {
       car.setCockpit(true);
       this.dashScreen ??= new DashboardScreen();
       car.root.add(this.dashScreen.mesh);
+      if (this.opts.quality.mirror !== 'off') {
+        this.mirror ??= new RearMirror(this.opts.quality.mirror);
+        car.root.add(this.mirror.mesh);
+      }
     }
   }
 
@@ -267,6 +279,7 @@ export class Game {
     this.overlay.dispose();
     this.faces.dispose();
     this.dashScreen?.dispose();
+    this.mirror?.dispose();
     this.trackMeshes.dispose();
     this.stage.dispose();
   }

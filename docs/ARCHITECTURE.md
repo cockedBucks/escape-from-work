@@ -215,6 +215,9 @@ Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:rea
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
 Esc hides it to drive around; never redraws under a focused text field.
+Mirror (P4.5): `render/mirror.ts` — a backward camera above/behind your car renders into a 256×64
+texture shown (flipped) under your windshield roof in the cockpit; `quality.presets.*.mirror`: off
+(Low), every 2nd frame (Medium), every frame (High).
 Dashboard (P4.4): `ui/gauges.ts` (speed km/h, lap, place, heat/nitro bars, item slot; heat, nitro and
 item stay empty until P5/P6) drawn twice: a canvas screen on your cockpit dashboard
 (`render/dashboard.ts`, redrawn ≤ 10/s and only on change) and a DOM panel bottom-right in chase view.

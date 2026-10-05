@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Bobblehead, makeDuck } from './bobblehead';
 import type { SeatSide } from './cockpitCam';
-import { BOX_CAR, COCKPIT, DUCK, HEAD, PALETTE } from './look';
+import { BOX_CAR, COCKPIT, DUCK, HEAD, MIRROR, PALETTE } from './look';
 
 /** What a seat shows: a player's bobblehead (hidden = it is you, in the cockpit), a duck, or nobody. */
 export type SeatContent =
@@ -54,7 +54,10 @@ function getAssets(): CarAssets {
   };
   const roofBar = new THREE.BoxGeometry(cabinW, t, t);
   roofBar.translate(0, bodyTop + C.cabinHeight - t / 2, COCKPIT.dashForward - t / 2);
-  const parts = [dashBox, pillar(1), pillar(-1), roofBar];
+  // Rear-view mirror housing: a dark frame just behind the mirror picture (see mirror.ts).
+  const mirrorFrame = new THREE.BoxGeometry(MIRROR.width + MIRROR.frame * 2, MIRROR.width * MIRROR.aspectHeight + MIRROR.frame * 2, t / 2);
+  mirrorFrame.translate(MIRROR.offsetX, bodyTop + C.cabinHeight - MIRROR.below, COCKPIT.dashForward - t * 1.5 + t / 3);
+  const parts = [dashBox, pillar(1), pillar(-1), roofBar, mirrorFrame];
   const dash = mergeGeometries(parts);
   for (const p of parts) p.dispose();
   if (!dash) throw new Error('could not merge the cockpit');

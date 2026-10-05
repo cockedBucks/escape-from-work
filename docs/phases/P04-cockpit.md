@@ -26,7 +26,7 @@ a dashboard HUD, a rear-view mirror, and a goofy horn.
 - [x] **P4.4 Dashboard HUD.** Speedometer, lap/place, and slots for heat, nitro and item (filled
   in later phases), drawn to a small canvas texture on the dashboard. The chase-cam DOM HUD
   shows the same info.
-- [ ] **P4.5 Rear-view mirror.** Low-res render target, rate by quality preset, off on Low.
+- [x] **P4.5 Rear-view mirror.** Low-res render target, rate by quality preset, off on Low.
 - [ ] **P4.6 Honk.** H by either player; per-car horn preset from `cars.json`, procedural Web
   Audio; "HONK!" bubble over the car for everyone.
 - [ ] **P4.7 Shots.** Scenario `cockpit` (teammate visible). `/shots cockpit chase`.
