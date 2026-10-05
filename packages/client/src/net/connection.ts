@@ -18,6 +18,12 @@ export interface CarViewState {
   progress: number;
   respawning: boolean;
   ghost: boolean;
+  vx: number;
+  vz: number;
+  vy: number;
+  inSteer: number;
+  inGas: boolean;
+  inBrake: boolean;
 }
 
 /** One synced player (see PlayerState on the server). */
@@ -34,7 +40,7 @@ export interface PlayerViewState {
 /** What the client reads from the synced room state (decoded by reflection). */
 export interface RaceStateView {
   players: { size: number; forEach(cb: (p: PlayerViewState, id: string) => void): void; get(id: string): PlayerViewState | undefined };
-  cars: { forEach(cb: (car: CarViewState, id: string) => void): void; size: number };
+  cars: { forEach(cb: (car: CarViewState, id: string) => void): void; get(id: string): CarViewState | undefined; size: number };
   tick: number;
   tickMs: number;
 }

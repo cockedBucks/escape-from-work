@@ -44,7 +44,7 @@ it feels responsive and fun. Bots prove it automatically; a coworker proves it f
      - Does steering feel instant enough? (yes / a bit laggy / very laggy)
      - Is it fun? Did you yell? What was the best and worst moment?
      - The input delay number from the F3 overlay.
-- [ ] **P2.8 Act on the fun gate.** Record the answers in DECISIONS. If steering felt laggy,
+- [x] **P2.8 Act on the fun gate.** Record the answers in DECISIONS. If steering felt laggy,
   add client-side prediction for your own car (own fresh input + teammate's last known input),
   with tests. If it felt fine, record "no prediction for now". Apply tuning feedback.
 - [ ] **P2.9 Phase end.** Reviewer, fixes, `git tag p2-done`, report.

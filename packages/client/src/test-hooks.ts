@@ -28,6 +28,8 @@ export interface GameHooks {
   /** Set when the page cannot show the requested scenario; /shots fails fast on it. */
   error: string | null;
   stats(): GameStats;
+  /** Pose of the car the camera follows, as drawn this frame (null when none). For agents/tests. */
+  focusCar(): { x: number; z: number; yaw: number; speed: number } | null;
 }
 
 declare global {
@@ -64,6 +66,9 @@ export const liveStats: GameStats = {
   interpDelayMs: null,
 };
 
+/** Drawn pose of the followed car; the game writes it every frame (no allocation). */
+export const focusPose = { set: false, x: 0, z: 0, yaw: 0, speed: 0 };
+
 /** Weight of the newest frame in the smoothed frame time (exponential moving average). */
 const FPS_SMOOTHING = 0.1;
 
@@ -91,6 +96,7 @@ export function installHooks(): GameHooks {
     seed,
     error: null,
     stats: () => ({ ...liveStats }),
+    focusCar: () => (focusPose.set ? { x: focusPose.x, z: focusPose.z, yaw: focusPose.yaw, speed: focusPose.speed } : null),
   };
   if (scenario !== null && !KNOWN_SCENARIOS.includes(scenario)) {
     hooks.error = `unknown scenario "${scenario}" (known: ${KNOWN_SCENARIOS.join(', ')})`;

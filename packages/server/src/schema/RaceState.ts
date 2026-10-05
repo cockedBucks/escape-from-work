@@ -34,6 +34,14 @@ export const CarView = schema(
     steer: t.float32().default(0),
     /** Lap progress 0–1. */
     progress: t.float32().default(0),
+    /** Velocity (m/s) and vertical speed: lets a client predict its own car from this state. */
+    vx: t.float32().default(0),
+    vz: t.float32().default(0),
+    vy: t.float32().default(0),
+    /** The merged input the server applied this tick (prediction uses the partner's half). */
+    inSteer: t.float32().default(0),
+    inGas: t.boolean().default(false),
+    inBrake: t.boolean().default(false),
     /** Fading out before a respawn. */
     respawning: t.boolean().default(false),
     /** Ghosted after a respawn (drawn see-through). */

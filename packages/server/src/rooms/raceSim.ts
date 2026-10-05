@@ -187,12 +187,16 @@ export class RaceSim {
     return mergeCarInput(parts);
   }
 
+  /** The merged input each car used in the last tick (by car id). */
+  lastInputs: Readonly<Record<string, CarInput>> = {};
+
   /** One fixed sim tick. */
   tick(): SimEvent[] {
     const inputs: Record<string, CarInput> = {};
     const seating = this.seating();
     for (const slot of usedSlots(seating)) inputs[carIdForSlot(slot)] = this.carInput(slot, seating);
     for (const p of this.players.values()) p.respawnPending = false;
+    this.lastInputs = inputs;
     return step(this.world, inputs, this.cfg);
   }
 }

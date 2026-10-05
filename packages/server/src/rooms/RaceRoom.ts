@@ -198,6 +198,13 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.speed = Math.hypot(car.vx, car.vz);
       view.steer = car.steer;
       view.progress = car.progress;
+      view.vx = car.vx;
+      view.vz = car.vz;
+      view.vy = car.vy;
+      const input = this.sim.lastInputs[car.id];
+      view.inSteer = input?.steer ?? 0;
+      view.inGas = input?.gas ?? false;
+      view.inBrake = input?.brake ?? false;
       view.respawning = car.respawnAtTick >= 0;
       view.ghost = car.ghostUntilTick > world.tick;
     }

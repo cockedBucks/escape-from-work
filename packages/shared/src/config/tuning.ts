@@ -174,6 +174,10 @@ const NetSchema = z.strictObject({
   /** Lobby messages (name, seat) a client may send per second on average, and the burst. */
   lobbyRatePerSec: z.number().positive(),
   lobbyBurst: z.number().int().min(1),
+  /** Client prediction of your own car: how far ahead it may run the physics (ms). 0 = off. */
+  predictMaxMs: nonNeg(),
+  /** How fast a disagreement between prediction and the server fades out (1/s). */
+  predictCorrectionRate: pos(),
   /** Clients resend their held controls this often (ms), so a lost message never leaves a key stuck. */
   inputResendMs: z.number().int().min(50),
 });

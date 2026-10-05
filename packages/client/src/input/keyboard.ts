@@ -1,4 +1,4 @@
-import type { InputMessage } from '@escape/shared';
+import type { CarInput, InputMessage } from '@escape/shared';
 
 /** Solo controls (GAME_DESIGN §4), by physical key (`KeyboardEvent.code`), so any layout works. */
 const KEYS = {
@@ -66,6 +66,12 @@ export class KeyboardControls {
     this.held.clear();
     this.emit();
   };
+
+  /** The controls held right now (for predicting your own car). */
+  current(): CarInput {
+    const c = controlsFrom(this.held);
+    return { steer: c.steer ?? 0, gas: c.gas ?? false, brake: c.brake ?? false, respawn: c.respawn ?? false };
+  }
 
   private emit(): void {
     this.seq++;

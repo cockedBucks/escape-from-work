@@ -5,7 +5,7 @@ import { BoxCar } from './render/carMesh';
 import { TEAM_COLORS } from './render/look';
 import { createStage, type Stage } from './render/renderer';
 import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
-import { liveStats } from './test-hooks';
+import { focusPose, liveStats } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
 
 /** Where car states come from: the server (interpolated) or a local scenario sim. */
@@ -91,6 +91,13 @@ export class Game {
       const id = this.opts.focus() ?? this.snaps.keys().next().value ?? null;
       const car = id === null ? undefined : this.snaps.get(id);
       if (car) this.chase.update(this.opts.tuning.camera, car.x, car.y, car.z, car.yaw, dt, snapCamera);
+      focusPose.set = car !== undefined;
+      if (car) {
+        focusPose.x = car.x;
+        focusPose.z = car.z;
+        focusPose.yaw = car.yaw;
+        focusPose.speed = car.speed;
+      }
     }
 
     const { renderer, scene, camera } = this.stage;

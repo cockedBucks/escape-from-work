@@ -163,8 +163,13 @@ installed types for the API. Anything not on this list → ask the human first.
   offset seen, drifting up 0.5 ms per snapshot), not by arrival time, so network jitter does not
   wobble the cars. Each player's `ackSeq` (last input applied) rides in the state; the F3 overlay
   shows ping, snapshot age and "input → screen" = echo time + `net.interpDelayMs`.
-- Phase 2 measures real latency and the human decides at the fun gate whether to add
-  client-side prediction (predict own car using own fresh input + teammate's last input).
+- Client-side prediction (P2.8, the fun gate said "a bit laggy"): your own car is drawn by
+  `OwnCarPredictor` (`packages/client/src/net/predictor.ts`): from each server update it runs the
+  shared sim ahead by (time since update + measured input echo), at most `net.predictMaxMs`,
+  using your keys for your role's controls and the server's applied input (`inSteer`, `inGas`,
+  `inBrake`, synced per car with `vx/vz/vy`) for your partner's. Disagreements fade out at
+  `net.predictCorrectionRate`. Other cars stay interpolated; bumps are not predicted.
+  `net.predictMaxMs = 0` turns it off.
 
 ### Messages (client → server), all validated with zod
 
@@ -257,7 +262,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
 | drifting hard to start (P5) | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
 | overheating too fast (P5) | `heat.risePerSec`, `heat.nitroRisePerSec`, `heat.coolPerSec`, `heat.stallSeconds` |
-| laggy | `net.patchRateMs`, `net.interpDelayMs` |
+| laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |
+| own car shimmers / snaps after bumps | `net.predictCorrectionRate` (lower = softer corrections) |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
 | controls ignored when mashing keys | `net.inputRatePerSec`, `net.inputBurst` |
 | a key seems stuck after a network hiccup | `net.inputResendMs` |

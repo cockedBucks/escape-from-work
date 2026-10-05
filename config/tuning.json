@@ -62,6 +62,8 @@
     "inputBurst": 20,
     "lobbyRatePerSec": 5,
     "lobbyBurst": 5,
+    "predictMaxMs": 200,
+    "predictCorrectionRate": 8,
     "inputResendMs": 250
   },
   "camera": {

@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P2 — Split control (`docs/phases/P02-split-control.md`)
-- Next task: P2.8 (act on the fun gate: physics feel + client prediction)
-- Status: FUN GATE answered. `npm run verify` passes (181 tests + bot race, ~1 min).
+- Next task: P2.9 (phase end)
+- Status: P2.8 done (physics feel pass + client prediction). `npm run verify` passes (190 tests).
 
 ## Half-done
 - (nothing)
@@ -56,6 +56,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   timeline, F3 shows snapshot age + input→screen (88 ms on localhost). D044.
 - 2026-10-05: P2.7 LAN guide — docs/LAN.md (host, firewall command + GUI, testing, problems);
   `npm start` confirmed (builds, serves page, prints LAN URL).
+- 2026-10-05: P2.8 act on the fun gate — physics feel pass (carve, engine curve, gentler coasting,
+  calmer steering; D047) and client prediction for your own car (turn shows 14 ms after the key; D048).
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

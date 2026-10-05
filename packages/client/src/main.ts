@@ -2,12 +2,13 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, carIdForSlot, type LobbyError, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, type LobbyError, type Role, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadTrack, loadTuning } from './content';
-import { Game } from './game';
+import { Game, type CarSource } from './game';
 import { KeyboardControls } from './input/keyboard';
 import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
 import { InputDelayMeter } from './net/latency';
+import { OwnCarPredictor } from './net/predictor';
 import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
@@ -141,6 +142,20 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   });
   const badge = new RoleBadge(container);
   let mySlot = -1;
+  let myRole: Role | null = null;
+  const track = loadTrack(DEFAULT_TRACK, tuning);
+  // Your own car is predicted (answers your keys at once); everyone else is interpolated.
+  const predictor = new OwnCarPredictor(track);
+  let keyboard: KeyboardControls | null = null;
+  const carSource: CarSource = {
+    sample(now, out) {
+      source.sample(now, out);
+      const mine = mySlot >= 0 ? out.get(carIdForSlot(mySlot)) : undefined;
+      if (!mine) return;
+      const lead = liveStats.inputDelayMs ?? liveStats.pingMs ?? 0;
+      predictor.predict(now, keyboard?.current() ?? NO_INPUT, myRole, lead, latestTuning, mine);
+    },
+  };
   room.onStateChange((state) => {
     const now = performance.now();
     source.push(now, state);
@@ -154,6 +169,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       liveStats.inputDelayMs = prev === null ? delay : prev + (delay - prev) * INPUT_DELAY_SMOOTHING;
     }
     mySlot = me?.slot ?? -1;
+    myRole = me && me.role !== '' ? (me.role as Role) : null;
+    const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
+    if (myCar) predictor.onServer(carIdForSlot(mySlot), myCar, now);
     badge.set(me?.role ?? '');
     join.update(players, room.sessionId);
   });
@@ -161,9 +179,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const game = new Game({
     container,
     tuning,
-    track: loadTrack(DEFAULT_TRACK, tuning),
+    track,
     quality: pickQuality(window.location.search, tuning).preset,
-    source,
+    source: carSource,
     view: 'chase',
     // Follow your own car; while watching, follow the first car.
     focus: () => (mySlot >= 0 ? carIdForSlot(mySlot) : null),
@@ -175,7 +193,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   game.start();
   game.setTuning(latestTuning);
   tuningListeners.push((t) => game.setTuning(t));
-  const keyboard = new KeyboardControls((msg) => {
+  keyboard = new KeyboardControls((msg) => {
     delayMeter.sentInput(msg.seq, performance.now());
     room.send(MSG.input, msg);
   }, latestTuning.net.inputResendMs);
@@ -183,6 +201,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     // Dev only: the F2 panel (lil-gui is not in production builds).
     const { TuningPanel } = await import('./ui/tuningPanel');
     const panel = new TuningPanel(latestTuning, (t) => {
+      latestTuning = t;
       game.setTuning(t);
       source.interpDelayMs = t.net.interpDelayMs;
     });
@@ -190,7 +209,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   }
   room.onLeave(() => {
     window.clearInterval(pingTimer);
-    keyboard.dispose();
+    keyboard?.dispose();
     join.dispose();
     badge.dispose();
     setStatus('Disconnected from the game server. Reload to rejoin.', true);
