@@ -53,6 +53,7 @@ export class JoinScreen {
   private readonly nameInput = document.createElement('input');
   private players: JoinPlayer[] = [];
   private myId = '';
+  private lastHtml = '';
 
   constructor(
     parent: HTMLElement,
@@ -156,7 +157,13 @@ export class JoinScreen {
     }
     const me = this.players.find((p) => p.id === this.myId);
     if (me && me.slot >= 0) html.push('<button class="watch" data-action="watch">Leave my seat and watch</button>');
-    this.cards.innerHTML = html.join('');
+    const next = html.join('');
+    // State updates arrive ~30 times a second. Rebuilding the buttons each time restarted the
+    // hover wobble and swallowed clicks (the pressed button was gone before release), so
+    // only touch the DOM when what the screen shows actually changed.
+    if (next === this.lastHtml) return;
+    this.lastHtml = next;
+    this.cards.innerHTML = next;
   }
 
   dispose(): void {
