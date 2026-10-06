@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { CarLook, CarPart } from '@escape/shared';
+import { Builder } from './kitBuilder';
 import { CAR_BODIES, CAR_KIT, CAR_PARTS_LOOK as P, HEAD } from './look';
 
 // The car kit (ART_STYLE §4): a car's whole body — chassis, glass cabin with a painted roof,
@@ -30,59 +30,11 @@ export interface CarShape {
 /** Parts that sit on the roof (behind the heads). */
 const ROOF_PARTS: readonly CarPart[] = ['roofSign', 'roofBox', 'dish', 'ladder'];
 
-/** Collects colored primitives and merges them into one geometry. */
-class Builder {
-  private readonly parts: THREE.BufferGeometry[] = [];
-  private readonly color = new THREE.Color();
-
-  add(geo: THREE.BufferGeometry, color: number, x: number, y: number, z: number, rotX = 0, rotY = 0, rotZ = 0): void {
-    const g = geo;
-    if (rotX) g.rotateX(rotX);
-    if (rotY) g.rotateY(rotY);
-    if (rotZ) g.rotateZ(rotZ);
-    g.translate(x, y, z);
-    this.color.setHex(color);
-    const n = g.getAttribute('position').count;
-    const colors = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      colors[i * 3] = this.color.r;
-      colors[i * 3 + 1] = this.color.g;
-      colors[i * 3 + 2] = this.color.b;
-    }
-    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    this.parts.push(g);
-  }
-
-  box(w: number, h: number, l: number, color: number, x: number, y: number, z: number, rotX = 0): void {
-    this.add(new THREE.BoxGeometry(w, h, l), color, x, y, z, rotX);
-  }
-
-  /** A low-poly ellipsoid (sphere scaled to the given radii). */
-  blob(rx: number, ry: number, rz: number, color: number, x: number, y: number, z: number): void {
-    const g = new THREE.SphereGeometry(1, CAR_KIT.roundSegments, Math.max(4, CAR_KIT.roundSegments - 3));
-    g.scale(rx, ry, rz);
-    this.add(g, color, x, y, z);
-  }
-
-  /** A cylinder; `axis` 'x' | 'y' | 'z' it lies along. */
-  cyl(r: number, len: number, color: number, x: number, y: number, z: number, axis: 'x' | 'y' | 'z' = 'y'): void {
-    const g = new THREE.CylinderGeometry(r, r, len, CAR_KIT.roundSegments);
-    this.add(g, color, x, y, z, axis === 'z' ? Math.PI / 2 : 0, 0, axis === 'x' ? Math.PI / 2 : 0);
-  }
-
-  build(): THREE.BufferGeometry {
-    const merged = mergeGeometries(this.parts);
-    for (const p of this.parts) p.dispose();
-    if (!merged) throw new Error('car kit: could not merge the body');
-    return merged;
-  }
-}
-
 /** Build a car's body and layout from its look and team paint. */
 export function buildCarShape(look: CarLook, paint: number): CarShape {
   const K = CAR_KIT;
   const B = CAR_BODIES[look.body];
-  const b = new Builder();
+  const b = new Builder(CAR_KIT.roundSegments);
   const hw = B.width / 2;
   const bodyTop = B.ride + B.body;
   const cabinTop = bodyTop + B.cabinHeight;

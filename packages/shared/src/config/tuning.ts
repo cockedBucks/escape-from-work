@@ -286,6 +286,8 @@ const QualitySchema = z.strictObject({
   }),
   /** Per-car model budget (all presets). */
   carMaxTriangles: z.number().int().positive(),
+  /** Per prop (instanced, so this is per copy drawn). */
+  propMaxTriangles: z.number().int().positive(),
   carMaxDrawCalls: z.number().int().positive(),
 });
 

@@ -51,9 +51,16 @@ const ZoneSchema = z.discriminatedUnion('type', [
   ItemRowZoneSchema,
 ]);
 
+/** Prop kit pieces (ART_STYLE §5); the client builds them. Office set for now. */
+export const PROP_KITS = [
+  'desk', 'chair', 'cubicle', 'monitor', 'keyboard', 'printer', 'waterCooler', 'coffeeMachine',
+  'plant', 'whiteboard', 'filingCabinet', 'reception',
+] as const;
+export type PropKit = (typeof PROP_KITS)[number];
+
 const PropSchema = z.strictObject({
-  /** Prop kit piece name (ART_STYLE §5). */
-  kit: z.string().min(1),
+  /** Prop kit piece (ART_STYLE §5). */
+  kit: z.enum(PROP_KITS),
   x: z.number(),
   z: z.number(),
   /** Yaw in radians. */

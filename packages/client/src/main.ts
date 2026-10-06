@@ -2,7 +2,7 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { EngineSound } from './audio/engine';
@@ -18,7 +18,7 @@ import { seatSideFor } from './render/cockpitCam';
 import { setFaceFraming } from './render/faceTexture';
 import type { FaceFraming } from './render/facePlacement';
 import { pickQuality } from './render/renderer';
-import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, type RaceScenario } from './scenarios';
+import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, propsShowroom, type RaceScenario } from './scenarios';
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
@@ -149,10 +149,12 @@ async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
 /** A frozen local bot race, for screenshots (`chase`, `track-overview`). */
 async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScenario, overlay?: () => void): Promise<void> {
   const trackId = new URLSearchParams(window.location.search).get('track') ?? DEFAULT_TRACK;
-  const track = loadTrack(trackId, tuning);
+  const showroom = scenario === 'props' ? propsShowroom(loadTrack(trackId, tuning)) : null;
+  const track = showroom?.track ?? loadTrack(trackId, tuning);
   const itemsCfg = loadItems();
   const garage = scenario === 'garage' ? garageWorld(track) : null;
-  const world = garage?.world ?? frozenBotRace(track, tuning, scenario, itemsCfg);
+  const world = garage?.world ?? (showroom ? createWorld(track, []) : frozenBotRace(track, tuning, scenario, itemsCfg));
+  const fixedCamera = garage?.camera ?? showroom?.camera;
   // Each car's look: the garage shows the roster in slot order; races use the first car.
   const roster = loadCars().cars;
   const lookOf = (carId: string): CarLook => {
@@ -171,8 +173,8 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     quality: pickQuality(window.location.search, tuning).preset,
     source: frozenSource(world),
     items: () => itemsView,
-    view: scenario === 'track-overview' ? 'overview' : scenario === 'cockpit' ? 'cockpit' : garage ? 'fixed' : 'chase',
-    ...(garage ? { fixedCamera: garage.camera } : {}),
+    view: scenario === 'track-overview' ? 'overview' : scenario === 'cockpit' ? 'cockpit' : fixedCamera ? 'fixed' : 'chase',
+    ...(fixedCamera ? { fixedCamera } : {}),
     lookOf,
     focus: () => 'bot1',
     seatSide: () => 'left',

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Track, TrackSample, Vec2 } from '@escape/shared';
 import { PALETTE, TRACK_LOOK } from './look';
+import { buildProps } from './propKit';
 
 /** Builds flat ribbons along the track: one quad per sample step between two offset lines. */
 class RibbonBuilder {
@@ -249,6 +250,11 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
       vertexColors: true, transparent: true, opacity: TRACK_LOOK.swapOpacity, depthWrite: false, ...DECAL,
     }), 'swapLanes');
   }
+
+  // Props (desks, plants, printers…): one instanced draw call per kind.
+  const props = buildProps(track);
+  group.add(props.group);
+  disposables.push(props);
 
   return {
     group,

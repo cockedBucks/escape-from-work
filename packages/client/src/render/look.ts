@@ -334,3 +334,115 @@ export const CAR_PARTS_LOOK = {
   hoodScoop: { widthShare: 0.36, height: 0.24, length: 0.8 },
   windupKey: { shaft: 0.06, shaftLength: 0.5, wingWidth: 0.42, wingHeight: 0.28, wingThick: 0.06, heightShare: 0.8 },
 } as const;
+
+/**
+ * Office prop kit (ART_STYLE §5). Sizes are real office sizes in meters; the whole office is
+ * drawn `officeScale` times bigger so desks and printers read next to the toy-sized cars.
+ */
+export const PROP_LOOK = {
+  officeScale: 2,
+  roundSegments: 8,
+  wood: 0xe9d8b4,
+  cubicle: 0x8aa0b8,
+  plant: 0x4caf50,
+  metal: 0xd9dde3,
+  glass: 0xbfe3f2,
+  dark: 0x1e2230,
+  white: 0xffffff,
+  screen: 0x3d6fa8,
+  pot: 0xd9734e,
+  accent: 0xe63946,
+  doodles: [0x1d7fe0, 0xe63946, 0x06d6a0],
+} as const;
+
+/** A prop primitive: box [w, h, d], cylinder [radius, height] or blob (ellipsoid) [rx, ry, rz]. */
+export interface PropPrim {
+  s: 'box' | 'cyl' | 'blob';
+  size: readonly number[];
+  at: readonly [number, number, number];
+  color: keyof typeof PROP_COLORS;
+}
+export const PROP_COLORS = {
+  wood: PROP_LOOK.wood, cubicle: PROP_LOOK.cubicle, plant: PROP_LOOK.plant, metal: PROP_LOOK.metal,
+  glass: PROP_LOOK.glass, dark: PROP_LOOK.dark, white: PROP_LOOK.white, screen: PROP_LOOK.screen,
+  pot: PROP_LOOK.pot, accent: PROP_LOOK.accent, blue: 0x1d7fe0, mint: 0x06d6a0,
+} as const;
+
+const box = (w: number, h: number, d: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'box', size: [w, h, d], at: [x, y, z], color });
+const cyl = (r: number, h: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'cyl', size: [r, h], at: [x, y, z], color });
+const blob = (rx: number, ry: number, rz: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'blob', size: [rx, ry, rz], at: [x, y, z], color });
+
+/** Every office prop as primitives at real size (m; +Z = its front). */
+export const PROP_SHAPES = {
+  desk: [
+    box(1.6, 0.05, 0.8, 0, 0.74, 0, 'wood'),
+    ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => box(0.05, 0.72, 0.05, sx * 0.75, 0.36, sz * 0.35, 'metal'))),
+    box(0.4, 0.5, 0.7, 0.55, 0.47, 0, 'wood'),
+    // A workstation: monitor and keyboard on top.
+    box(0.62, 0.4, 0.05, 0, 1.03, -0.2, 'dark'),
+    box(0.56, 0.34, 0.01, 0, 1.03, -0.17, 'screen'),
+    box(0.05, 0.12, 0.05, 0, 0.82, -0.22, 'metal'),
+    box(0.45, 0.03, 0.15, 0, 0.78, 0.15, 'dark'),
+  ],
+  chair: [
+    box(0.5, 0.08, 0.5, 0, 0.48, 0, 'dark'),
+    box(0.48, 0.55, 0.06, 0, 0.8, -0.24, 'dark'),
+    cyl(0.03, 0.4, 0, 0.26, 0, 'metal'),
+    cyl(0.3, 0.05, 0, 0.05, 0, 'dark'),
+  ],
+  cubicle: [
+    box(1.8, 1.4, 0.08, 0, 0.7, 0, 'cubicle'),
+    box(1.82, 0.06, 0.1, 0, 1.42, 0, 'metal'),
+    ...[-1, 1].map((sx) => box(0.08, 0.04, 0.4, sx * 0.8, 0.02, 0, 'metal')),
+  ],
+  monitor: [
+    box(0.62, 0.4, 0.05, 0, 0.42, 0, 'dark'),
+    box(0.56, 0.34, 0.01, 0, 0.42, 0.03, 'screen'),
+    box(0.05, 0.2, 0.05, 0, 0.15, -0.02, 'metal'),
+    box(0.25, 0.03, 0.18, 0, 0.015, 0, 'metal'),
+  ],
+  keyboard: [box(0.45, 0.03, 0.15, 0, 0.015, 0, 'dark'), box(0.42, 0.01, 0.12, 0, 0.035, 0, 'white')],
+  printer: [
+    box(0.6, 0.45, 0.5, 0, 0.225, 0, 'metal'),
+    box(0.5, 0.05, 0.4, 0, 0.47, 0, 'dark'),
+    box(0.4, 0.04, 0.25, 0, 0.3, 0.3, 'white'),
+    box(0.3, 0.01, 0.2, 0, 0.33, 0.32, 'white'),
+    box(0.06, 0.04, 0.02, 0.2, 0.4, 0.26, 'accent'),
+  ],
+  waterCooler: [
+    box(0.35, 0.95, 0.35, 0, 0.475, 0, 'white'),
+    cyl(0.15, 0.45, 0, 1.18, 0, 'glass'),
+    box(0.06, 0.05, 0.06, 0, 0.75, 0.19, 'accent'),
+  ],
+  coffeeMachine: [
+    box(0.35, 0.5, 0.35, 0, 0.25, 0, 'dark'),
+    box(0.36, 0.06, 0.36, 0, 0.53, 0, 'metal'),
+    box(0.08, 0.06, 0.08, 0, 0.32, 0.15, 'metal'),
+    cyl(0.04, 0.08, 0, 0.06, 0.13, 'white'),
+    box(0.05, 0.05, 0.01, 0.1, 0.4, 0.18, 'accent'),
+  ],
+  plant: [
+    cyl(0.22, 0.35, 0, 0.175, 0, 'pot'),
+    blob(0.35, 0.45, 0.35, 0, 0.7, 0, 'plant'),
+    blob(0.22, 0.3, 0.22, 0.15, 0.95, 0.05, 'plant'),
+  ],
+  whiteboard: [
+    box(1.6, 1.0, 0.04, 0, 1.3, 0, 'white'),
+    box(1.64, 0.04, 0.06, 0, 1.82, 0, 'metal'),
+    ...[-1, 1].map((sx) => box(0.04, 1.8, 0.04, sx * 0.75, 0.9, 0, 'metal')),
+    // Doodles: a blue line, a red line, a mint mark.
+    box(0.5, 0.03, 0.01, -0.3, 1.5, 0.025, 'blue'),
+    box(0.4, 0.03, 0.01, 0.3, 1.2, 0.025, 'accent'),
+    box(0.03, 0.35, 0.01, 0.1, 1.35, 0.025, 'mint'),
+  ],
+  filingCabinet: [
+    box(0.45, 1.3, 0.6, 0, 0.65, 0, 'metal'),
+    ...[0.35, 0.7, 1.05].flatMap((y) => [box(0.4, 0.02, 0.01, 0, y, 0.305, 'dark'), box(0.12, 0.03, 0.03, 0, y + 0.12, 0.31, 'dark')]),
+  ],
+  reception: [
+    box(2.4, 1.1, 0.7, 0, 0.55, 0, 'wood'),
+    box(2.5, 0.06, 0.8, 0, 1.13, 0, 'white'),
+    box(2.2, 0.6, 0.02, 0, 0.6, 0.36, 'accent'),
+    box(0.5, 0.35, 0.04, 0.5, 1.35, -0.1, 'dark'),
+  ],
+} as const satisfies Record<string, readonly PropPrim[]>;

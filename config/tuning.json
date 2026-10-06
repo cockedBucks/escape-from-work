@@ -178,6 +178,7 @@
       }
     },
     "carMaxTriangles": 1500,
+    "propMaxTriangles": 600,
     "carMaxDrawCalls": 6
   }
 }

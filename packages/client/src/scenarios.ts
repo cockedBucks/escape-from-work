@@ -6,6 +6,7 @@ import {
   newBotMemory,
   step,
   createChaos,
+  PROP_KITS,
   type CarInput,
   type ItemsConfig,
   type Track,
@@ -18,7 +19,7 @@ import type { ItemsView } from './render/itemProps';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, garage: 0, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, garage: 0, props: 0, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 
@@ -148,6 +149,32 @@ export function garageWorld(track: Track): { world: World; camera: { from: [numb
     camera: {
       from: [mid.x + f.x * GARAGE.camAhead + r.x * GARAGE.camSide, GARAGE.camHeight, mid.z + f.z * GARAGE.camAhead + r.z * GARAGE.camSide],
       at: [mid.x, GARAGE.lookHeight, mid.z],
+    },
+  };
+}
+
+/** Props showroom: one of each office prop in a row beside the start straight (spacing m). */
+const PROP_ROW = { gap: 4.6, side: 14, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2 };
+
+/**
+ * The `props` scenario: the track with one of every office prop lined up beside the start
+ * straight (no cars), and a fixed camera looking at them.
+ */
+export function propsShowroom(track: Track): { track: Track; camera: { from: [number, number, number]; at: [number, number, number] } } {
+  const gate = track.gates[0]!;
+  const f = { x: Math.sin(gate.yaw), z: Math.cos(gate.yaw) };
+  const r = { x: f.z, z: -f.x };
+  const n = PROP_KITS.length;
+  const props = PROP_KITS.map((kit, i) => {
+    const along = (i - (n - 1) / 2) * PROP_ROW.gap;
+    return { kit, x: gate.pos.x + f.x * along - r.x * PROP_ROW.side, z: gate.pos.z + f.z * along - r.z * PROP_ROW.side, rot: gate.yaw - Math.PI / 2 };
+  });
+  const mid = { x: gate.pos.x - r.x * PROP_ROW.side, z: gate.pos.z - r.z * PROP_ROW.side };
+  return {
+    track: { ...track, def: { ...track.def, props } },
+    camera: {
+      from: [mid.x + r.x * PROP_ROW.camBack + f.x * PROP_ROW.camSide, PROP_ROW.camHeight, mid.z + r.z * PROP_ROW.camBack + f.z * PROP_ROW.camSide],
+      at: [mid.x, PROP_ROW.lookHeight, mid.z],
     },
   };
 }

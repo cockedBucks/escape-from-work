@@ -22,7 +22,7 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   pick one too. Tests.
 - [x] **P7.3 Balance.** Roster balance test on Test Loop and The Office: every car within ±3% of
   the median lap time. Tune stats to pass.
-- [ ] **P7.4 Prop kit (office).** All office props from the art style list, instanced where
+- [x] **P7.4 Prop kit (office).** All office props from the art style list, instanced where
   repeated.
 - [ ] **P7.5 The Office track.** Layout, zones, swap lane, item rows, server-closet shortcut
   (branch spline), props. Use `/add-track`. `npm run track:check -- office`.

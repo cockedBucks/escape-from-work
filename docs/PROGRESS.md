@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.4 Prop kit (office)
+- Next task: P7.5 The Office track
 - Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
   `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
 
@@ -92,6 +92,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06: P7.3 balance — roster balance test (every car's 3-lap bot time within `lapSpread`
   ±3% of the median; Test Loop now, The Office in P7.5). Hot Fix speed 1.05 → 1.03 (was −3.4%). D088.
+
+- 2026-10-06: P7.4 office prop kit — 12 props as data (`PROP_SHAPES`, real sizes ×
+  `officeScale` 2), built by the shared kit builder, one InstancedMesh per kind (track `props`
+  now drawn), `props` scenario; track schema validates prop kinds. D089.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
