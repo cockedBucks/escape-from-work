@@ -7,6 +7,8 @@ import { GAME_TITLE } from '@escape/shared';
 import { startServer } from './app';
 import { REPO_ROOT, loadTuningFile } from './config';
 import { lanUrls } from './lan';
+import { dailyBackup } from './league/backup';
+import { localIso } from './league/record';
 import { LEAGUE_FILE } from './league/store';
 
 const isProd = process.argv.includes('--prod') || process.env['NODE_ENV'] === 'production';
@@ -31,6 +33,13 @@ if (isProd && !existsSync(path.join(clientDir, 'index.html'))) {
   console.error('No built client found (packages/client/dist). Run `npm run build`, or use `npm start`.');
   process.exit(1);
 }
+
+// The real league (npm start): one safety copy per day in data/backups/.
+const backup = isProd && !process.env['EFW_NO_LEAGUE']
+  ? dailyBackup(LEAGUE_FILE, path.join(path.dirname(LEAGUE_FILE), 'backups'), localIso(new Date()).slice(0, 10), tuning.league.backupKeep)
+  : null;
+if (backup instanceof Error) console.warn(`League backup failed (the game still runs): ${backup.message}`);
+else if (backup) console.log(`League backup: ${path.relative(REPO_ROOT, backup)}`);
 
 let port: number;
 try {

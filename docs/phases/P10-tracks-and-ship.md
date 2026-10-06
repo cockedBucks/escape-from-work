@@ -20,7 +20,7 @@ and a final stability pass.
   sandstorm event (fog for one lap, config-driven). `/add-track`.
 - [x] **P10.3 Motherboard.** Props (chips, capacitors, resistors, CPU fan), trace-road look,
   capacitor jumps, CPU-fan loop. `/add-track`.
-- [ ] **P10.4 Office deployment.** `start-server.bat` and `start-server.sh` (install if needed,
+- [x] **P10.4 Office deployment.** `start-server.bat` and `start-server.sh` (install if needed,
   build, start, print URLs). `docs/LAN.md` final: daily start, firewall, troubleshooting,
   updating the game with git, backing up `data/league.json`.
 - [ ] **P10.5 Soak test.** Script: 16 bot clients, 10 minutes of back-to-back races; record memory

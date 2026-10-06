@@ -375,6 +375,8 @@ const LeagueTuningSchema = z.strictObject({
   awards: z.array(AwardRuleSchema),
   /** The Rubber Duck of Shame, always for last place. */
   duck: z.strictObject({ title: z.string().min(1), icon: z.string().min(1).max(8), line: z.string().min(1) }),
+  /** `npm start` copies data/league.json to data/backups/ once a day and keeps this many copies. */
+  backupKeep: z.number().int().min(1),
 });
 
 export const TuningSchema = z.strictObject({

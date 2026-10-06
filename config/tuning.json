@@ -208,6 +208,7 @@
       { "id": "honkChampion", "icon": "📯", "title": "Honk Champion", "line": "honked {n} times", "stat": "honks", "pick": "most", "limit": 6, "finishedOnly": false },
       { "id": "cleanDriver", "icon": "✨", "title": "Clean Driver", "line": "{n} wall hits. Respect.", "stat": "wallHits", "pick": "fewest", "limit": 0, "finishedOnly": true }
     ],
-    "duck": { "title": "Rubber Duck of Shame", "icon": "🦆", "line": "last place. Quack." }
+    "duck": { "title": "Rubber Duck of Shame", "icon": "🦆", "line": "last place. Quack." },
+    "backupKeep": 30
   }
 }
