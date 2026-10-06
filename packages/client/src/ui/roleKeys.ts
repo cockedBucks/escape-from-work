@@ -51,3 +51,32 @@ export const TEAM_TIP = 'Drift → fills NITRO → nitro heats the ENGINE → th
 
 /** Your role after a swap lane: Pilot and Engineer trade; solo stays solo. */
 export const swappedRole = (role: string): string => (role === 'pilot' ? 'engineer' : role === 'engineer' ? 'pilot' : role);
+
+/** The key help page (P8.2): every key, grouped. Keys by physical position (any layout). */
+export const KEY_HELP: readonly { title: string; keys: readonly (readonly [string, string])[] }[] = [
+  {
+    title: 'Pilot',
+    keys: [['A / D  or  ← / →', 'steer'], ['steer hard + partner taps S', 'DRIFT (fills nitro)'], ['Q (hold)', 'aim the item backward']],
+  },
+  {
+    title: 'Engineer',
+    keys: [['W  or  ↑', 'gas'], ['S  or  ↓', 'brake / reverse · tap while turning = DRIFT'], ['Shift', 'nitro (heats the engine)'], ['Space', 'use the item']],
+  },
+  {
+    title: 'Everyone',
+    keys: [
+      ['H', 'honk'],
+      ['R', 'respawn on the last checkpoint'],
+      ['C', 'chase ↔ cockpit view (mouse to look around)'],
+      ['Tab (hold)', 'scoreboard'],
+      ['Esc', 'lobby / hide the lobby'],
+      ['?', 'this help'],
+      ['F3', 'FPS and network numbers'],
+      ['any key, fast', 'mash through a Forced Update'],
+    ],
+  },
+  {
+    title: 'Solo (no teammate)',
+    keys: [['W A S D + Shift + Space + Q', 'all of the above, by yourself']],
+  },
+];

@@ -32,6 +32,8 @@ export interface CarSource {
 export type View = 'chase' | 'cockpit' | 'overview' | 'fixed';
 
 export interface GameOptions {
+  /** Settings: a small FPS counter in the corner. */
+  showFps?: boolean;
   container: HTMLElement;
   tuning: Tuning;
   track: Track;
@@ -144,6 +146,7 @@ export class Game {
     this.itemProps = new ItemProps(buildBoxes(opts.track));
     this.stage.scene.add(this.itemProps.group);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
+    this.overlay.setShowFps(opts.showFps ?? false);
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
       this.stage.scene.fog = null;
@@ -216,6 +219,11 @@ export class Game {
   /** Where the camera is (for sound distance). */
   get cameraPosition(): THREE.Vector3 {
     return this.stage.camera.position;
+  }
+
+  /** Settings changed: show or hide the FPS counter. */
+  setShowFps(on: boolean): void {
+    this.overlay.setShowFps(on);
   }
 
   /** Something jolted your car (wall, landing, bump): shake the cockpit head or the chase cam a little. */

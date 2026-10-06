@@ -31,6 +31,8 @@ export const captionOf = (file: string): string => file.replace(/\.[^.]+$/, '').
 export interface MainMenuHandlers {
   onPlay(): void;
   onHonk(): void;
+  onSettings(): void;
+  onKeys(): void;
 }
 
 export class MainMenu {
@@ -72,10 +74,22 @@ export class MainMenu {
     const buttons = document.createElement('div');
     buttons.className = 'menu-buttons';
     buttons.append(play, this.honk);
+    const small = document.createElement('div');
+    small.className = 'menu-small';
+    const smallButton = (action: string, text: string, onClick: () => void): HTMLButtonElement => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'menu-small-button';
+      b.dataset.action = action;
+      b.textContent = text;
+      b.addEventListener('click', onClick);
+      return b;
+    };
+    small.append(smallButton('settings', '⚙ Settings', () => handlers.onSettings()), smallButton('keys', '⌨ Keys', () => handlers.onKeys()));
     const car = document.createElement('p');
     car.className = 'menu-car';
     car.append('On the turntable: ', this.carName);
-    panel.append(title, this.loading, buttons, car);
+    panel.append(title, this.loading, buttons, small, car);
     this.slides.className = 'menu-slides';
     this.slides.hidden = true;
     this.slides.append(this.slideImg, this.slideCaption);

@@ -10,6 +10,8 @@ import { EngineSound, squealing } from './audio/engine';
 import { COUNTDOWN_SOUNDS, DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer, IMPACT_SOUNDS, impactLevel, ITEM_SOUNDS } from './audio/horn';
 import { MusicLoop } from './audio/music';
 import { showMainMenu } from './menu';
+import { loadSettings, saveSettings } from './settings';
+import { SettingsScreen } from './ui/settingsScreen';
 import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
@@ -274,6 +276,7 @@ const fakePlayers: LobbyPlayer[] = [
 
 /** The real thing: join the server's race, pick a seat, drive. */
 async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Promise<void> {
+  const settings = loadSettings();
   const container = el('game');
   container.hidden = false;
   setStatus('Connecting…');
@@ -524,7 +527,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     container,
     tuning,
     track,
-    quality: pickQuality(window.location.search, tuning).preset,
+    quality: pickQuality(window.location.search, tuning, settings.quality).preset,
+    showFps: settings.showFps,
     source: carSource,
     view: 'chase',
     // Follow your own car; while watching, the spectator cam picks the car.
@@ -564,7 +568,19 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   room.onStateChange(applyView);
   const engine = new EngineSound(() => horns.context, () => horns.bus('engine'));
   const music = new MusicLoop(() => horns.context, () => horns.bus('music'));
-  const volumePanel = new VolumePanel(document.body, horns.volumes, (v) => horns.setVolumes(v));
+  const volumePanel = new VolumePanel(document.body, horns.volumes, (v) => horns.setVolumes(v), () => settingsScreen.open('settings'));
+  const settingsScreen = new SettingsScreen(document.body, {
+    settings,
+    volumes: horns.volumes,
+    camera: cameraToggle.mode,
+    inRace: true,
+    onSettings: (s) => {
+      saveSettings(s);
+      game.setShowFps(s.showFps);
+    },
+    onVolumes: (v) => horns.setVolumes(v),
+    onCamera: (mode) => cameraToggle.set(mode),
+  });
   /** How far a car is from the camera (m), for sound volume. */
   const heardFrom = (carId: string): number => {
     const p = game.carPosition(carId);
@@ -664,6 +680,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     engine.dispose();
     music.dispose();
     volumePanel.dispose();
+    settingsScreen.dispose();
     horns.dispose();
     swapFlash.dispose();
     effects.dispose();
@@ -687,7 +704,7 @@ async function startGame(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const skip = hasSavedSeat(tuning) || new URLSearchParams(window.location.search).has('play');
   if (!skip) {
     setStatus('');
-    await showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning).preset, roster: loadCars().cars, horns });
+    await showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning, loadSettings().quality).preset, roster: loadCars().cars, horns });
   }
   await showRace(hooks, tuning, horns);
 }

@@ -14,10 +14,11 @@ export interface Stage {
   dispose(): void;
 }
 
-/** Quality from `?quality=low|medium|high`, else the config default. */
-export function pickQuality(search: string, tuning: Tuning): { level: QualityLevel; preset: QualityPreset } {
+/** Quality from `?quality=low|medium|high`, else your saved setting (P8.2), else the config default. */
+export function pickQuality(search: string, tuning: Tuning, saved: QualityLevel | 'auto' = 'auto'): { level: QualityLevel; preset: QualityPreset } {
   const asked = new URLSearchParams(search).get('quality');
-  const level: QualityLevel = asked === 'low' || asked === 'medium' || asked === 'high' ? asked : tuning.quality.default;
+  const level: QualityLevel =
+    asked === 'low' || asked === 'medium' || asked === 'high' ? asked : saved !== 'auto' ? saved : tuning.quality.default;
   return { level, preset: tuning.quality.presets[level] };
 }
 

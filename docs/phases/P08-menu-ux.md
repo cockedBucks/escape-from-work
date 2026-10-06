@@ -14,7 +14,7 @@ join and play without anyone explaining.
 - [x] **P8.1 Main menu.** Car turntable (showroom cam), wobbly buttons, big HONK button, rotating
   fake IT loading messages, slideshow of images in `assets/menu/` (manifest built like faces).
   Scenario `menu`.
-- [ ] **P8.2 Settings.** Quality preset, master/engine/sfx volume, default camera, show FPS,
+- [x] **P8.2 Settings.** Quality preset, master/engine/sfx volume, default camera, show FPS,
   key help page. Stored in `localStorage` with safe fallbacks.
 - [ ] **P8.3 Onboarding.** First race per browser: role card with keys during the countdown,
   "?" opens key help any time, swap-lane and item first-time hints.

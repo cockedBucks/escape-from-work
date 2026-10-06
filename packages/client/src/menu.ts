@@ -5,6 +5,9 @@ import type { HornPlayer } from './audio/horn';
 import { MusicLoop } from './audio/music';
 import { MainMenu } from './ui/mainMenu';
 import { VolumePanel } from './ui/volumePanel';
+import { SettingsScreen } from './ui/settingsScreen';
+import { loadCameraMode, saveCameraMode } from './input/cameraPref';
+import { loadSettings, saveSettings } from './settings';
 import { Showroom } from './render/showroom';
 
 export interface MenuOptions {
@@ -37,7 +40,16 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
     document.body.appendChild(stageEl);
     const showroom = new Showroom(stageEl, opts.tuning, opts.quality, opts.roster);
     const music = new MusicLoop(() => opts.horns.context, () => opts.horns.bus('music'));
-    const volume = new VolumePanel(document.body, opts.horns.volumes, (v) => opts.horns.setVolumes(v));
+    const settingsScreen = new SettingsScreen(document.body, {
+      settings: loadSettings(),
+      volumes: opts.horns.volumes,
+      camera: loadCameraMode(),
+      inRace: false,
+      onSettings: (s) => saveSettings(s),
+      onVolumes: (v) => opts.horns.setVolumes(v),
+      onCamera: (mode) => saveCameraMode(mode),
+    });
+    const volume = new VolumePanel(document.body, opts.horns.volumes, (v) => opts.horns.setVolumes(v), () => settingsScreen.open('settings'));
     let frame = 0;
     let done = false;
     const menu = new MainMenu(document.body, {
@@ -47,11 +59,14 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
         cancelAnimationFrame(frame);
         music.dispose();
         volume.dispose();
+        settingsScreen.dispose();
         menu.dispose();
         showroom.dispose();
         stageEl.remove();
         resolve();
       },
+      onSettings: () => settingsScreen.open('settings'),
+      onKeys: () => settingsScreen.open('keys'),
       onHonk: () => {
         const car = showroom.current;
         if (car) opts.horns.play(car.horn, 0);

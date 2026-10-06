@@ -1,4 +1,5 @@
 // Scoreboard (P3.5): hold Tab. Place, team, players, lap and gap to the leader.
+import { isTyping } from '../input/keyboard';
 import type { RacePhase } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
 import { escapeHtml } from './html';
@@ -84,7 +85,7 @@ export class Scoreboard {
 
   private readonly onDown = (e: KeyboardEvent): void => {
     // In a text field Tab keeps its normal job (next field).
-    if (e.code !== 'Tab' || e.target instanceof HTMLInputElement) return;
+    if (e.code !== 'Tab' || isTyping(e.target)) return;
     e.preventDefault(); // Tab must not move focus around the page
     this.el.hidden = false;
     this.render();

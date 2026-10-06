@@ -13,7 +13,7 @@ export function loadCameraMode(): CameraMode {
   }
 }
 
-function saveCameraMode(mode: CameraMode): void {
+export function saveCameraMode(mode: CameraMode): void {
   try {
     window.localStorage.setItem(KEY, mode);
   } catch {
@@ -37,6 +37,14 @@ export class CameraToggle {
     saveCameraMode(this.mode);
     this.onChange(this.mode);
   };
+
+  /** Set the mode from the settings screen (saved, and applied like a C press). */
+  set(mode: CameraMode): void {
+    if (mode === this.mode) return;
+    this.mode = mode;
+    saveCameraMode(mode);
+    this.onChange(mode);
+  }
 
   dispose(): void {
     window.removeEventListener('keydown', this.onKey);

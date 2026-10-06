@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P8 — Menu and UX (`docs/phases/P08-menu-ux.md`)
-- Next task: P8.2 Settings
-- Status: P8.1 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P8.3 Onboarding
+- Status: P8.2 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -101,6 +101,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06 (cloud): P8.1 Main menu — turntable showroom, wobbly PLAY, HONK, fake IT loading
   messages, company-image slideshow (`/menu/menu.json` lists assets/menu/ live), menu music; reload
   with a held seat skips it. `menu` scenario. D098.
+
+- 2026-10-06 (cloud): P8.2 Settings — settings/keys window (menu buttons + ⚙ next to the speaker):
+  quality, volumes, default camera, show FPS, full key help; saved per browser. D099.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
