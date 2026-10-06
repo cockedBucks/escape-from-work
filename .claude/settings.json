@@ -43,10 +43,8 @@
       "PowerShell(git rev-parse *)"
     ],
     "deny": [
-      "Bash(git push *)",
       "Bash(git reset --hard *)",
       "Bash(git clean *)",
-      "PowerShell(git push *)",
       "PowerShell(git reset --hard *)",
       "PowerShell(git clean *)",
       "Read(./.env)",
