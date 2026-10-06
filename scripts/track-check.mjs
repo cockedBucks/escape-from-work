@@ -1,6 +1,7 @@
 // npm run track:check -- [track ids...]
 // Validates track files (schema + geometry). With no ids, checks every file in config/tracks/.
-// Then 2 bots drive 3 laps: they must finish without ever needing a respawn (a stuck spot).
+// Then 2 bots drive 3 laps: they must finish without ever needing a respawn (a stuck spot),
+// and (except on dev tracks) their median lap must be inside `track.lapTarget` in tuning.json.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -48,7 +49,8 @@ for (const id of ids) {
     let summary =
       `${stats.length.toFixed(0)} m, ${stats.samples} samples, ` +
       `width ${stats.minWidth.toFixed(0)}–${stats.maxWidth.toFixed(0)} m, ` +
-      `tightest radius ${stats.minRadius.toFixed(1)} m, ${def.zones.length} zones`;
+      `tightest radius ${stats.minRadius.toFixed(1)} m, ${def.zones.length} zones` +
+      (track.branches.length > 0 ? `, ${track.branches.length} shortcut(s)` : '');
     if (issues.length === 0) {
       const race = shared.runBotRace(track, tuning, { cars: 2, laps: 3, maxSeconds: 3 * 180 });
       const respawns = race.cars.reduce((n, c) => n + c.respawns, 0);
@@ -57,6 +59,13 @@ for (const id of ids) {
       if (respawns > 0) issues.push(`bots needed ${respawns} respawn(s): look for a stuck spot`);
       if (laps.length > 0) {
         summary += `; bot laps ${Math.min(...laps).toFixed(1)}–${Math.max(...laps).toFixed(1)} s`;
+        const sorted = [...laps].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        const { min, max } = tuning.track.lapTarget;
+        if (def.dev) summary += ' (dev track: no lap target)';
+        else if (median < min || median > max) {
+          issues.push(`median bot lap ${median.toFixed(1)} s is outside the ${min}–${max} s target (track.lapTarget)`);
+        }
       }
     }
     if (issues.length === 0) {

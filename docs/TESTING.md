@@ -37,10 +37,11 @@ split-control networking end to end. Bots also fill empty cars in real races.
 
 ## 4. Shots (visual checks)
 
-`npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed]` (`scripts/shots.mjs`):
+`npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed] [--track <id>]` (`scripts/shots.mjs`):
 1. Builds the client and starts the real server entry with `--prod --port 0` (a free port).
 2. Launches the system browser with `playwright-core` (`channel: "chrome"`, then `"msedge"`),
-   so no browser download is needed.
+   so no browser download is needed. On a machine without either, set `CHROME_PATH` to a
+   Chrome/Chromium binary. `--track <id>` adds `&track=<id>` (default: the server's track).
 3. Opens `http://localhost:<port>/?scenario=<name>&seed=1` per scenario, waits for
    `window.__game.ready`, saves `artifacts/shots/<name>.png` (1280×720) and adds
    `window.__game.stats()` to `artifacts/shots/stats.json`, plus console errors and failed
@@ -58,7 +59,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | Scenario | Shows |
 |---|---|
 | `hello` | Phase 0 player-count page |
-| `chase` | 4-bot race on the test track (or `&track=<id>`), run locally with the shared sim and frozen at 6 s; chase cam behind car 1 |
+| `chase` | 4-bot race on the default track, The Office (or `&track=<id>`), run locally with the shared sim and frozen at 6 s; chase cam behind car 1 |
 | `cockpit` | same frozen race from car 1's Pilot seat, head turned right at the teammate's bobblehead (placeholder face) |
 | `stall` | same frozen race in chase view, car 1's engine just stalled: smoke puffing from the hood (P5.1) |
 | `drift` | same frozen race in chase view, car 1 mid-drift with orange (level 2) sparks at the rear wheels (P5.2) |
@@ -67,6 +68,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `garage` | showroom: one car per slot (car0–car7, cycling through config/cars.json) parked in two rows at the start line, fixed camera in front (P7.1) |
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |
 | `track-overview` | top-down camera over the whole track, cars on the start line |
+| `shortcut` | fixed camera over the fork where the track's first shortcut leaves the main road, no cars (P7.5) |
 | `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview |
 | `garage` | all roster cars side by side in team colors |
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |

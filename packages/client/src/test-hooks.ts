@@ -39,7 +39,7 @@ declare global {
 }
 
 /** Every `?scenario=` the client can show. New screens add theirs (docs/TESTING.md). */
-export const KNOWN_SCENARIOS: readonly string[] = ['hello', 'chase', 'cockpit', 'stall', 'drift', 'nitro', 'items', 'garage', 'props', 'track-overview', 'lobby', 'results'];
+export const KNOWN_SCENARIOS: readonly string[] = ['hello', 'chase', 'cockpit', 'stall', 'drift', 'nitro', 'items', 'garage', 'props', 'shortcut', 'track-overview', 'lobby', 'results'];
 
 const DEFAULT_SEED = 1;
 

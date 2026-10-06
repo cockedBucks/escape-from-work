@@ -24,10 +24,14 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   the median lap time. Tune stats to pass.
 - [x] **P7.4 Prop kit (office).** All office props from the art style list, instanced where
   repeated.
-- [ ] **P7.5 The Office track.** Layout, zones, swap lane, item rows, server-closet shortcut
+- [x] **P7.5 The Office track.** Layout, zones, swap lane, item rows, server-closet shortcut
   (branch spline), props. Use `/add-track`. `npm run track:check -- office`.
   Add the 40–55 s lap-target check to `track:check` (needs a per-track target or a
-  "dev" flag so the Test Loop is exempt — ask the human; see D034).
+  "dev" flag so the Test Loop is exempt — ask the human; see D034). → dev flag (D090).
+- [ ] **P7.5b Load test: one car finishes late.** `npm run test:load` ends with 7/8 cars finished
+  (seen 2026-10-06 on both Test Loop and The Office, ticks healthy: avg 0.6 ms): one networked bot
+  car ends > `race.finishWindowSeconds` behind. Find why (stuck spot, bump pile-up, slot car stats
+  vs the stats the bot client predicts with since P7.2b?) and fix it.
 - [ ] **P7.6 Juice.** Dust, spark levels, nitro flames, stall smoke, landing squash, hit shake,
   finish confetti, head wobble, honk bubble polish.
 - [ ] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,

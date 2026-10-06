@@ -148,10 +148,18 @@ installed types for the API. Anything not on this list → ask the human first.
   wall segments, sector gates (gate 0 = start line) and spatial grids (`track.gridCellSize`) for
   fast "where am I on the track" and "which walls are near" lookups. `locateOnTrack` takes last
   tick's segment as a hint so a car stays on its own part of the track where it passes close.
-- Shortcuts (later tracks) are extra branch splines that rejoin the main loop; progress on a
-  branch maps to the main loop.
+- `"dev": true` marks a dev-only track (Test Loop): `track:check` skips its lap-time target.
+- Shortcuts: `"shortcuts": [{ "from": 0.66, "to": 0.79, "points": [ {x, z, width}, … ] }]`. Each is
+  an open spline from the main centerline at `from` through `points` to the main centerline at
+  `to` (from < to), leaving and rejoining along the main road's direction. Main and shortcut walls
+  are merged into one outline: a wall whose middle lies inside the other road is dropped, which
+  opens the forks. `locateOnTrack` prefers the main road; off it, a shortcut the car is on wins and
+  its progress maps linearly onto from–to (so checkpoints and places keep working). Zones and item
+  rows belong to the main road only. Plain bots ignore shortcuts.
 - `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, no curve
-  tighter than half the road width, no crossing walls); bot laps join in P1.4.
+  tighter than half the road width, no crossing walls, shortcuts shorter than what they skip), then
+  2 bots drive 3 laps without a respawn and (except dev tracks) a median lap inside
+  `track.lapTarget` (40–55 s).
 
 ## 6. Networking
 

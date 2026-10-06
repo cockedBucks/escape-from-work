@@ -1,6 +1,6 @@
 import type { TrackZone } from '../config/track';
 import { closestOnSegment, distSq, dot, lerp, normalize, sub, wrap01, type Vec2 } from '../util/math';
-import type { Track, TrackSample } from './build';
+import type { Track, TrackBranch, TrackSample } from './build';
 
 /** Where a point is relative to the track. */
 export interface TrackLocation {
@@ -16,14 +16,29 @@ export interface TrackLocation {
   halfWidth: number;
   /** Inside the road edges. */
   onTrack: boolean;
+  /** -1 = main loop, else the shortcut the point is on (`segment` is then the main segment it maps to). */
+  branch: number;
+  /** Unit direction of travel here (on a shortcut: the shortcut's). */
+  dir: Vec2;
 }
 
 /**
  * Find the nearest point on the centerline. Pass `hint` (the segment found last tick) so
  * that where the track passes close to itself, the car stays on the part it is driving:
  * nearby segments within a quarter lap of the hint win over farther ones.
+ * Off the main road, a shortcut the point is on wins; its progress maps onto the main loop.
  */
 export function locateOnTrack(track: Track, p: Vec2, hint?: number): TrackLocation {
+  const main = locateOnMain(track, p, hint);
+  if (main.onTrack) return main;
+  for (const branch of track.branches) {
+    const loc = locateOnBranch(track, branch, p);
+    if (loc?.onTrack) return loc;
+  }
+  return main;
+}
+
+function locateOnMain(track: Track, p: Vec2, hint?: number): TrackLocation {
   const n = track.samples.length;
   let candidates = track.segmentGrid.queryPoint(p.x, p.z);
   if (candidates.length === 0) candidates = Array.from({ length: n }, (_, i) => i);
@@ -67,6 +82,47 @@ export function locateOnTrack(track: Track, p: Vec2, hint?: number): TrackLocati
     lateral,
     halfWidth,
     onTrack: Math.abs(lateral) <= halfWidth,
+    branch: -1,
+    dir: a.dir,
+  };
+}
+
+/** Nearest point on a shortcut's centerline, or null when no shortcut segment is near. */
+function locateOnBranch(track: Track, branch: TrackBranch, p: Vec2): TrackLocation | null {
+  let best = -1;
+  let bestD2 = Infinity;
+  let bestT = 0;
+  let bestPoint: Vec2 = p;
+  for (const i of branch.segmentGrid.queryPoint(p.x, p.z)) {
+    const a = branch.samples[i] as TrackSample;
+    const b = branch.samples[i + 1] as TrackSample;
+    const { point, t } = closestOnSegment(p, a.pos, b.pos);
+    const d2 = distSq(p, point);
+    if (d2 < bestD2) {
+      bestD2 = d2;
+      best = i;
+      bestT = t;
+      bestPoint = point;
+    }
+  }
+  if (best < 0) return null;
+  const a = branch.samples[best] as TrackSample;
+  const b = branch.samples[best + 1] as TrackSample;
+  const d = normalize(sub(b.pos, a.pos));
+  const lateral = dot(sub(p, bestPoint), { x: -d.z, z: d.x });
+  const halfWidth = lerp(a.width, b.width, bestT) * 0.5;
+  const along = (best + bestT) / (branch.samples.length - 1);
+  const progress = wrap01(lerp(branch.from, branch.to, along));
+  const n = track.samples.length;
+  return {
+    segment: Math.min(Math.floor(progress * n), n - 1),
+    dist: progress * track.length,
+    progress,
+    lateral,
+    halfWidth,
+    onTrack: Math.abs(lateral) <= halfWidth,
+    branch: branch.index,
+    dir: d,
   };
 }
 
@@ -77,7 +133,8 @@ export function lapProgress(track: Track, progress: number): number {
 
 /** Ranged zones (ramp, slick, swap) that contain this location. */
 export function zonesAt(track: Track, loc: TrackLocation): Extract<TrackZone, { from: number }>[] {
-  if (!loc.onTrack) return [];
+  // Zones belong to the main road; a shortcut passing "over" their progress has none.
+  if (!loc.onTrack || loc.branch !== -1) return [];
   return track.rangedZones.filter((z) => {
     if (loc.progress < z.from || loc.progress >= z.to) return false;
     if (z.type === 'ramp' || z.side === 'both') return true;

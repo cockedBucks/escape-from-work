@@ -5,9 +5,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.5 The Office track
-- Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
-  `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
+- Next task: P7.5b Load test: one car finishes late
+- Status: P7.5 done. The Office is the default track. `npm run verify` passes; `npm run test:load`
+  FAILS (7/8 cars finish, also before P7.5) → P7.5b. Shots: track-overview 50 draws / 34k tris.
 
 ## Half-done
 - (nothing)
@@ -28,6 +28,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Public network; firewall rule D030 opens 2567 + 5173. See docs/LAN.md.
 
 ## Known issues
+- `npm run test:load`: 7/8 cars finish (one networked bot car > 30 s late), on both tracks → P7.5b.
+- `cockpit` shot: the teammate's bobblehead is not in view any more (same on Test Loop; check in P7.6).
+- Plain bots never take shortcuts (they follow the main centerline).
 - Load test (server + 17 clients in one process): average tick 0.40 ms, but rare GC pauses make 1–2
   ticks per race overrun (max seen 24 ms). Measure the standalone server under `npm run bots` in
   the P7 performance pass.
@@ -96,6 +99,13 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06: P7.4 office prop kit — 12 props as data (`PROP_SHAPES`, real sizes ×
   `officeScale` 2), built by the shared kit builder, one InstancedMesh per kind (track `props`
   now drawn), `props` scenario; track schema validates prop kinds. D089.
+
+- 2026-10-06: P7.5 The Office — `config/tracks/office.json` (1144 m, bot laps 43–44 s, reception →
+  open-plan straight → Printer Island hairpin → kitchen chicane with coffee slicks → boardroom ramp
+  over a desk table → corridor U with the 10 m server-closet shortcut → IT help desk swap lane;
+  222 props). Shortcuts in the track format (merged walls, progress mapped to the main loop).
+  Global `track.lapTarget` 40–55 s + `"dev": true` (human choice). Fixed walls pulling cars across
+  from another road. `shortcut` scenario, shots `--track`/`CHROME_PATH`. D090.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

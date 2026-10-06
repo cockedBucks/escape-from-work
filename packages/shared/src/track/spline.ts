@@ -55,7 +55,7 @@ export function sampleClosedSpline(
   if (n < 4) throw new Error('A closed spline needs at least 4 points');
   const at = (i: number): WidthPoint => points[((i % n) + n) % n] as WidthPoint;
 
-  // 1. Dense polyline with cumulative arc length.
+  // 1. Dense polyline, then 2. resample it by arc length.
   const fine: SplineSample[] = [];
   for (let i = 0; i < n; i++) {
     const p0 = at(i - 1);
@@ -68,6 +68,47 @@ export function sampleClosedSpline(
     }
   }
   fine.push(fine[0] as SplineSample); // close the loop
+  return resample(fine, spacing, 8, false);
+}
+
+/**
+ * Sample an open Catmull-Rom curve from the first to the last of `points` (both included),
+ * about `spacing` meters apart. `before` and `after` are phantom points that set the
+ * direction at the two ends (for a shortcut: points back and ahead along the main road).
+ */
+export function sampleOpenSpline(
+  points: readonly WidthPoint[],
+  before: Vec2,
+  after: Vec2,
+  spacing: number,
+): { samples: SplineSample[]; length: number } {
+  const n = points.length;
+  if (n < 2) throw new Error('An open spline needs at least 2 points');
+  const last = points[n - 1] as WidthPoint;
+  const at = (i: number): Vec2 => (i < 0 ? before : i >= n ? after : (points[i] as WidthPoint));
+  const fine: SplineSample[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    const p1 = points[i] as WidthPoint;
+    const p2 = points[i + 1] as WidthPoint;
+    for (let s = 0; s < FINE_STEPS; s++) {
+      const u = s / FINE_STEPS;
+      fine.push({ pos: catmullRom(at(i - 1), p1, p2, at(i + 2), u), width: lerp(p1.width, p2.width, smoothstep(u)) });
+    }
+  }
+  fine.push({ pos: { x: last.x, z: last.z }, width: last.width });
+  return resample(fine, spacing, 2, true);
+}
+
+/**
+ * Resample a dense polyline at equal arc-length steps (adjusted so they divide it exactly).
+ * A closed polyline repeats its first point at the end; `includeEnd` adds that last point.
+ */
+function resample(
+  fine: readonly SplineSample[],
+  spacing: number,
+  minCount: number,
+  includeEnd: boolean,
+): { samples: SplineSample[]; length: number } {
   const cumulative = [0];
   for (let i = 1; i < fine.length; i++) {
     const d = Math.sqrt(distSq((fine[i - 1] as SplineSample).pos, (fine[i] as SplineSample).pos));
@@ -75,8 +116,7 @@ export function sampleClosedSpline(
   }
   const length = cumulative[cumulative.length - 1] as number;
 
-  // 2. Resample at equal arc-length steps.
-  const count = Math.max(8, Math.round(length / spacing));
+  const count = Math.max(minCount, Math.round(length / spacing));
   const step = length / count;
   const samples: SplineSample[] = [];
   let j = 0;
@@ -93,5 +133,6 @@ export function sampleClosedSpline(
       width: lerp(a.width, b.width, u),
     });
   }
+  if (includeEnd) samples.push(fine[fine.length - 1] as SplineSample);
   return { samples, length };
 }
