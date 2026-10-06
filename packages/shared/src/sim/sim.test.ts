@@ -7,6 +7,7 @@ import { buildTrack } from '../track/build';
 import { forward } from '../util/math';
 import { createCar, createWorld, placeAtGate } from './car';
 import { step } from './step';
+import { collideWalls } from './walls';
 import { NO_INPUT, type CarInput, type SimEvent, type World } from './types';
 
 const cfg = parseTuning(realTuning);
@@ -97,6 +98,20 @@ describe('sim on the Test Loop', () => {
     run(w, { ...GAS, steer: -1 }, secs(3));
     // Half the road is 8 m here; the car's center can get no closer to a wall than its radius.
     expect(Math.abs(c.lateral)).toBeLessThan(8 - cfg.car.radius + 0.05);
+  });
+
+  it('a wall only pushes back a car that just crossed it, not one far behind it (another road)', () => {
+    const wall = track.walls.find((w) => w.side === 'right' && w.sample === 29)!;
+    const mid = { x: (wall.a.x + wall.b.x) / 2, z: (wall.a.z + wall.b.z) / 2 };
+    /** A still car `depth` m behind the wall (outside the road). */
+    const behind = (depth: number) => {
+      const c = carA(newWorld());
+      Object.assign(c, { x: mid.x - wall.normal.x * depth, z: mid.z - wall.normal.z * depth, vx: 0, vz: 0 });
+      collideWalls(c, track, cfg.car);
+      return (c.x - mid.x) * wall.normal.x + (c.z - mid.z) * wall.normal.z; // + = road side
+    };
+    expect(behind(6)).toBeCloseTo(-6); // left alone
+    expect(behind(0.3)).toBeCloseTo(cfg.car.radius); // its center just went through: back on the road
   });
 
   it('jumps off the ramp once and lands with an event', () => {

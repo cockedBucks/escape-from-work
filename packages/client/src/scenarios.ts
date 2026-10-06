@@ -19,7 +19,7 @@ import type { ItemsView } from './render/itemProps';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, garage: 0, props: 0, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, garage: 0, props: 0, shortcut: 0, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 
@@ -176,5 +176,22 @@ export function propsShowroom(track: Track): { track: Track; camera: { from: [nu
       from: [mid.x + r.x * PROP_ROW.camBack + f.x * PROP_ROW.camSide, PROP_ROW.camHeight, mid.z + r.z * PROP_ROW.camBack + f.z * PROP_ROW.camSide],
       at: [mid.x, PROP_ROW.lookHeight, mid.z],
     },
+  };
+}
+
+/** `shortcut` camera: above the main road `back` m before the first shortcut's fork, looking at the fork. */
+const SHORTCUT_CAM = { back: 28, side: 0, height: 34, lookAlong: 0.2 };
+
+/**
+ * The `shortcut` scenario: a fixed camera over where the track's first shortcut leaves the
+ * main road (no cars), to check the junction walls and the opening. Falls back to the start line.
+ */
+export function shortcutCamera(track: Track): { from: [number, number, number]; at: [number, number, number] } {
+  const br = track.branches[0];
+  const fork = br?.samples[0] ?? track.samples[track.gates[0]?.sample ?? 0]!;
+  const look = br?.samples[Math.floor((br.samples.length - 1) * SHORTCUT_CAM.lookAlong)] ?? fork;
+  return {
+    from: [fork.pos.x - fork.dir.x * SHORTCUT_CAM.back, SHORTCUT_CAM.height, fork.pos.z - fork.dir.z * SHORTCUT_CAM.back],
+    at: [look.pos.x, 0, look.pos.z],
   };
 }

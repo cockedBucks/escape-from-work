@@ -238,7 +238,10 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   groundGeo.rotateX(-Math.PI / 2);
   groundGeo.translate(center.x, -L.decalLift, center.z);
 
-  add(groundGeo, new THREE.MeshLambertMaterial({ color: TRACK_LOOK.groundByTheme[track.def.theme] ?? PALETTE.sand }), 'ground');
+  // Pushed back in depth so the road always wins over it, even far away (no flicker).
+  add(groundGeo, new THREE.MeshLambertMaterial({
+    color: TRACK_LOOK.groundByTheme[track.def.theme] ?? PALETTE.sand, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 4,
+  }), 'ground');
   add(road.build(), new THREE.MeshLambertMaterial({ color: PALETTE.road }), 'road');
   add(curbs.build(), new THREE.MeshLambertMaterial({ vertexColors: true, ...DECAL }), 'curbs');
   add(wallRb.build(), new THREE.MeshLambertMaterial({ color: PALETTE.cubicle, flatShading: true }), 'walls');

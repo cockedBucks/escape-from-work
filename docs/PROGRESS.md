@@ -23,9 +23,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Cloud session (read me first, local Claude)
 - 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
-  session (Linux container, Node 22, no GPU, no speakers, no LAN) on branch
-  `claude/serene-cray-63f01m`, pushed after each task (never `main`; D090).
-- **When back local:** `git fetch origin`, review `main..origin/claude/serene-cray-63f01m`
+  session (Linux container, Node 22, no GPU, no speakers, no LAN) on the session's branch, now
+  `claude/keen-edison-iupozz` (it contains `cloud-work`, D093), pushed after each task (never `main`; D090).
+- **When back local:** `git fetch origin`, review `main..origin/claude/keen-edison-iupozz`
   (diff + `npm run verify` on Windows + `npm run shots`), then merge it into `main` if OK
   (the human approved this plan). Then remove this section.
 - Works in the cloud: `verify`, `track:check`, `test:load`, `bots`, `shots` (Playwright Chromium,
@@ -116,6 +116,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   over the boardroom table, Server Closet shortcut, swap lane, 166 props), carpet ground, Office =
   default track, `shots --track`. Bot drift fixes (release on straights, no drift into S-bends or
   shortcuts). D091.
+- 2026-10-06 (cloud, 2nd session): two sessions had built P7.5 in parallel; kept `cloud-work`'s, added
+  the general wall fix, ground polygon offset and the `shortcut` scenario from the other. D093.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

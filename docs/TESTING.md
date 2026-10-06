@@ -70,6 +70,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `garage` | showroom: one car per slot (car0–car7, cycling through config/cars.json) parked in two rows at the start line, fixed camera in front (P7.1) |
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |
 | `track-overview` | top-down camera over the whole track, cars on the start line |
+| `shortcut` | fixed camera over the fork where the track's first shortcut leaves the main road, no cars (P7.5) |
 | `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview |
 | `garage` | all roster cars side by side in team colors |
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |

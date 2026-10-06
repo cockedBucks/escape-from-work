@@ -18,7 +18,7 @@ import { seatSideFor } from './render/cockpitCam';
 import { setFaceFraming } from './render/faceTexture';
 import type { FaceFraming } from './render/facePlacement';
 import { pickQuality } from './render/renderer';
-import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, propsShowroom, type RaceScenario } from './scenarios';
+import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, propsShowroom, shortcutCamera, type RaceScenario } from './scenarios';
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
@@ -153,8 +153,9 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   const track = showroom?.track ?? loadTrack(trackId, tuning);
   const itemsCfg = loadItems();
   const garage = scenario === 'garage' ? garageWorld(track) : null;
-  const world = garage?.world ?? (showroom ? createWorld(track, []) : frozenBotRace(track, tuning, scenario, itemsCfg));
-  const fixedCamera = garage?.camera ?? showroom?.camera;
+  const shortcutCam = scenario === 'shortcut' ? shortcutCamera(track) : null;
+  const world = garage?.world ?? (showroom || shortcutCam ? createWorld(track, []) : frozenBotRace(track, tuning, scenario, itemsCfg));
+  const fixedCamera = garage?.camera ?? showroom?.camera ?? shortcutCam ?? undefined;
   // Each car's look: the garage shows the roster in slot order; races use the first car.
   const roster = loadCars().cars;
   const lookOf = (carId: string): CarLook => {

@@ -26,6 +26,9 @@ export function collideWalls(state: CarState, track: Track, car: CarTuning): num
     // Behind a wall whose back is another road (a shortcut beside the main road): that is
     // the other road's business, not a car that slipped through this wall.
     if (!inFront && track.branches.length > 0 && insideOtherRoad(track, pos, wall.road)) continue;
+    // Behind a wall by more than the car's size: that wall belongs to another stretch of
+    // road (a tunneling car is never that deep), so it must not pull the car across.
+    if (!inFront && d > car.radius) continue;
     const n = inFront ? scale(delta, 1 / d) : wall.normal;
     const penetration = inFront ? car.radius - d : car.radius + d;
     if (penetration <= 0) continue;
