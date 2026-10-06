@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Room, type Client } from '@colyseus/core';
 import {
   BotsSchema,
@@ -42,6 +43,9 @@ interface Limits {
   head: TokenBucket;
 }
 
+/** Proof that the server (not a client) asked for the room; a fresh secret every run. */
+export const SERVER_ROOM_KEY = randomUUID();
+
 /** The one room of the server: players join, pick a car and seat, and drive. */
 export class RaceRoom extends Room<{ state: RaceState }> {
   // The server creates this room at startup; it must survive being empty.
@@ -59,7 +63,9 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   /** Sessions that joined as networked bot clients (scripts/bots): never scored in the league. */
   private readonly botClients = new Set<string>();
 
-  override onCreate(): void {
+  override onCreate(options: unknown): void {
+    // One lobby per server (D004): only the server itself makes the room, never a client's create().
+    if ((options as { key?: unknown } | null)?.key !== SERVER_ROOM_KEY) throw new Error('rooms are made by the server only');
     // Config comes from the server's files (live in dev), never from client options.
     const live = liveConfig();
     this.tuning = live.tuning;

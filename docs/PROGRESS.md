@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
-- Next task: P10.6 Final pass
-- Status: P10.5 done. `npm run verify` passes (507 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: HUMAN GATE — launch party (deferred), then P10.7 Release
+- Status: P10.6 done. `npm run verify` passes (513 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -47,12 +47,18 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Public network; firewall rule D030 opens 2567 + 5173. See docs/LAN.md.
 
 ## Known issues
-- In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
-  playtests; it never exists with `npm start`.
-- A client could call `create('race')` and make a second room. Lock this down when the
-  lobby is built (one lobby per server, D004).
+- Not checked on real hardware yet (the cloud has no GPU, speakers or LAN): real FPS on office
+  laptops, audio levels, `npm run jitter` numbers, `start-server.bat` on Windows. All are in the
+  launch-party gate.
+- In dev (`npm run dev`), anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite).
+  Accepted for playtests; it never exists with `npm start`.
 - A busy port prints Colyseus' own EADDRINUSE stack before our friendly message (exit code 1);
   cosmetic, left as is.
+- Bots (server bots and `npm run bots`) drive any track, but networked bot clients
+  (`npm run bots`, `soak`, `test:load`) only know The Office: they follow the default track.
+- The sandstorm is drawn only (fog on every screen); bots do not slow down in it.
+- The `props` shots scenario lines up a track's props beside the start straight; on big kits
+  (the CPU cooler) they overhang the road there. It is a debug view only.
 
 ## Last sessions
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
@@ -132,6 +138,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06 (cloud): P10.5 Soak test — `npm run soak`: 16 bot clients, 10 min, 7 races; heap +0.2 MB,
   tick avg 0.5 ms / worst 9.1 ms, 0 overruns, no leaks. D113.
+
+- 2026-10-06 (cloud): P10.6 Final pass — all 17 shots scenarios OK (no console errors), golden tests
+  in verify, props kept off the roads at drawn size (new test; 3 tracks fixed), one lobby per server
+  (a client's `create()` is refused), README rewritten for players, known issues listed. D114.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

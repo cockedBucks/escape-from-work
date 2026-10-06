@@ -12,7 +12,7 @@ import { LeagueStore } from './league/store';
 import { listMenuImages, MENU_DIR } from './menuImages';
 import { installTuningRoutes } from './dev/tuningRoutes';
 import { LiveConfig, setLiveConfig } from './liveConfig';
-import { RaceRoom } from './rooms/RaceRoom';
+import { RaceRoom, SERVER_ROOM_KEY } from './rooms/RaceRoom';
 
 export interface StartOptions {
   port: number;
@@ -98,7 +98,7 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
   });
   server.define(ROOM_NAME, RaceRoom);
   await listenOrFail(server, transport, opts);
-  await matchMaker.createRoom(ROOM_NAME, {});
+  await matchMaker.createRoom(ROOM_NAME, { key: SERVER_ROOM_KEY });
   const watcher = dev && opts.watchConfig ? watchConfig(live) : null;
 
   const address = transport.server?.address() as AddressInfo | null;

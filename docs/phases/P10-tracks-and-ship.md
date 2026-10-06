@@ -25,7 +25,7 @@ and a final stability pass.
   updating the game with git, backing up `data/league.json`.
 - [x] **P10.5 Soak test.** Script: 16 bot clients, 10 minutes of back-to-back races; record memory
   and tick time; fix leaks.
-- [ ] **P10.6 Final pass.** All scenarios through `/shots`, all golden tests, README refreshed,
+- [x] **P10.6 Final pass.** All scenarios through `/shots`, all golden tests, README refreshed,
   known issues listed.
 - [ ] **HUMAN GATE — launch party.**
   1. Host on the office PC with the start script. Get as many people as possible. Race all tracks.

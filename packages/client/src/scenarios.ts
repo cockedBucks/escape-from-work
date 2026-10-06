@@ -7,6 +7,7 @@ import {
   step,
   createChaos,
   PROP_KITS,
+  type PropKit,
   type CarInput,
   type ItemsConfig,
   type Track,
@@ -16,6 +17,7 @@ import {
 import type { CarSource } from './game';
 import type { CarSnap } from './net/snapshots';
 import type { ItemsView } from './render/itemProps';
+import { PROP_LOOK, PROP_SHAPES, type PropPrim } from './render/look';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
@@ -154,26 +156,44 @@ export function garageWorld(track: Track): { world: World; camera: { from: [numb
 }
 
 /** Props showroom: one of each office prop in a row beside the start straight (spacing m). */
-const PROP_ROW = { gap: 4.6, side: 14, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2 };
+const PROP_ROW = { pad: 1.6, side: 14, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2, viewWidthPerMeter: 1.5 };
+
+/** Half the widest extent of a prop kit piece as drawn (m, `officeScale` included). */
+export function propHalfWidth(kit: PropKit): number {
+  let half = 0;
+  for (const p of PROP_SHAPES[kit] as readonly PropPrim[]) {
+    const sx = p.s === 'box' ? p.size[0]! / 2 : p.size[0]!;
+    const sz = p.s === 'box' ? p.size[2]! / 2 : p.s === 'cyl' ? p.size[0]! : p.size[2]!;
+    half = Math.max(half, Math.abs(p.at[0]) + sx, Math.abs(p.at[2]) + sz);
+  }
+  return half * PROP_LOOK.officeScale;
+}
 
 /**
- * The `props` scenario: the track with one of every office prop lined up beside the start
- * straight (no cars), and a fixed camera looking at them.
+ * The `props` scenario: one of every prop the track uses (every kit when it has none) lined up
+ * beside the start line, spaced by size, and a fixed camera far enough back to see the row.
  */
 export function propsShowroom(track: Track): { track: Track; camera: { from: [number, number, number]; at: [number, number, number] } } {
   const gate = track.gates[0]!;
   const f = { x: Math.sin(gate.yaw), z: Math.cos(gate.yaw) };
   const r = { x: f.z, z: -f.x };
-  const n = PROP_KITS.length;
-  const props = PROP_KITS.map((kit, i) => {
-    const along = (i - (n - 1) / 2) * PROP_ROW.gap;
+  const used = new Set(track.def.props.map((p) => p.kit));
+  const kits = PROP_KITS.filter((k) => used.size === 0 || used.has(k));
+  const halves = kits.map(propHalfWidth);
+  const length = halves.reduce((sum, h) => sum + 2 * h + PROP_ROW.pad, -PROP_ROW.pad);
+  let cursor = -length / 2;
+  const props = kits.map((kit, i) => {
+    const along = cursor + halves[i]!;
+    cursor += 2 * halves[i]! + PROP_ROW.pad;
     return { kit, x: gate.pos.x + f.x * along - r.x * PROP_ROW.side, z: gate.pos.z + f.z * along - r.z * PROP_ROW.side, rot: gate.yaw - Math.PI / 2 };
   });
   const mid = { x: gate.pos.x - r.x * PROP_ROW.side, z: gate.pos.z - r.z * PROP_ROW.side };
+  // Far enough to see the whole row, and in front of the deepest prop (the CPU cooler is huge).
+  const back = Math.max(PROP_ROW.camBack, length / PROP_ROW.viewWidthPerMeter - PROP_ROW.side, Math.max(...halves) + PROP_ROW.camBack / 2);
   return {
     track: { ...track, def: { ...track.def, props } },
     camera: {
-      from: [mid.x + r.x * PROP_ROW.camBack + f.x * PROP_ROW.camSide, PROP_ROW.camHeight, mid.z + r.z * PROP_ROW.camBack + f.z * PROP_ROW.camSide],
+      from: [mid.x + r.x * back + f.x * PROP_ROW.camSide, PROP_ROW.camHeight, mid.z + r.z * back + f.z * PROP_ROW.camSide],
       at: [mid.x, PROP_ROW.lookHeight, mid.z],
     },
   };
