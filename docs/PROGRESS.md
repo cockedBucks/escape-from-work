@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
-- Next task: P6.4 Screen and control items (Blue Screen, Lag Spike, Control Swap, Forced Update)
+- Next task: P6.5 Item presentation (effects, hit reactions, HUD icons, sounds, toasts, `items` scenario)
 - Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
   Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
 
@@ -84,6 +84,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06: P6.3 Ctrl+Z — every car's pose + heat sampled every 0.1 s (fixed slots, in the sim,
   not hashed); using it jumps back 3 s (or to the oldest pose), clears spin/stall, ghosts the car
   briefly; usable even while spinning. D079.
+
+- 2026-10-06: P6.4 Blue Screen (car ahead, fake error screen on both its screens), Lag Spike
+  (car ahead: inputs 0.8 s late), Control Swap (leader: steering ↔ pedals), Forced Update (random
+  car ahead from the top 3: stopped, mash any key); all Firewall-blockable, all cleared by Ctrl+Z;
+  effect timers synced; no prediction while they last. D080.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

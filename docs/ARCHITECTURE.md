@@ -333,6 +333,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | leaders get strong items / races not close | `items.json` `roll.front/mid/back` (each sums to 100) |
 | Reply-All too strong / too easy to dodge | `items.replyAll.speed`, `.radius`, `.bounces`, `.lifeSeconds`, `.spinSeconds`; spin-out feel: `spin.turnsPerSec`, `spin.slowPerSec` |
 | Coffee Spill / Firewall too strong | `items.coffeeSpill.radius`, `.seconds`, `.spinSeconds`; `items.firewall.seconds` |
+| Blue Screen / Lag Spike / Control Swap too annoying | `items.blueScreen.seconds`, `items.lagSpike.seconds`, `.delaySeconds`, `items.controlSwap.seconds` |
+| Forced Update too long / mashing too strong | `items.forcedUpdate.maxSeconds`, `.mashSeconds` (per key press), `.preferTop` |
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
 | bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt`, `bot.driftHeatLiftAt` |
 | server/network bots too good / too plain | `bot.skill` (0 plain, 1 drifts, 2 drifts + nitro) |

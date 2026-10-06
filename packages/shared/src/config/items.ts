@@ -57,6 +57,8 @@ export const ItemsSchema = z.strictObject({
       /** Longest the car is stopped (s); each key mash takes this much off (s). */
       maxSeconds: pos(),
       mashSeconds: pos(),
+      /** It picks a random car ahead, from the top `preferTop` places when any of them is ahead. */
+      preferTop: z.number().int().min(1),
     }),
   }),
 });

@@ -10,6 +10,7 @@ import { stepNitro } from './nitro';
 import { stepBoxes } from '../items/chaos';
 import { stepPuddles } from '../items/coffeeSpill';
 import { recordHistory } from '../items/ctrlZ';
+import { applyControlEffects } from '../items/controlEffects';
 import { useItems } from '../items/index';
 import { stepEnvelopes } from '../items/replyAll';
 import { TAU, dot, forward, wrapAngle } from '../util/math';
@@ -29,7 +30,10 @@ export function step(world: World, inputs: InputsByCar, cfg: Tuning): SimEvent[]
   const events: SimEvent[] = [];
   const now = world.tick + 1;
   if (world.chaos) useItems(world, world.chaos, inputs, cfg, now, events);
-  for (const car of world.cars) stepCar(world, car, inputs[car.id] ?? NO_INPUT, cfg, now, events);
+  for (const car of world.cars) {
+    const raw = inputs[car.id] ?? NO_INPUT;
+    stepCar(world, car, world.chaos ? applyControlEffects(world.chaos, car, raw, cfg) : raw, cfg, now, events);
+  }
   collideCars(world.cars, now, cfg.car, events);
   if (world.chaos) {
     stepEnvelopes(world, world.chaos, cfg, now, events);
@@ -70,6 +74,7 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
 
   // Item effects: a Firewall runs down; spinning out = no control, the car twirls and slows.
   if (car.shieldTicks > 0) car.shieldTicks--;
+  if (car.blueScreenTicks > 0) car.blueScreenTicks--;
   const spinning = car.spinTicks > 0;
   if (spinning) {
     car.spinTicks--;

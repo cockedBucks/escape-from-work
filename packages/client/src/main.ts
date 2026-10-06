@@ -3,7 +3,7 @@
 import '@fontsource/fredoka/600.css';
 import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, mayUse, type CarInput, type Horn, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
-import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
+import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { EngineSound } from './audio/engine';
 import { DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer } from './audio/horn';
@@ -22,6 +22,7 @@ import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from '
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
+import { ItemEffectsOverlay } from './ui/itemEffects';
 import { itemName } from './ui/items';
 import { swappedRole } from './ui/roleKeys';
 import { SwapFlash } from './ui/swapFlash';
@@ -286,6 +287,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   });
   const badge = new RoleBadge(container);
   const swapFlash = new SwapFlash(container);
+  const effects = new ItemEffectsOverlay(container);
+  const itemsCfg = loadItems();
   const hud = new RaceHud(container);
   const gaugePanel = new GaugePanel(container);
   const gauges: GaugeValues = { speed: 0, lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
@@ -397,6 +400,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     gauges.stalled = myCar ? myCar.stallLeft > 0 : false;
     gauges.nitro = myCar ? myCar.nitro : null;
     gauges.item = myCar && myCar.item !== '' ? itemName(myCar.item) : null;
+    // Item hits show on both players' screens of the car.
+    effects.set(myCar ?? null, itemsCfg.items.forcedUpdate.maxSeconds);
     join.update({
       players,
       myId: room.sessionId,
@@ -523,6 +528,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     engine.dispose();
     horns.dispose();
     swapFlash.dispose();
+    effects.dispose();
     mouseLook.dispose();
     endRace.remove();
     board.dispose();

@@ -89,6 +89,11 @@ export const CarView = schema(
     /** Seconds left spinning out (item hit) and of Firewall (0 = none). */
     spinLeft: t.float32().default(0),
     shieldLeft: t.float32().default(0),
+    /** Item effects on this car, seconds left: Blue Screen, Lag Spike, Control Swap, Forced Update. */
+    blueLeft: t.float32().default(0),
+    lagLeft: t.float32().default(0),
+    swapLeft: t.float32().default(0),
+    updateLeft: t.float32().default(0),
   },
   'CarView',
 );

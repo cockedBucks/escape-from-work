@@ -18,6 +18,8 @@ export interface CarInput {
   fire?: boolean;
   /** Aim the item backward while held (Pilot or solo). */
   aimBack?: boolean;
+  /** Key presses this tick by anyone in the car (Forced Update: mash to finish faster). */
+  mash?: number;
 }
 
 export const NO_INPUT: Readonly<CarInput> = { steer: 0, gas: false, brake: false, respawn: false };
@@ -90,6 +92,12 @@ export interface CarState {
   spinTicks: number;
   /** Firewall up for this many more ticks (absorbs one hit). */
   shieldTicks: number;
+  /** Item effects on this car, ticks left: Blue Screen (both screens), Lag Spike (inputs late),
+   * Control Swap (steering and pedals traded), Forced Update (stopped; mash keys). */
+  blueScreenTicks: number;
+  lagTicks: number;
+  controlSwapTicks: number;
+  updateTicks: number;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */

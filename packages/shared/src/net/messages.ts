@@ -60,6 +60,8 @@ export const InputMessageSchema = z.strictObject({
   nitro: z.boolean().optional(),
   fire: z.boolean().optional(),
   aimBack: z.boolean().optional(),
+  /** How many keys this client has pressed so far (Forced Update mashing); the server counts the rise. */
+  mash: z.number().int().nonnegative().optional(),
 });
 
 export type InputMessage = z.infer<typeof InputMessageSchema>;

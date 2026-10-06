@@ -40,6 +40,8 @@ export function controlsFrom(held: ReadonlySet<Action>): Omit<InputMessage, 'seq
 export class KeyboardControls {
   private readonly held = new Set<Action>();
   private seq = 0;
+  /** Every key press so far (any key): a Forced Update counts down faster when you mash. */
+  private mash = 0;
   private readonly resendTimer: number;
 
   constructor(
@@ -54,10 +56,19 @@ export class KeyboardControls {
   }
 
   private readonly onDown = (e: KeyboardEvent): void => {
-    const action = ACTION_BY_CODE.get(e.code);
     // Typing a name in a text field must not drive the car.
-    if (!action || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    const action = ACTION_BY_CODE.get(e.code);
+    if (!action) {
+      // Any other key still counts as mashing (Forced Update).
+      if (!e.repeat) {
+        this.mash++;
+        this.emit();
+      }
+      return;
+    }
     e.preventDefault(); // arrow keys must not scroll the page
+    if (!e.repeat) this.mash++;
     if (this.held.has(action)) return; // key repeat
     this.held.add(action);
     this.emit();
@@ -90,7 +101,7 @@ export class KeyboardControls {
 
   private emit(): void {
     this.seq++;
-    this.send({ seq: this.seq, ...controlsFrom(this.held) });
+    this.send({ seq: this.seq, ...controlsFrom(this.held), mash: this.mash });
   }
 
   dispose(): void {

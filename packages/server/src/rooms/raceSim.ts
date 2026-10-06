@@ -74,6 +74,9 @@ interface Player extends SeatedPlayer {
   /** Items fire once per press of Space, like the horn. */
   fireHeld: boolean;
   firePending: boolean;
+  /** Key presses the client has reported (running count) and the ones the next tick uses. */
+  mashTotal: number;
+  mashPending: number;
   /** Pressed Ready in the lobby. */
   ready: boolean;
 }
@@ -193,7 +196,7 @@ export class RaceSim {
     if (this.players.has(id)) return;
     this.players.set(id, {
       id, slot: -1, seat: null, connected: true,
-      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, fireHeld: false, firePending: false, ready: false,
+      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, fireHeld: false, firePending: false, mashTotal: 0, mashPending: 0, ready: false,
     });
     this.joinOrder.push(id);
     this.updateHost();
@@ -217,6 +220,8 @@ export class RaceSim {
     p.honkPending = false;
     p.fireHeld = false;
     p.firePending = false;
+    p.mashTotal = 0;
+    p.mashPending = 0;
     this.updateHost();
   }
 
@@ -437,6 +442,11 @@ export class RaceSim {
     const fire = p.input.fire ?? false;
     if (fire && !p.fireHeld) p.firePending = true;
     p.fireHeld = fire;
+    // Forced Update mashing: at most one new press per message (so a modified client can't
+    // finish an update instantly); a lower count means the client restarted.
+    const mash = msg.mash ?? p.mashTotal;
+    if (mash > p.mashTotal) p.mashPending++;
+    p.mashTotal = mash;
     return true;
   }
 
@@ -450,7 +460,7 @@ export class RaceSim {
       const p = this.players.get(s.id);
       const role = effectiveRole(seating, s.id);
       if (!p || !role || !s.connected) continue;
-      parts.push({ role, input: { ...p.input, respawn: p.respawnPending, honk: p.honkPending, fire: p.firePending } });
+      parts.push({ role, input: { ...p.input, respawn: p.respawnPending, honk: p.honkPending, fire: p.firePending, mash: p.mashPending } });
     }
     return mergeCarInput(parts);
   }
@@ -501,6 +511,7 @@ export class RaceSim {
       p.respawnPending = false;
       p.honkPending = false;
       p.firePending = false;
+      p.mashPending = 0;
     }
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);

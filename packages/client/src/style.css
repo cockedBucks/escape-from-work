@@ -899,3 +899,81 @@ body {
   from { transform: rotate(0deg); }
   to { transform: rotate(1.7deg); }
 }
+
+/* Item hits on your car (both players' screens). */
+.fx-bluescreen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  padding: 12vh 12vw;
+  background: rgba(16, 104, 196, 0.94);
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.fx-bluescreen .face {
+  font-size: 7rem;
+  line-height: 1;
+  margin-bottom: 1.5rem;
+}
+
+.fx-bluescreen .stop {
+  margin-top: 2rem;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+.fx-update {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  z-index: 15;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(90vw, 30rem);
+  padding: 1rem 1.4rem;
+  border-radius: 0.8rem;
+  background: rgba(30, 34, 48, 0.92);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+}
+
+.fx-update strong {
+  font-size: 1.4rem;
+}
+
+.fx-update .bar {
+  height: 0.9rem;
+  border-radius: 0.45rem;
+  background: #3d4a5c;
+  overflow: hidden;
+}
+
+.fx-update .bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: #06d6a0;
+}
+
+.fx-banner {
+  position: absolute;
+  left: 50%;
+  top: 4.5rem;
+  z-index: 15;
+  transform: translateX(-50%);
+  max-width: 90vw;
+  padding: 0.5rem 1.1rem;
+  border-radius: 0.6rem;
+  background: #fb8500;
+  color: #1e2230;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+  animation: stall-blink 0.5s steps(2, jump-none) infinite;
+}

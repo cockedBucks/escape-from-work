@@ -62,4 +62,5 @@ const CAR_HASH_KEYS = [
   'lastGate', 'onSlick', 'onRamp', 'respawnAtTick', 'ghostUntilTick', 'heat', 'stallUntilTick',
   'driftDir', 'driftCharge', 'driftLevel', 'straightTicks', 'brakeTicks', 'boostTicks', 'nitro', 'nitroOn',
   'lap', 'onSwap', 'swappedLap', 'solo', 'spinTicks', 'shieldTicks',
+  'blueScreenTicks', 'lagTicks', 'controlSwapTicks', 'updateTicks',
 ] as const satisfies readonly (keyof CarState)[];

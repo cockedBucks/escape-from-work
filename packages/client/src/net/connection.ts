@@ -32,6 +32,10 @@ export interface CarViewState {
   item: string;
   spinLeft: number;
   shieldLeft: number;
+  blueLeft: number;
+  lagLeft: number;
+  swapLeft: number;
+  updateLeft: number;
   inNitro: boolean;
   vx: number;
   vz: number;

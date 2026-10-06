@@ -118,7 +118,7 @@ describe('golden: replay determinism', () => {
     // GOLDEN: any change to physics, bot or Test Loop changes this. Update it only when the
     // change is intended, and say so in the commit message.
     const race = runBotRace(track, cfg, { cars: 2, laps: 1, maxSeconds: 120 });
-    expect(race.hash).toBe('f2380cee');
+    expect(race.hash).toBe('6c4b736e');
   });
 
   it('hash notices a tiny difference', () => {

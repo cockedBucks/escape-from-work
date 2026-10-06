@@ -24,6 +24,10 @@ export function hitCar(car: CarState, item: string, by: string, events: SimEvent
 export function clearBadEffects(car: CarState): void {
   car.spinTicks = 0;
   car.stallUntilTick = -1;
+  car.blueScreenTicks = 0;
+  car.lagTicks = 0;
+  car.controlSwapTicks = 0;
+  car.updateTicks = 0;
 }
 
 /** Start a spin-out of `seconds` (a car already spinning keeps its current one). */

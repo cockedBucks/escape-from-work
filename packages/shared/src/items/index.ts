@@ -5,6 +5,7 @@ import type { ChaosState } from './chaos';
 import { dropCoffee } from './coffeeSpill';
 import { rewindCar } from './ctrlZ';
 import { fireReplyAll } from './replyAll';
+import { carAhead, leader, randomAhead, strike } from './targeted';
 
 /** What an item's `use` gets: the world, chaos state, the user's car and its input this tick. */
 export interface ItemUse {
@@ -23,19 +24,20 @@ export interface ItemDef {
   use(u: ItemUse): void;
 }
 
-/** Not built yet (P6.3/P6.4): using it just spends it. */
-const later = (id: ItemId): ItemDef => ({ id, use: () => undefined });
-
 /** Every item by id (GAME_DESIGN §7). One file per item; numbers in config/items.json. */
 export const ITEMS: Readonly<Record<ItemId, ItemDef>> = {
   replyAll: { id: 'replyAll', use: (u) => fireReplyAll(u.chaos, u.car, u.input.aimBack ?? false, u.cfg.sim.dt, u.now) },
   firewall: { id: 'firewall', use: (u) => void (u.car.shieldTicks = Math.round(u.chaos.cfg.items.firewall.seconds / u.cfg.sim.dt)) },
   coffeeSpill: { id: 'coffeeSpill', use: (u) => dropCoffee(u.chaos, u.car, u.cfg.sim.dt, u.now) },
   ctrlZ: { id: 'ctrlZ', use: (u) => rewindCar(u.chaos, u.car, u.cfg, u.now) },
-  blueScreen: later('blueScreen'),
-  lagSpike: later('lagSpike'),
-  controlSwap: later('controlSwap'),
-  forcedUpdate: later('forcedUpdate'),
+  blueScreen: { id: 'blueScreen', use: (u) => strike(carAhead(u.world, u.car, u.now), 'blueScreen', u.car.id, u.chaos.cfg, u.cfg.sim.dt, u.events) },
+  lagSpike: { id: 'lagSpike', use: (u) => strike(carAhead(u.world, u.car, u.now), 'lagSpike', u.car.id, u.chaos.cfg, u.cfg.sim.dt, u.events) },
+  controlSwap: { id: 'controlSwap', use: (u) => strike(leader(u.world, u.car, u.now), 'controlSwap', u.car.id, u.chaos.cfg, u.cfg.sim.dt, u.events) },
+  forcedUpdate: {
+    id: 'forcedUpdate',
+    use: (u) =>
+      strike(randomAhead(u.world, u.chaos, u.car, u.now, u.chaos.cfg.items.forcedUpdate.preferTop), 'forcedUpdate', u.car.id, u.chaos.cfg, u.cfg.sim.dt, u.events),
+  },
 };
 
 /**

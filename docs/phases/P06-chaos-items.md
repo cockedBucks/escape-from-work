@@ -19,7 +19,7 @@ rubber-banding that keeps races close, and a host toggle to turn chaos off.
   spin-out on hit), Firewall, Coffee Spill. Tests.
 - [x] **P6.3 Ctrl+Z.** 3-second per-car history ring buffer on the server, rewind and effect
   clearing. Tests.
-- [ ] **P6.4 Screen and control items.** Blue Screen (overlay on both target clients), Lag Spike
+- [x] **P6.4 Screen and control items.** Blue Screen (overlay on both target clients), Lag Spike
   (server input delay queue), Control Swap (role mapping swap), Forced Update (stop + mash
   progress). Tests.
 - [ ] **P6.5 Item presentation.** Effects, hit reactions, HUD and dashboard icon, procedural

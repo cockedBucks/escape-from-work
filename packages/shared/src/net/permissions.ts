@@ -36,6 +36,8 @@ export function mergeCarInput(parts: readonly InputPart[]): CarInput {
     if (mayUse(role, 'nitro') && input.nitro) out.nitro = true;
     if (mayUse(role, 'fire') && input.fire) out.fire = true;
     if (mayUse(role, 'aim') && input.aimBack) out.aimBack = true;
+    // Anyone in the car may mash keys (Forced Update).
+    if (input.mash) out.mash = (out.mash ?? 0) + input.mash;
     if (mayUse(role, 'respawn') && input.respawn) out.respawn = true;
     if (mayUse(role, 'honk') && input.honk) out.honk = true;
   }
