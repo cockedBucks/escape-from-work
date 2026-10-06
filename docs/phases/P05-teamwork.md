@@ -35,4 +35,4 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
   1. Race as a duo. Try to chain drifts into nitro without overheating. Use the swap lane once.
   2. Reply: is drifting understandable? Does heat create good tension or just annoy?
      Is the swap lane worth taking? Use `/feedback` for tuning.
-- [ ] **P5.7 Phase end.** Reviewer, fixes, `git tag p5-done`, report.
+- [x] **P5.7 Phase end.** Reviewer, fixes, `git tag p5-done`, report.

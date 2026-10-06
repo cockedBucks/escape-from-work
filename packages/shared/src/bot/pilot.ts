@@ -33,12 +33,12 @@ export function botSteer(car: CarState, track: Track, cfg: Tuning, skill = 0): n
   const fast = length({ x: car.vx, z: car.vz }) >= drift.minSpeedRatio * cfg.car.topSpeed * car.stats.speed;
   // Curvature + turns left; left is negative steer.
   const into = -Math.sign(corner);
-  if (car.driftDir === 0) return tight && fast && Math.sign(steer) === into ? into * Math.max(Math.abs(steer), drift.minSteer + 0.05) : steer;
+  if (car.driftDir === 0) return tight && fast && Math.sign(steer) === into ? into * Math.max(Math.abs(steer), drift.minSteer + bot.driftSteerMargin) : steer;
   // Corner over (or it turns the other way now): straighten out; the Engineer is on the gas = boost.
   const here = cornerAhead(car, track, bot.driftHoldAhead);
   const turning = Math.abs(here) >= bot.driftMinCurvature && -Math.sign(here) === car.driftDir;
   if (!turning) return steer;
   const rel = steer * car.driftDir;
-  const hold = drift.releaseSteer + 0.05;
+  const hold = drift.releaseSteer + bot.driftSteerMargin;
   return Math.abs(rel) >= hold ? steer : car.driftDir * (rel >= 0 ? hold : -hold);
 }

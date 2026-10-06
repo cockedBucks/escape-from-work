@@ -518,7 +518,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     hud.dispose();
     gaugePanel.dispose();
     cameraToggle.dispose();
+    engine.dispose();
     horns.dispose();
+    swapFlash.dispose();
     mouseLook.dispose();
     endRace.remove();
     board.dispose();

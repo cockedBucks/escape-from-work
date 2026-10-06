@@ -80,9 +80,9 @@ export class Sparks {
       // The car's left is (cos yaw, -sin yaw).
       const x = car.x - fx * SPARKS.rearBack + fz * SPARKS.rearSide * side;
       const z = car.z - fz * SPARKS.rearBack - fx * SPARKS.rearSide * side;
-      const back = SPARKS.throwBack * (0.5 + Math.random());
+      const back = SPARKS.throwBack * (SPARKS.throwMin + Math.random() * SPARKS.throwRange);
       const sideways = (Math.random() - 0.5) * 2;
-      const up = SPARKS.kickUp * (spark ? 0.5 + Math.random() : 0.3);
+      const up = SPARKS.kickUp * (spark ? SPARKS.sparkKickMin + Math.random() : SPARKS.dustKick);
       this.emit(x, car.y + SPARKS.rearHeight, z, -fx * back + fz * sideways, up, -fz * back - fx * sideways,
         spark ? SPARKS.sparkSize : SPARKS.dustSize, spark ? SPARKS.sparkLife : SPARKS.dustLife, spark ? SPARKS.gravity : 0, color);
     }
@@ -94,8 +94,8 @@ export class Sparks {
     const fz = Math.cos(car.yaw);
     const color = SPARKS.flames[Math.random() < 0.5 ? 0 : 1]!;
     this.emit(car.x - fx * SPARKS.rearBack, car.y + SPARKS.rearHeight * 2, car.z - fz * SPARKS.rearBack,
-      -fx * SPARKS.flameBack, 0.5, -fz * SPARKS.flameBack,
-      SPARKS.flameSize * scale * (0.7 + Math.random() * 0.6), SPARKS.flameLife * scale, 0, color);
+      -fx * SPARKS.flameBack, SPARKS.flameRise, -fz * SPARKS.flameBack,
+      SPARKS.flameSize * scale * (SPARKS.flameSizeMin + Math.random() * SPARKS.flameSizeRange), SPARKS.flameLife * scale, 0, color);
   }
 
   private emit(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, life: number, fall: number, color: number): void {

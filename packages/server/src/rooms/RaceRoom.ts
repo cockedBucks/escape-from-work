@@ -385,6 +385,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.driftLevel = car.driftLevel;
       view.driftCharge = car.driftCharge;
       view.boostLeft = car.boostTicks * this.tuning.sim.dt;
+      view.driftStraight = car.straightTicks * this.tuning.sim.dt;
+      view.onSwap = car.onSwap;
       view.nitro = car.nitro;
       view.nitroOn = car.nitroOn;
       view.solo = car.solo;

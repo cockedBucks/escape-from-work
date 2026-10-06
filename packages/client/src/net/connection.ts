@@ -24,6 +24,8 @@ export interface CarViewState {
   driftLevel: number;
   driftCharge: number;
   boostLeft: number;
+  driftStraight: number;
+  onSwap: boolean;
   nitro: number;
   nitroOn: boolean;
   solo: boolean;

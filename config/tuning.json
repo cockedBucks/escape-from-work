@@ -52,6 +52,7 @@
     "driftMinCurvature": 0.025,
     "driftLookAhead": 12,
     "driftHoldAhead": 6,
+    "driftSteerMargin": 0.05,
     "nitroMaxHeat": 0.45,
     "balanceGain": [0.02, 0.12]
   },

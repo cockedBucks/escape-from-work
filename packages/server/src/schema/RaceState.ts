@@ -75,6 +75,10 @@ export const CarView = schema(
     driftLevel: t.uint8().default(0),
     driftCharge: t.float32().default(0),
     boostLeft: t.float32().default(0),
+    /** Seconds the steering has been straight in this drift (it lets go at drift.releaseMs). */
+    driftStraight: t.float32().default(0),
+    /** Inside a swap lane (slower): lets prediction match the server there. */
+    onSwap: t.boolean().default(false),
     nitro: t.float32().default(0),
     /** Burning nitro now (flames). */
     nitroOn: t.boolean().default(false),

@@ -1,4 +1,5 @@
 import type { Tuning } from '../config/tuning';
+import { isAirborne } from './air';
 import type { CarInput, CarState, SimEvent } from './types';
 
 /** Forget any drift and boost (respawn). The nitro meter stays. */
@@ -39,7 +40,7 @@ export function stepDrift(car: CarState, input: CarInput, vF: number, cfg: Tunin
   car.brakeTicks = input.brake ? car.brakeTicks + 1 : 0;
 
   if (car.driftDir === 0) {
-    if (!pressed || Math.abs(car.steer) < d.minSteer || vF < d.minSpeedRatio * top) return input;
+    if (!pressed || isAirborne(car) || Math.abs(car.steer) < d.minSteer || vF < d.minSpeedRatio * top) return input;
     car.driftDir = Math.sign(car.steer);
     car.driftCharge = 0;
     car.driftLevel = 0;

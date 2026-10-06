@@ -231,6 +231,15 @@ export const SPARKS = {
   throwBack: 3,
   kickUp: 4,
   flameBack: 7,
+  /** Random spread: backward throw × (min + rand × range), sideways ±1 m/s, dust kicks up only
+   * `dustKick` of a spark's kick; flames rise a little and vary in size. */
+  throwMin: 0.5,
+  throwRange: 1,
+  sparkKickMin: 0.5,
+  dustKick: 0.3,
+  flameRise: 0.5,
+  flameSizeMin: 0.7,
+  flameSizeRange: 0.6,
   /** Nitro flames are this much bigger and longer than a drift boost's. */
   nitroFlameScale: 1.8,
   gravity: 14,

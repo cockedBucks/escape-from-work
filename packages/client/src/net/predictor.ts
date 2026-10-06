@@ -35,8 +35,10 @@ export interface OwnCarView {
   drift: number;
   driftLevel: number;
   driftCharge: number;
-  /** Seconds of drift boost left. */
+  /** Seconds of drift boost left; seconds the steering has been straight in this drift. */
   boostLeft: number;
+  driftStraight: number;
+  onSwap: boolean;
   nitro: number;
   nitroOn: boolean;
   solo: boolean;
@@ -68,6 +70,7 @@ interface Base {
   time: number;
   stallLeft: number;
   boostLeft: number;
+  straight: number;
 }
 
 export class OwnCarPredictor {
@@ -130,14 +133,16 @@ export class OwnCarPredictor {
     car.nitro = view.nitro;
     car.nitroOn = view.nitroOn;
     car.solo = view.solo;
+    car.onSwap = view.onSwap;
     // The brake as the server last applied it: held = no fresh press to start a drift with.
     car.brakeTicks = view.inBrake ? 1 : 0;
     const loc = locateOnTrack(this.track, { x: view.x, z: view.z }, near ? prev.segment : undefined);
     car.segment = loc.segment;
     car.progress = lapProgress(this.track, loc.progress);
     car.lateral = loc.lateral;
-    this.prev = this.base;
-    this.base = { car, time, stallLeft: view.stallLeft, boostLeft: view.boostLeft };
+    // Two updates before a frame was drawn: keep blending from the one actually drawn last.
+    if (!this.needOffset) this.prev = this.base;
+    this.base = { car, time, stallLeft: view.stallLeft, boostLeft: view.boostLeft, straight: view.driftStraight };
     this.serverInput.steer = view.inSteer;
     this.serverInput.gas = view.inGas;
     this.serverInput.brake = view.inBrake;
@@ -161,6 +166,7 @@ export class OwnCarPredictor {
     world.tick = 0;
     car.stallUntilTick = base.stallLeft > 0 ? Math.round(base.stallLeft / cfg.sim.dt) : -1;
     car.boostTicks = Math.round(base.boostLeft / cfg.sim.dt);
+    car.straightTicks = Math.round(base.straight / cfg.sim.dt);
     for (let i = 0; i < whole; i++) step(world, this.inputs, cfg);
     const ax = car.x;
     const az = car.z;

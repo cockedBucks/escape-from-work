@@ -22,6 +22,9 @@ const ENGINE = {
   squealLevel: 0.05,
   /** How quickly the sound follows the car (s). */
   glide: 0.06,
+  /** The second, buzzier voice: an octave up (slightly off, so it beats) and quieter. */
+  highRatio: 2.01,
+  highLevel: 0.3,
 };
 
 /** The engine's pitch, brightness and loudness at `speedShare` × top speed. Pure, for tests. */
@@ -37,6 +40,7 @@ export function engineTone(speedShare: number, gas: boolean, boosting: boolean):
 interface Nodes {
   low: OscillatorNode;
   high: OscillatorNode;
+  noise: AudioBufferSourceNode;
   filter: BiquadFilterNode;
   gain: GainNode;
   squeal: GainNode;
@@ -56,7 +60,7 @@ export class EngineSound {
     const t = ctx.currentTime;
     const tone = engineTone(speedShare, gas, boosting);
     n.low.frequency.setTargetAtTime(tone.hz, t, ENGINE.glide);
-    n.high.frequency.setTargetAtTime(tone.hz * 2.01, t, ENGINE.glide);
+    n.high.frequency.setTargetAtTime(tone.hz * ENGINE.highRatio, t, ENGINE.glide);
     n.filter.frequency.setTargetAtTime(tone.cutoff, t, ENGINE.glide);
     n.gain.gain.setTargetAtTime(on ? tone.level : 0, t, ENGINE.glide);
     n.squeal.gain.setTargetAtTime(on && drifting ? ENGINE.squealLevel : 0, t, ENGINE.glide);
@@ -75,7 +79,7 @@ export class EngineSound {
     const high = ctx.createOscillator();
     high.type = 'square';
     const highGain = ctx.createGain();
-    highGain.gain.value = 0.3;
+    highGain.gain.value = ENGINE.highLevel;
     high.connect(highGain).connect(filter);
     // Tire squeal: a second of looping white noise through a narrow band-pass.
     const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
@@ -94,7 +98,7 @@ export class EngineSound {
     low.start();
     high.start();
     src.start();
-    this.nodes = { low, high, filter, gain, squeal };
+    this.nodes = { low, high, noise: src, filter, gain, squeal };
     return this.nodes;
   }
 
@@ -102,6 +106,8 @@ export class EngineSound {
     if (!this.nodes) return;
     this.nodes.low.stop();
     this.nodes.high.stop();
+    this.nodes.noise.stop();
+    this.nodes.filter.disconnect();
     this.nodes.gain.disconnect();
     this.nodes.squeal.disconnect();
     this.nodes = null;

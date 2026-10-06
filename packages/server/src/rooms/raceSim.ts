@@ -434,7 +434,8 @@ export class RaceSim {
       if (p.seat === 'pilot') pilot = p;
       else if (p.seat === 'engineer') engineer = p;
     }
-    if (!pilot || !engineer) return;
+    // A partner away (reconnecting) keeps their seat and role; the one left drives solo.
+    if (!pilot || !engineer || !pilot.connected || !engineer.connected) return;
     pilot.seat = 'engineer';
     engineer.seat = 'pilot';
     this.seatsSwapped = true;

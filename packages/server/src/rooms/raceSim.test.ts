@@ -495,6 +495,22 @@ describe('RaceSim swap lane and solo flag', () => {
     expect(car(sim, 'car0').heat).toBeLessThan(0.1);
   });
 
+  it('a partner away (reconnecting) keeps their role: no seat swap, the engine still cools', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('p');
+    sim.addPlayer('e');
+    sim.setSeat('p', 0, 'pilot');
+    sim.setSeat('e', 0, 'engineer');
+    sim.setConnected('e', false);
+    toLane(sim);
+    let swapped = false;
+    for (let i = 0; i < 60 && !swapped; i++) swapped = sim.tick().some((ev) => ev.type === 'swap');
+    expect(swapped).toBe(true);
+    expect(sim.seatsSwapped).toBe(false);
+    expect(Object.fromEntries(sim.seating().map((s) => [s.id, s.seat]))).toEqual({ p: 'pilot', e: 'engineer' });
+    expect(car(sim, 'car0').heat).toBeLessThan(0.1);
+  });
+
   it('a solo car only gets the cooled engine; the solo flag follows who is in the car', () => {
     const sim = soloSim('s');
     sim.tick();

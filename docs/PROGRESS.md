@@ -4,8 +4,8 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.7 Phase end (P5 duo gate deferred, see below)
+- Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
+- Next task: P6.1 Item system (Phase 6 — chaos items, `docs/phases/P06-chaos-items.md`)
 - Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
   `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
@@ -65,35 +65,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
   picker, duck in solo cars), dashboard screen + chase gauges, rear-view mirror, honk (sim event,
   procedural horns, HONK! bubble). Gate: all good. Review fixes D066. Decisions D058–D066.
 
-- 2026-10-05: P5.1 engine heat — shared heat model (rise at full gas when fast, cool off gas, stall
-  2 s, restart at 60%), synced heat/stall, bot lifts at 90%, HUD/dashboard heat bar + STALL!, smoke,
-  stall/restart sounds, `stall` scenario. Golden laps +2 s (intended). D067.
-
-- 2026-10-05: P5.2 tandem drift — brake tap + hard steer at speed starts a drift (Engineer +
-  Pilot, or solo), wider slide, 3 levels (dust → blue/orange/pink sparks, dings), release on the
-  gas = boost + nitro; synced + predicted; `drift` scenario. Bots never drift yet (P5.5). D068.
-
-- 2026-10-05: P5.3 nitro — Shift (Engineer/solo) burns the drift-filled meter: push to 1.35× top
-  speed, +30%/s heat, big flames, roar; synced + predicted; `nitro` scenario. D069.
-
-- 2026-10-05: P5.4 swap lane — sim counts laps; entering an open `swap` zone (lap ≥ minLap, once
-  per lap) cools the engine fully and the server swaps Pilot/Engineer; lane is slower
-  (`car.swapLaneSpeed` 0.8); striped lane on the Test Loop's last straight; SWAP! flash with your
-  new keys; role texts in one place (`ui/roleKeys.ts`, keys now list drift/nitro/honk); solo
-  handicap `solo.speedMultiplier` (default 1). D070.
-
-- 2026-10-05: P5.5 bot skills — `BotMemory.skill` (0 plain / 1 drifts / 2 + nitro): Pilot turns in
-  hard and holds the drift to the corner's end, Engineer taps once and stays on the gas, nitro on
-  straights clear at nitro speed. Server + network bots use `bot.skill` 2. Balance test: skilled
-  104.3 s vs plain 110.5 s (5.6%, range 2–12%). Network bots now follow their seat after a swap
-  (load test had broken in P5.4). D071.
-
-- 2026-10-05: P5.6 how-to cards — lobby row with one card per role (job + keys, yours
-  highlighted) and the duo loop in one line; texts in `ui/roleKeys.ts`. Fits 1280×720.
-
-- 2026-10-06: P5.6a–c gate fixes — drifts survive key taps (`drift.releaseMs`), heat only from
-  nitro overuse (D072); own-car stutter fixed in the predictor + `npm run jitter` (D073); sense of
-  speed: engine hum + tire squeal, speed FOV, speed lines, dashed center line, roadside posts (D074).
+- 2026-10-06: **P5 done** — engine heat (only nitro overuse heats; stall 2 s, smoke, sad sound),
+  tandem drift (Pilot steers hard + Engineer taps S; 3 spark levels; release = boost + nitro;
+  release grace), nitro (Shift), swap lane (swaps seats, cools engine, slower; solo handicap
+  option), bot skills + balance test (skilled 7% faster), how-to cards, stutter fix in prediction
+  (`npm run jitter`), sense of speed (engine hum, squeal, speed FOV, speed lines, center dashes,
+  posts). Duo gate deferred (D075). Review fixes D076. Decisions D067–D076.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
