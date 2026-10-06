@@ -188,7 +188,7 @@ Lap target 40–55 s.
      coffee machine, printer, whiteboards with doodles.
 3. **Server Room** (built in P10.1: `server-room.json`, ~1.3 km, ~48 s): cable-tray lanes, giant cooling fans that push you sideways,
    an icy cold aisle, blinking racks.
-4. **Smart Oasis**: desert dunes (gentle jumps), a palm-tree oasis shortcut, a sandstorm
+4. **Smart Oasis** (built in P10.2: `smart-oasis.json`, ~1.2 km, ~44 s): desert dunes (gentle jumps), a palm-tree oasis shortcut, a sandstorm
    event that lowers visibility for a lap.
 5. **Motherboard**: tiny cars on a circuit board, driving on traces, jumps over capacitors,
    a loop around the CPU fan.

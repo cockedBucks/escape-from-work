@@ -112,6 +112,7 @@ export {
   type RaceFlow,
   type RacePhase,
 } from './race/flow';
+export { sandstormOn } from './race/sandstorm';
 export { TEAM_NAME_MAX_LENGTH, TeamsSchema, defaultTeamName, parseTeams, type TeamsConfig } from './config/teams';
 export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby';
 export {

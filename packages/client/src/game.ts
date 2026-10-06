@@ -1,6 +1,7 @@
 import { angleDiff, buildBoxes, type CarLook, type Track, type Tuning } from '@escape/shared';
 import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
+import { Weather } from './render/weather';
 import { Shake } from './render/juice';
 import { JUICE } from './render/look';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
@@ -48,6 +49,8 @@ export interface GameOptions {
   lookOf?: (carId: string) => CarLook;
   /** Chaos items to draw (boxes, envelopes, puddles); null or absent = none. */
   items?: () => ItemsView | null;
+  /** Is the track's sandstorm blowing right now? */
+  sandstorm?: () => boolean;
   /** Race info for the cockpit dashboard (speed comes from the car itself). */
   gauges?: () => Omit<GaugeValues, 'speed'>;
   /** Who sits in each car (for bobbleheads); null/undefined = empty seats. */
@@ -118,6 +121,7 @@ export class Game {
   private readonly sparks: Sparks;
   private readonly speedLines: SpeedLines;
   private readonly itemProps: ItemProps;
+  private readonly weather: Weather;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -144,6 +148,7 @@ export class Game {
     this.stage.scene.add(this.sparks.mesh);
     this.speedLines = new SpeedLines(opts.container);
     this.itemProps = new ItemProps(buildBoxes(opts.track));
+    this.weather = new Weather(this.stage.scene.fog as THREE.Fog, this.stage.scene.background as THREE.Color, opts.track.def.sandstorm);
     this.stage.scene.add(this.itemProps.group);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     this.overlay.setShowFps(opts.showFps ?? false);
@@ -243,6 +248,11 @@ export class Game {
     if (p) this.sparks.confetti(p.x, p.y, p.z, JUICE.confettiPieces * (mine ? JUICE.confettiMine : 1));
   }
 
+  /** Jump straight to full sandstorm (or clear), skipping the fade (`sandstorm` scenario). */
+  snapWeather(stormOn: boolean): void {
+    this.weather.update(stormOn, Number.POSITIVE_INFINITY);
+  }
+
   start(): void {
     this.running = true;
     const loop = (now: number): void => {
@@ -266,6 +276,7 @@ export class Game {
     this.smoke.update(now, dt, this.snaps);
     this.sparks.update(now, dt, this.snaps);
     this.itemProps.update(now, this.opts.items?.() ?? null, this.snaps);
+    this.weather.update(this.opts.sandstorm?.() ?? false, dt);
 
     const view = this.opts.view;
     if (view === 'chase' || view === 'cockpit') {

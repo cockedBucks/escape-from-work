@@ -16,7 +16,7 @@ and a final stability pass.
   (held seat). Dev tracks (`"dev": true`) are not offered. Tests.
 - [x] **P10.1 Server Room.** Props (racks, cable trays, fans, AC), fan push zones, icy cold-aisle
   zone, cable-lane layout. `/add-track`.
-- [ ] **P10.2 Smart Oasis.** Props (palms, dunes, rocks, tents, pond), dune jumps, oasis shortcut,
+- [x] **P10.2 Smart Oasis.** Props (palms, dunes, rocks, tents, pond), dune jumps, oasis shortcut,
   sandstorm event (fog for one lap, config-driven). `/add-track`.
 - [ ] **P10.3 Motherboard.** Props (chips, capacitors, resistors, CPU fan), trace-road look,
   capacitor jumps, CPU-fan loop. `/add-track`.

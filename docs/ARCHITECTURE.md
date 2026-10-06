@@ -130,7 +130,7 @@ installed types for the API. Anything not on this list → ask the human first.
   "points": [ { "x": 0, "z": 0, "width": 16 }, { "x": 40, "z": 5, "width": 14 } ],
   "sectors": 6,
   "zones": [
-    { "type": "ramp",  "from": 0.31, "to": 0.33, "launch": 1.0 },
+    { "type": "ramp",  "from": 0.31, "to": 0.33, "launch": 1.0, "look": "wood" },
     { "type": "slick", "from": 0.42, "to": 0.45, "side": "both", "look": "coffee" },
     { "type": "push",  "from": 0.50, "to": 0.55, "toward": "right", "strength": 22 },
     { "type": "swap",  "from": 0.80, "to": 0.86, "side": "right", "minLap": 2 },
@@ -140,6 +140,7 @@ installed types for the API. Anything not on this list → ask the human first.
   "start": { "at": 0.0 },
   "branches": [ { "name": "Server Closet", "from": 0.69, "to": 0.83,
                   "points": [ { "x": -32, "z": 204, "width": 7 } ] } ],
+  "sandstorm": { "lap": 2, "fogNear": 4, "fogFar": 75 },
   "dev": false
 }
 ```
@@ -160,6 +161,9 @@ installed types for the API. Anything not on this list → ask the human first.
   piece with both ends inside the other road is dropped and one that straddles its edge is cut
   there, so the roads open into each other at the junctions; a car behind a wall whose back
   is another road is not pushed through it. Bots with `bot.shortcutSkill` follow branches.
+- Optional `sandstorm` (Smart Oasis): thick fog (`fogNear`..`fogFar` m) for one whole lap, while
+  the race leader is on lap `lap` (shared `sandstormOn`; drawn only, the sim is unchanged).
+  Ramps may look like sand dunes (`look: "dune"`), slicks like ice (`look: "ice"`).
 - `dev: true` marks a greybox track (Test Loop): `track:check` skips its lap-time target.
 - `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, branches
   ≥ `track.branchMinWidth`, no curve tighter than half the road width, no crossing walls, each

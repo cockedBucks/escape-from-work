@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import realCars from '../../../../config/cars.json';
 import officeJson from '../../../../config/tracks/office.json';
 import serverRoomJson from '../../../../config/tracks/server-room.json';
+import smartOasisJson from '../../../../config/tracks/smart-oasis.json';
 import testLoopJson from '../../../../config/tracks/test-loop.json';
 import realTuning from '../../../../config/tuning.json';
 import { parseCars } from '../config/cars';
@@ -13,7 +14,7 @@ import { runBotRace } from './race';
 const cfg = parseTuning(realTuning);
 const roster = parseCars(realCars);
 /** Every track the roster must be balanced on. */
-const TRACKS = [['test-loop', testLoopJson], ['office', officeJson], ['server-room', serverRoomJson]] as const;
+const TRACKS = [['test-loop', testLoopJson], ['office', officeJson], ['server-room', serverRoomJson], ['smart-oasis', smartOasisJson]] as const;
 
 describe('roster balance (GAME_DESIGN §8)', () => {
   for (const [id, json] of TRACKS) {

@@ -154,6 +154,7 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
 
   // Ramps: a wedge rising over the zone, then a vertical drop at its end.
   const ramps = new RibbonBuilder();
+  const dunes = new RibbonBuilder();
   const slicks = new RibbonBuilder();
   const ice = new RibbonBuilder();
   const fans = new RibbonBuilder();
@@ -161,7 +162,22 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   const swapColors = TRACK_LOOK.swapColors.map((c) => new THREE.Color(c));
   for (const zone of track.rangedZones) {
     const [i0, i1] = zoneSamples(track, zone.from, zone.to);
-    if (zone.type === 'ramp') {
+    if (zone.type === 'ramp' && zone.look === 'dune') {
+      // A sand dune: a smooth rise over the zone, then a gentle slope down behind the crest
+      // (the car is in the air there; only the look differs from a wooden ramp).
+      const span = Math.max(i1 - i0, 1);
+      const back = Math.max(Math.round(span * L.duneBackSlope), 1);
+      const h = (i: number): number => {
+        const t = i <= i1 ? (i - i0) / span : 1 - (i - i1) / back;
+        return L.rampHeight * Math.sin((Math.max(t, 0) * Math.PI) / 2) + L.decalLift;
+      };
+      for (let i = i0; i < i1 + back; i++) {
+        const a = sample(i);
+        const b = sample(i + 1);
+        upQuad(dunes, v3(a.pos, h(i), a.right, -a.width / 2), v3(a.pos, h(i), a.right, a.width / 2),
+          v3(b.pos, h(i + 1), b.right, -b.width / 2), v3(b.pos, h(i + 1), b.right, b.width / 2));
+      }
+    } else if (zone.type === 'ramp') {
       const span = Math.max(i1 - i0, 1);
       for (let i = i0; i < i1; i++) {
         const a = sample(i);
@@ -267,6 +283,9 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   add(wallRb.build(), new THREE.MeshLambertMaterial({ color: PALETTE.cubicle, flatShading: true }), 'walls');
   if (ramps.indices.length > 0) {
     add(ramps.build(), new THREE.MeshLambertMaterial({ color: PALETTE.desk, flatShading: true, side: THREE.DoubleSide }), 'ramps');
+  }
+  if (dunes.indices.length > 0) {
+    add(dunes.build(), new THREE.MeshLambertMaterial({ color: TRACK_LOOK.duneColor, side: THREE.DoubleSide }), 'dunes');
   }
   if (ice.indices.length > 0) {
     add(ice.build(), new THREE.MeshLambertMaterial({

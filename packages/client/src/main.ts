@@ -4,7 +4,7 @@ import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, sandstormOn, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning, pickableTracks } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
@@ -115,6 +115,8 @@ const SCENARIO_JUICE = { landing: 9, confettiSeconds: 0.45 };
 /** `stall`/`drift` scenarios: smoke/sparks already flying this long when the picture is taken (s). */
 const SCENARIO_SMOKE_SECONDS = 1;
 
+/** Shown when the track's sandstorm starts blowing. */
+const STORM_TOAST = '🌪️ <b>SANDSTORM!</b> You can barely see — trust your teammate!';
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
 /** How long to wait for the server's first state (its track) after joining (ms). */
@@ -189,6 +191,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     quality: pickQuality(window.location.search, tuning).preset,
     source: frozenSource(world),
     items: () => itemsView,
+    sandstorm: () => scenario === 'sandstorm',
     view: scenario === 'track-overview' ? 'overview' : scenario === 'cockpit' ? 'cockpit' : fixedCamera ? 'fixed' : 'chase',
     ...(fixedCamera ? { fixedCamera } : {}),
     lookOf,
@@ -209,6 +212,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   });
   // Cockpit shot: turn your head right toward your teammate's bobblehead.
   if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
+  if (scenario === 'sandstorm') game.snapWeather(true);
   if (scenario === 'items') {
     // The Forced Update overlay, 40% done, as both players of a hit car would see it.
     const max = itemsCfg.items.forcedUpdate.maxSeconds;
@@ -441,6 +445,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let myCarDef: CarDef | null = null;
   /** The record of the race that just ended (null until it arrives; cleared for the next race). */
   let lastRecord: RaceRecord | null = null;
+  /** The track's sandstorm is blowing (Smart Oasis: one lap of thick fog). */
+  let stormOn = false;
   /** Cars seen finished this race (confetti once each; joining during results throws none). */
   const finishedCars = new Set<string>();
   const carDefOf = (carId: string): CarDef => {
@@ -517,6 +523,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       });
     });
     board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase));
+    const storm = sandstormOn(track.def.sandstorm, state.phase, boardCars.map((c) => c.lapsDone));
+    if (storm && !stormOn) toasts.show(STORM_TOAST, 'bad');
+    stormOn = storm;
     if (state.phase === 'countdown') lastRecord = null;
     resultsScreen.update(state.phase === 'results', {
       record: lastRecord,
@@ -596,6 +605,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     mouseLocked: () => mouseLook.locked,
     gauges: () => gauges,
     items: () => itemsView,
+    sandstorm: () => stormOn,
     // Each car looks like the car its team picked.
     lookOf: (carId) => carDefOf(carId).look,
     onFrame: (now) => {

@@ -37,6 +37,14 @@ export const LIGHT = {
   fogFar: 420,
 } as const;
 
+/** The Smart Oasis sandstorm (its fog distances come from the track file). */
+export const SANDSTORM = {
+  /** Fog and sky color while it blows. */
+  color: 0xd9a865,
+  /** Seconds to blow in or die down. */
+  fadeSeconds: 2.5,
+} as const;
+
 /** Greybox track proportions (m). */
 export const TRACK_LOOK = {
   wallHeight: 1.1,
@@ -51,6 +59,9 @@ export const TRACK_LOOK = {
   /** Slick patch tint and opacity. */
   slickColor: 0x7fc8e8,
   slickOpacity: 0.65,
+  /** Dune jumps (ramp zones with `look: 'dune'`): sand color; the back slope is this share of the rise. */
+  duneColor: 0xe0b46e,
+  duneBackSlope: 0.6,
   /** Icy cold aisle (slick zones with `look: "ice"`). */
   iceColor: 0xb8e6ff,
   iceOpacity: 0.55,
@@ -79,7 +90,7 @@ export const TRACK_LOOK = {
   /** The ground is pushed back in depth by this much (polygon offset), so the road always wins over it. */
   groundDepthOffset: 4,
   /** Ground color per track theme (anything else: sand). */
-  groundByTheme: { office: PALETTE.carpet, serverRoom: 0x2b3140 } as Readonly<Record<string, number>>,
+  groundByTheme: { office: PALETTE.carpet, serverRoom: 0x2b3140, oasis: 0xebcb94 } as Readonly<Record<string, number>>,
   /** Small lift so flat decals never z-fight with the road (m). */
   decalLift: 0.02,
 } as const;
@@ -447,6 +458,8 @@ export const PROP_COLORS = {
   glass: PROP_LOOK.glass, dark: PROP_LOOK.dark, white: PROP_LOOK.white, screen: PROP_LOOK.screen,
   pot: PROP_LOOK.pot, accent: PROP_LOOK.accent, blue: 0x1d7fe0, mint: 0x06d6a0,
   rack: 0x2a2f3d, led: 0x3dff9a, amber: 0xffb703,
+  trunk: 0x9c6b3c, palm: 0x3a9d4f, coconut: 0x6b4423, dune: 0xe0b46e, rock: 0xa58f78,
+  cloth: 0xe63946, water: 0x3fa7d6,
 } as const;
 
 const box = (w: number, h: number, d: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'box', size: [w, h, d], at: [x, y, z], color });
@@ -557,5 +570,36 @@ export const PROP_SHAPES = {
     box(1.0, 1.8, 0.6, 0, 0.9, 0, 'white'),
     ...[1.2, 1.35, 1.5, 1.65].map((y) => box(0.8, 0.04, 0.02, 0, y, 0.31, 'dark')),
     box(0.3, 0.12, 0.02, 0, 0.9, 0.31, 'blue'),
+  ],
+  // A palm tree: a leaning, stacked trunk, four floppy fronds and coconuts.
+  palm: [
+    ...[0, 1, 2, 3].map((i) => cyl(0.22 - i * 0.02, 1.2, i * 0.15, 0.6 + i * 1.15, 0, 'trunk')),
+    ...[-1, 1].flatMap((k) => [blob(1.8, 0.14, 0.45, 0.6 + k * 1.5, 4.7, 0, 'palm'), blob(0.45, 0.14, 1.8, 0.6, 4.7, k * 1.5, 'palm')]),
+    blob(0.3, 0.3, 0.3, 0.6, 4.45, 0.15, 'coconut'),
+  ],
+  // A low sand dune (decoration; the jumps are ramp zones that look like dunes).
+  dune: [
+    blob(4.5, 1.2, 2.5, 0, 0, 0, 'dune'),
+    blob(2.2, 1.0, 1.6, 1.8, 0, 0.6, 'dune'),
+  ],
+  // A pile of desert rocks.
+  rock: [
+    blob(1.0, 0.7, 0.85, 0, 0.35, 0, 'rock'),
+    blob(0.6, 0.45, 0.55, 0.9, 0.2, 0.3, 'rock'),
+    blob(0.4, 0.3, 0.4, -0.7, 0.15, 0.5, 'rock'),
+  ],
+  // A striped desert tent: a cloth roof on four poles, an open front (+Z).
+  tent: [
+    ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => cyl(0.06, 2.0, sx * 1.4, 1.0, sz * 1.1, 'wood'))),
+    box(3.1, 0.12, 2.5, 0, 2.05, 0, 'cloth'),
+    box(3.1, 0.13, 0.5, 0, 2.06, 0, 'white'),
+    box(3.1, 1.6, 0.06, 0, 1.2, -1.15, 'cloth'),
+    box(1.2, 0.3, 0.8, 0, 0.15, 0, 'accent'),
+  ],
+  // The oasis pond: water with a rim of sand and rocks.
+  pond: [
+    blob(5.4, 0.12, 3.9, 0, 0, 0, 'dune'),
+    blob(5.0, 0.12, 3.5, 0, 0.04, 0, 'water'),
+    ...[[-4.6, 1.4], [3.9, -2.3], [1.2, 3.4]].map(([x, z]) => blob(0.6, 0.4, 0.5, x!, 0.15, z!, 'rock')),
   ],
 } as const satisfies Record<string, readonly PropPrim[]>;

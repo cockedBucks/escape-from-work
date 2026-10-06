@@ -20,6 +20,8 @@ const RampZoneSchema = z.strictObject({
   to: progress(),
   /** Multiplies `car.rampLaunch`. */
   launch: z.number().positive(),
+  /** What it looks like (the jump is the same): a wooden ramp or a sand dune. */
+  look: z.enum(['wood', 'dune']).default('wood'),
 });
 
 const SlickZoneSchema = z.strictObject({
@@ -65,11 +67,12 @@ const ZoneSchema = z.discriminatedUnion('type', [
   ItemRowZoneSchema,
 ]);
 
-/** Prop kit pieces (ART_STYLE §5); the client builds them. Office set, then the server room set. */
+/** Prop kit pieces (ART_STYLE §5); the client builds them. Office, server room, then oasis sets. */
 export const PROP_KITS = [
   'desk', 'chair', 'cubicle', 'monitor', 'keyboard', 'printer', 'waterCooler', 'coffeeMachine',
   'plant', 'whiteboard', 'filingCabinet', 'reception',
   'serverRack', 'cableTray', 'coolingFan', 'acUnit',
+  'palm', 'dune', 'rock', 'tent', 'pond',
 ] as const;
 export type PropKit = (typeof PROP_KITS)[number];
 
@@ -112,6 +115,16 @@ export const TrackSchema = z
     branches: z.array(BranchSchema).default([]),
     /** Dev-only track (greybox): `track:check` skips the lap-time target. */
     dev: z.boolean().default(false),
+    /** A sandstorm (thick fog) for one whole lap: while the race leader is on lap `lap`. */
+    sandstorm: z
+      .strictObject({
+        lap: z.number().int().min(1),
+        /** Fog start and full-fog distances while it blows (m). */
+        fogNear: z.number().min(0),
+        fogFar: z.number().positive(),
+      })
+      .refine((s) => s.fogNear < s.fogFar, { message: 'fogNear must be less than fogFar', path: ['fogFar'] })
+      .optional(),
   })
   .superRefine((track, ctx) => {
     track.zones.forEach((zone, i) => {

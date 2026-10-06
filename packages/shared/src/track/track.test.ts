@@ -174,7 +174,7 @@ describe('zonesAt', () => {
   const track = buildTrack(
     circleDef(50, 12, {
       zones: [
-        { type: 'ramp', from: 0.1, to: 0.12, launch: 1 },
+        { type: 'ramp', from: 0.1, to: 0.12, launch: 1, look: 'wood' },
         { type: 'slick', from: 0.3, to: 0.4, side: 'right', look: 'coffee' },
       ],
     }),
