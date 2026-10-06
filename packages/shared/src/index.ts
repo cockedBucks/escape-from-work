@@ -3,12 +3,15 @@ export { DEFAULT_TRACK, GAME_TITLE, ROOM_NAME } from './constants';
 export { ConfigError, parseConfig } from './config/parse';
 export {
   TuningSchema,
+  WEEKDAYS,
   parseTuning,
   type CarTuning,
   type DriftTuning,
   type QualityLevel,
   type QualityPreset,
+  type LeagueTuning,
   type Tuning,
+  type Weekday,
 } from './config/tuning';
 export { BODY_PRESETS, CAR_PARTS, CarsSchema, ENGINES, HORNS, parseCars, type BodyPreset, type CarDef, type CarLook, type CarPart, type CarsConfig, type Engine, type Horn } from './config/cars';
 export {
@@ -139,3 +142,16 @@ export {
   type RacePlayer,
   type RaceRecord,
 } from './league/schema';
+export {
+  bestLaps,
+  duoTable,
+  leagueTables,
+  localDate,
+  playerTable,
+  pointsFor,
+  weekStart,
+  type DuoRow,
+  type LapRecord,
+  type LeagueTables,
+  type PlayerRow,
+} from './league/scoring';

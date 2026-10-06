@@ -7,6 +7,7 @@ import { GAME_TITLE } from '@escape/shared';
 import { startServer } from './app';
 import { REPO_ROOT, loadTuningFile } from './config';
 import { lanUrls } from './lan';
+import { LEAGUE_FILE } from './league/store';
 
 const isProd = process.argv.includes('--prod') || process.env['NODE_ENV'] === 'production';
 if (isProd) process.env['NODE_ENV'] = 'production';
@@ -40,6 +41,7 @@ try {
     handleSignals: true,
     dev: !isProd,
     watchConfig: !isProd,
+    leagueFile: LEAGUE_FILE,
   }));
 } catch (err) {
   if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {

@@ -52,6 +52,8 @@ export interface BotCarOptions {
   roster: readonly CarDef[];
   /** Car slot to drive; -1 = first empty car. */
   slot?: number;
+  /** Tell the server these clients are bots, so the league never scores them (default true). */
+  markBot?: boolean;
   name?: string;
 }
 
@@ -121,7 +123,7 @@ async function takeSeat(room: Room<unknown, BotStateView>, slot: number, seat: '
 /** Start one bot car (two clients). Resolves once both bots are seated. */
 export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const { endpoint, tuning, track, roster } = opts;
-  const pilot = await new Client(endpoint).join<BotStateView>(ROOM_NAME);
+  const pilot = await new Client(endpoint).join<BotStateView>(ROOM_NAME, { bot: opts.markBot ?? true });
   ignoreBroadcasts(pilot);
   const first = await waitFor(pilot, (s) => s.players !== undefined, CONFIRM_MS);
   const slot = opts.slot !== undefined && opts.slot >= 0 ? opts.slot : freeSlot(first, tuning.race.maxCars);
@@ -131,7 +133,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   }
   const label = opts.name ?? `Bot ${slot + 1}`;
   pilot.send(MSG.setName, { name: `${label} P` });
-  const engineer = await new Client(endpoint).join<BotStateView>(ROOM_NAME);
+  const engineer = await new Client(endpoint).join<BotStateView>(ROOM_NAME, { bot: opts.markBot ?? true });
   ignoreBroadcasts(engineer);
   engineer.send(MSG.setName, { name: `${label} E` });
   try {

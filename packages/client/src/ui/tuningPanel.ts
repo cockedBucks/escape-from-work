@@ -4,7 +4,7 @@ import GUI, { type Controller } from 'lil-gui';
 import { getTuningValue, tuningFields, type Tuning } from '@escape/shared';
 
 /** Sections that need a restart or a rebuild to change, so the panel leaves them out. */
-const SKIP = ['sim', 'track', 'quality', 'net.port'];
+const SKIP = ['sim', 'track', 'quality', 'league', 'net.port'];
 /** Wait this long after the last slider move before sending (ms). */
 const SEND_DELAY_MS = 120;
 /** Ignore the server's echo for this long after a local edit, so a dragged slider never jumps (ms). */

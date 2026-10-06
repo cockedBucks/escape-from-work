@@ -379,6 +379,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | bots too slow / crash in corners (moves golden lap windows!) | `bot.cornerAccel`, `bot.brakePlanDecel`, `bot.planDistance`, `bot.speedMargin` |
 | bots weave / cut corners | `bot.lookAheadBase`, `bot.lookAheadTime`, `bot.steerGain` |
 | bots respawn too eagerly when stuck | `bot.stuckSpeed`, `bot.stuckSeconds` |
+| league points per place / the weekly cup's first day | `league.pointsByPlace`, `league.weekStartsOn` |
 
 ## 8. Persistence
 

@@ -6,6 +6,8 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { ROOM_NAME } from '@escape/shared';
 import { watchConfig } from './dev/configWatcher';
 import { FACES_DIR } from './faces';
+import { setLeague } from './league/league';
+import { LeagueStore } from './league/store';
 import { listMenuImages, MENU_DIR } from './menuImages';
 import { installTuningRoutes } from './dev/tuningRoutes';
 import { LiveConfig, setLiveConfig } from './liveConfig';
@@ -25,6 +27,8 @@ export interface StartOptions {
   watchConfig?: boolean;
   /** Config folder (tests use a temporary copy). Default: the repo's config/. */
   configDir?: string | undefined;
+  /** League file to record races into (the real server: data/league.json). Omit = no league (tests). */
+  leagueFile?: string | undefined;
 }
 
 export interface GameServer {
@@ -52,6 +56,7 @@ function listenOrFail(server: Server, transport: WebSocketTransport, opts: Start
 export async function startServer(opts: StartOptions): Promise<GameServer> {
   const live = new LiveConfig(opts.configDir);
   setLiveConfig(live);
+  setLeague(opts.leagueFile === undefined ? null : new LeagueStore(opts.leagueFile));
   const dev = (opts.dev ?? false) && process.env['NODE_ENV'] !== 'production';
   const transport = new WebSocketTransport();
   const server = new Server({

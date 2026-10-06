@@ -3,7 +3,10 @@
 // Run with `npm run test:load` (not part of verify).
 import { Client, type Room } from '@colyseus/sdk';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DEFAULT_TRACK, MSG, ROOM_NAME } from '@escape/shared';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { DEFAULT_TRACK, LeagueSchema, MSG, ROOM_NAME } from '@escape/shared';
 import { startBotCar, type BotCar } from '../../packages/client/src/bot/netBot';
 import { startServer, type GameServer } from '../../packages/server/src/app';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../../packages/server/src/config';
@@ -37,8 +40,11 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
   let host: Room<unknown, StateView> | undefined;
   const cars: BotCar[] = [];
 
+  // The race goes into a throwaway league file (never the host's data/league.json).
+  const leagueFile = path.join(mkdtempSync(path.join(tmpdir(), 'efw-load-')), 'league.json');
+
   beforeAll(async () => {
-    game = await startServer({ port: 0, host: '127.0.0.1' });
+    game = await startServer({ port: 0, host: '127.0.0.1', leagueFile });
   });
   afterAll(async () => {
     await Promise.allSettled(cars.map((c) => c.stop()));
@@ -56,7 +62,8 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
     host = await new Client(endpoint).join<StateView>(ROOM_NAME);
     for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.lobbyError]) host.onMessage(type, () => {});
     await waitForState(host, (s) => s.host === host!.sessionId, 'watcher is host');
-    for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster }));
+    // Car 1's clients play people (scored); the rest say they are bots (never scored).
+    for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster, markBot: i > 0 }));
     await waitForState(host, (s) => s.cars?.size === CARS, `${CARS} cars`);
     expect(host.state.laps).toBe(3);
 
@@ -85,5 +92,12 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
     expect(finished).toBeGreaterThanOrEqual(CARS / 2);
     expect(avg).toBeLessThan(TICK_BUDGET_MS * AVG_SHARE);
     expect(over).toBeLessThanOrEqual(Math.ceil(ticks * MAX_OVERRUN_SHARE));
+
+    // The league recorded the race: only car 1 has people in it.
+    const saved = LeagueSchema.parse(JSON.parse(readFileSync(leagueFile, 'utf8')));
+    expect(saved.races).toHaveLength(1);
+    const people = saved.races[0]!.cars.filter((c) => !c.bot);
+    expect(people.map((c) => c.slot)).toEqual([cars[0]!.slot]);
+    expect(people[0]!.players.map((p) => p.seat).sort()).toEqual(['engineer', 'pilot']);
   });
 });

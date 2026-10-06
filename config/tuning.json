@@ -194,5 +194,9 @@
     "carMaxTriangles": 1500,
     "propMaxTriangles": 600,
     "carMaxDrawCalls": 6
+  },
+  "league": {
+    "pointsByPlace": [10, 8, 6, 5, 4, 3, 2, 1],
+    "weekStartsOn": "sunday"
   }
 }

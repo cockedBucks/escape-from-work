@@ -344,6 +344,17 @@ const NetSchema = z.strictObject({
   inputResendMs: z.number().int().min(50),
 });
 
+/** Days of the week, Sunday first (the same order as `Date.getUTCDay()`). */
+export const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+
+/** League (GAME_DESIGN §10). */
+const LeagueTuningSchema = z.strictObject({
+  /** Points for 1st, 2nd, …; every human in the car gets them, bots none; places past the list score 0. */
+  pointsByPlace: z.array(z.number().int().min(0)).min(1),
+  /** The weekly cup starts on this day (the host PC's local date). */
+  weekStartsOn: z.enum(WEEKDAYS),
+});
+
 export const TuningSchema = z.strictObject({
   car: CarSchema,
   sim: SimSchema,
@@ -357,12 +368,15 @@ export const TuningSchema = z.strictObject({
   net: NetSchema,
   camera: CameraSchema,
   quality: QualitySchema,
+  league: LeagueTuningSchema,
 });
 
 export type Tuning = z.infer<typeof TuningSchema>;
 export type CarTuning = Tuning['car'];
 export type DriftTuning = Tuning['drift'];
 export type QualityLevel = Tuning['quality']['default'];
+export type LeagueTuning = Tuning['league'];
+export type Weekday = (typeof WEEKDAYS)[number];
 export type QualityPreset = Tuning['quality']['presets'][QualityLevel];
 
 /** Validate the contents of `config/tuning.json`. Throws `ConfigError` listing every problem. */

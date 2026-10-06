@@ -13,12 +13,15 @@ import {
   SetLapsSchema,
   SetNameSchema,
   SetSeatSchema,
+  carIdForSlot,
   effectiveRole,
   type LobbyError,
   type Tuning,
   type World,
 } from '@escape/shared';
 import { faceExists } from '../faces';
+import { league } from '../league/league';
+import { localIso, raceRecord } from '../league/record';
 import { liveConfig, type ConfigChange } from '../liveConfig';
 import { TokenBucket } from '../net/rateLimit';
 import { CarView, PlayerState, RaceState, ShotView } from '../schema/RaceState';
@@ -47,6 +50,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   private unsubscribe: () => void = () => {};
   private tickMsAvg = 0;
   private joinCount = 0;
+  /** Sessions that joined as networked bot clients (scripts/bots): never scored in the league. */
+  private readonly botClients = new Set<string>();
 
   override onCreate(): void {
     // Config comes from the server's files (live in dev), never from client options.
@@ -222,8 +227,36 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     if (phaseBefore === 'racing' && flow.phase === 'results') {
       const done = (this.sim.lastResults ?? []).filter((r) => !r.dnf).length;
       console.log(`[room] race end (${done}/${this.sim.lastResults?.length ?? 0} finished)`);
+      this.recordRace();
     }
     if (hostBefore !== flow.host) this.logHost();
+  }
+
+  /** Save the finished race to the league (real server only; bots-only races are skipped). */
+  private recordRace(): void {
+    const store = league();
+    const results = this.sim.lastResults;
+    if (!store || !results) return;
+    const players = [...this.state.players.entries()].map(([id, p]) => ({ name: p.name, slot: p.slot, seat: p.seat, bot: this.botClients.has(id) }));
+    const record = raceRecord({
+      at: localIso(new Date()),
+      track: liveConfig().trackId,
+      laps: this.sim.flow.laps,
+      chaos: this.sim.chaos,
+      tickMs: this.tuning.sim.dt * 1000,
+      results,
+      teamNames: this.sim.teamNames,
+      carModels: this.sim.carModels,
+      isBotSlot: (slot) => this.sim.isBot(carIdForSlot(slot)),
+      players,
+    });
+    if (!record) return;
+    try {
+      store.addRace(record);
+    } catch (err) {
+      // Never let the league stop the game; the race is lost from the history, say so once.
+      console.warn(`[league] could not save the race: ${String(err instanceof Error ? err.message : err).split('\n')[0]}`);
+    }
   }
 
   /** Run a player change and log if the host moved because of it. */
@@ -297,8 +330,9 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     }
   }
 
-  override onJoin(client: Client): void {
+  override onJoin(client: Client, options?: unknown): void {
     this.joinCount++;
+    if (typeof options === 'object' && options !== null && (options as { bot?: unknown }).bot === true) this.botClients.add(client.sessionId);
     const player = new PlayerState();
     player.name = `Player ${this.joinCount}`;
     this.state.players.set(client.sessionId, player);
@@ -328,6 +362,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   }
 
   override onLeave(client: Client): void {
+    this.botClients.delete(client.sessionId);
     this.state.players.delete(client.sessionId);
     this.limits.delete(client.sessionId);
     this.trackHost(() => this.sim.removePlayer(client.sessionId));

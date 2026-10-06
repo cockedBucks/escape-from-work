@@ -14,7 +14,7 @@ Rubber Duck of Shame, stored safely on the host PC.
 
 - [x] **P9.1 League store.** Versioned JSON schema, atomic writes, load with validation, backup of
   a corrupt file instead of crashing. Tests.
-- [ ] **P9.2 Scoring.** Points table from config, every human in the car scores, bots never score.
+- [x] **P9.2 Scoring.** Points table from config, every human in the car scores, bots never score.
   Duo records, best laps per track with car and both names. Weekly cup with
   `league.weekStartsOn` (default Sunday). Tests including week boundaries.
 - [ ] **P9.3 Awards.** Counters from sim events (wall hits, brake time, drift levels, item hits,
