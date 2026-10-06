@@ -7,7 +7,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright-core';
+import { launchBrowser } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 2599;
@@ -21,7 +21,7 @@ const srv = spawn(process.execPath, ['--import', 'tsx', path.join('packages', 's
 let browser;
 try {
   for (let i = 0; i < 60; i++) { try { if ((await fetch(`http://localhost:${PORT}/`)).ok) break; } catch {} await sleep(500); }
-  browser = await chromium.launch({ channel: 'chrome', headless: true });
+  ({ browser } = await launchBrowser());
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await page.goto(`http://localhost:${PORT}/`);
   await page.waitForSelector('button.seat[data-slot="0"][data-seat="solo"]', { timeout: 20000 });

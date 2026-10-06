@@ -7,7 +7,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright-core';
+import { launchBrowser as launchAny } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'artifacts', 'shots');
@@ -17,7 +17,6 @@ const VIEWPORT = { width: 1280, height: 720 };
 const SEED = 1;
 const SERVER_START_TIMEOUT_MS = 30_000;
 const READY_TIMEOUT_MS = 20_000;
-const BROWSER_CHANNELS = ['chrome', 'msedge'];
 
 // WebGL fallbacks from docs/TESTING.md, tried by hand in this order if WebGL fails headless.
 const GL_MODES = {
@@ -76,17 +75,8 @@ function startServer() {
   return { child, port };
 }
 
-async function launchBrowser(mode) {
-  const errors = [];
-  for (const channel of BROWSER_CHANNELS) {
-    try {
-      const browser = await chromium.launch({ channel, headless: mode.headless, args: mode.args });
-      return { browser, channel };
-    } catch (err) {
-      errors.push(`${channel}: ${String(err).split('\n')[0]}`);
-    }
-  }
-  throw new Error(`no Chrome or Edge found:\n${errors.join('\n')}`);
+function launchBrowser(mode) {
+  return launchAny({ headless: mode.headless, args: mode.args });
 }
 
 async function shoot(browser, port, scenario) {
