@@ -14,6 +14,10 @@ const StatsSchema = z.strictObject({
 export const HORNS = ['toot', 'duck', 'truck', 'clown', 'bike', 'kazoo', 'siren', 'squeak'] as const;
 export type Horn = (typeof HORNS)[number];
 
+/** Procedural engine voices (timbre per car; the client synthesizes them from speed). */
+export const ENGINES = ['buzz', 'hum', 'rumble', 'v8', 'rattle', 'whine', 'putt', 'diesel'] as const;
+export type Engine = (typeof ENGINES)[number];
+
 /** Car kit body presets (ART_STYLE §4); the client has their proportions. */
 export const BODY_PRESETS = ['hatch', 'sedan', 'pickup', 'van', 'mini', 'round', 'muscle'] as const;
 export type BodyPreset = (typeof BODY_PRESETS)[number];
@@ -37,6 +41,8 @@ const CarDefSchema = z.strictObject({
   stats: StatsSchema,
   /** Horn preset (GAME_DESIGN §8: each car has its own goofy horn). */
   horn: z.enum(HORNS),
+  /** Engine voice (P7.7): how this car's engine sounds to its own players. */
+  engine: z.enum(ENGINES),
   look: LookSchema,
 });
 

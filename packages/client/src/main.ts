@@ -5,8 +5,11 @@ import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
-import { EngineSound } from './audio/engine';
-import { DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer, ITEM_SOUNDS } from './audio/horn';
+import { countdownCue } from './audio/cues';
+import { EngineSound, squealing } from './audio/engine';
+import { COUNTDOWN_SOUNDS, DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer, IMPACT_SOUNDS, impactLevel, ITEM_SOUNDS } from './audio/horn';
+import { MusicLoop } from './audio/music';
+import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
@@ -374,10 +377,15 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       predictor.predict(now, localInput, inputsAllowed(phase) ? myRole : null, lead, latestTuning, mine);
       // Your engine: your own gas key, or your partner's as the server last applied it.
       const gas = (myRole !== null && mayUse(myRole, 'gas') && localInput.gas) || serverGas;
-      engine.update(true, mine.speed / latestTuning.car.topSpeed, gas, mine.drift !== 0, mine.boosting || mine.nitroOn);
+      const brake = (myRole !== null && mayUse(myRole, 'brake') && localInput.brake) || serverBrake;
+      const share = mine.speed / latestTuning.car.topSpeed;
+      engine.update(true, share, gas, squealing(mine.drift !== 0, brake, share), mine.boosting || mine.nitroOn);
     },
   };
   let serverGas = false;
+  let serverBrake = false;
+  /** The countdown text last shown (beeps when it changes). */
+  let lastCountdown: string | null = null;
   // The car each slot drives (synced), and lookups by car id ("car3" → slot 3).
   const roster = loadCars().cars;
   const rosterNames = roster.map((d) => ({ id: d.id, name: d.name }));
@@ -412,6 +420,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     mySeat = me?.seat ?? '';
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     serverGas = myCar?.inGas ?? false;
+    serverBrake = myCar?.inBrake ?? false;
     // Item boxes, envelopes and puddles for the 3D view.
     itemsView.boxesUp = state.boxesUp;
     // Reuse the shot objects (no new ones per patch).
@@ -434,7 +443,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     teamNames = [...state.teams];
     carModels = [...state.carModels];
     // Prediction runs your car with its own stats.
-    if (myCarId !== null) predictor.setStats(carDefOf(myCarId).stats);
+    if (myCarId !== null) {
+      predictor.setStats(carDefOf(myCarId).stats);
+      engine.setVoice(carDefOf(myCarId).engine);
+    }
     seatsByCar = carSeatsFrom(state, room.sessionId);
     const boardCars: BoardCar[] = [];
     state.cars.forEach((c, id) => {
@@ -471,6 +483,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
       });
     hud.set(hudNow);
+    const cue = countdownCue(lastCountdown, hudNow.countdown);
+    lastCountdown = hudNow.countdown;
+    if (cue) horns.playSound(COUNTDOWN_SOUNDS[cue], 0);
+    music.setPlaying(state.phase === 'lobby' || state.phase === 'results');
     // The item you hold (P6.5 adds icons).
     gauges.lap = hudNow.lap;
     gauges.place = hudNow.place;
@@ -539,7 +555,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   };
   room.onStateChange(applyView);
   const horns = new HornPlayer();
-  const engine = new EngineSound(() => horns.context);
+  const engine = new EngineSound(() => horns.context, () => horns.bus('engine'));
+  const music = new MusicLoop(() => horns.context, () => horns.bus('music'));
+  const volumePanel = new VolumePanel(document.body, horns.volumes, (v) => horns.setVolumes(v));
   /** How far a car is from the camera (m), for sound volume. */
   const heardFrom = (carId: string): number => {
     const p = game.carPosition(carId);
@@ -597,6 +615,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         horns.playSound(DRIFT_SOUNDS[e.type], heardFrom(e.car));
         continue;
       }
+      if (e.type === 'wallHit') horns.playSound(IMPACT_SOUNDS.wall, heardFrom(e.car), 'sfx', impactLevel(e.speed));
+      else if (e.type === 'carHit') horns.playSound(IMPACT_SOUNDS.bump, heardFrom(e.car), 'sfx', impactLevel(e.speed));
+      else if (e.type === 'land') horns.playSound(IMPACT_SOUNDS.land, heardFrom(e.car), 'sfx', impactLevel(e.impact));
       if (e.type === 'wallHit') game.jolt(e.car, e.speed, false);
       else if (e.type === 'carHit') {
         game.jolt(e.car, e.speed, false);
@@ -634,6 +655,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     gaugePanel.dispose();
     cameraToggle.dispose();
     engine.dispose();
+    music.dispose();
+    volumePanel.dispose();
     horns.dispose();
     swapFlash.dispose();
     effects.dispose();

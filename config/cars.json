@@ -7,6 +7,7 @@
       "name": "Spoiler Alert",
       "stats": { "speed": 1, "grip": 1, "weight": 1 },
       "horn": "toot",
+      "engine": "buzz",
       "look": { "body": "hatch", "wheelScale": 1.05, "parts": ["spoiler"] }
     },
     {
@@ -14,6 +15,7 @@
       "name": "Cabbie",
       "stats": { "speed": 0.99, "grip": 1.03, "weight": 1 },
       "horn": "kazoo",
+      "engine": "hum",
       "look": { "body": "sedan", "wheelScale": 1, "parts": ["roofSign"] }
     },
     {
@@ -21,6 +23,7 @@
       "name": "Bass Drop",
       "stats": { "speed": 0.98, "grip": 0.98, "weight": 1.07 },
       "horn": "truck",
+      "engine": "rumble",
       "look": { "body": "pickup", "wheelScale": 1.15, "parts": ["speakers"] }
     },
     {
@@ -28,6 +31,7 @@
       "name": "Hot Fix",
       "stats": { "speed": 1.03, "grip": 0.96, "weight": 1 },
       "horn": "clown",
+      "engine": "v8",
       "look": { "body": "muscle", "wheelScale": 1.1, "parts": ["hoodScoop"] }
     },
     {
@@ -35,6 +39,7 @@
       "name": "Packet Loss",
       "stats": { "speed": 0.97, "grip": 1.04, "weight": 1.06 },
       "horn": "duck",
+      "engine": "rattle",
       "look": { "body": "van", "wheelScale": 1, "parts": ["roofBox"] }
     },
     {
@@ -42,6 +47,7 @@
       "name": "Pocket Rocket",
       "stats": { "speed": 0.99, "grip": 1.05, "weight": 0.93 },
       "horn": "bike",
+      "engine": "whine",
       "look": { "body": "mini", "wheelScale": 1.45, "parts": [] }
     },
     {
@@ -49,6 +55,7 @@
       "name": "Bug Report",
       "stats": { "speed": 1.02, "grip": 1, "weight": 0.94 },
       "horn": "squeak",
+      "engine": "putt",
       "look": { "body": "round", "wheelScale": 1.1, "parts": ["windupKey"] }
     },
     {
@@ -56,6 +63,7 @@
       "name": "Help Desk",
       "stats": { "speed": 0.98, "grip": 0.99, "weight": 1.08 },
       "horn": "siren",
+      "engine": "diesel",
       "look": { "body": "van", "wheelScale": 1.05, "parts": ["dish", "ladder"] }
     }
   ]

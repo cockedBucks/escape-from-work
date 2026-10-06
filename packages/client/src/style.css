@@ -1072,3 +1072,49 @@ body {
   font-size: 0.8rem;
   line-height: 1.4;
 }
+
+/* Volume button and sliders (P7.7): top right, under the host's End race button. */
+.volume {
+  position: fixed;
+  right: 0.75rem;
+  top: 3.6rem;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.volume-button {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 0.15rem solid var(--ui-dark);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 0.15rem 0 var(--ui-dark);
+}
+
+.volume-panel {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.6rem 0.75rem;
+  border: 0.15rem solid var(--ui-dark);
+  border-radius: 0.6rem;
+  background: #fff;
+  color: var(--ui-dark);
+  box-shadow: 0 0.2rem 0 var(--ui-dark);
+}
+
+.volume-panel[hidden] {
+  display: none;
+}
+
+.volume-panel label {
+  display: grid;
+  grid-template-columns: 4.5rem 8rem;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}

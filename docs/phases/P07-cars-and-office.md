@@ -30,7 +30,7 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   the Test Loop; D091).
 - [x] **P7.6 Juice.** Dust, spark levels, nitro flames, stall smoke, landing squash, hit shake,
   finish confetti, head wobble, honk bubble polish.
-- [ ] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,
+- [x] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,
   bumps, landings, item sounds, countdown beeps, a light menu loop. Volume settings.
 - [ ] **P7.8 Performance pass.** Shots stats at Low and High for chase, cockpit and overview on
   The Office; fix anything over budget.

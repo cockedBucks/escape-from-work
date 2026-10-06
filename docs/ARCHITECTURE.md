@@ -32,7 +32,7 @@ escape-from-work/
   vitest.config.ts (test projects)  .npmrc (exact versions)  .gitattributes (LF)
   config/
     tuning.json        car, sim, track, bot, heat, drift, nitro, solo, race, net, league, quality
-    cars.json          roster: stats, visual spec, horn preset
+    cars.json          roster: stats, visual spec, horn and engine presets
     teams.json         default team names (IT puns), one per car slot
     items.json         item params + roll weights
     tracks/<id>.json   track data
@@ -238,6 +238,11 @@ Honk (P4.6): `input.honk` (anyone in the car, once per press) → the sim emits 
 `race.honkCooldownSeconds`; cosmetic, not in the replay hash) → every client shows a "HONK!" bubble
 and plays the car's `horn` preset from cars.json, synthesized with Web Audio (`audio/horn.ts`), quieter
 with distance.
+Audio (P7.7): everything is synthesized (no files). `audio/mixer.ts` routes sounds into engine, effects
+and music channels under a master volume (levels per browser, `efw.volumes`; the top-right speaker
+button). Your car's engine (`audio/engine.ts`) uses the car's `engine` voice from cars.json; tires squeal
+while drifting or braking hard. Wall hits, bumps and landings thud (any car, by distance and impact),
+countdown beeps follow the HUD text (`audio/cues.ts`), and `audio/music.ts` loops in the lobby/results.
 Mirror (P4.5): `render/mirror.ts` — a backward camera above/behind your car renders into a 256×64
 texture shown (flipped) under your windshield roof in the cockpit; `quality.presets.*.mirror`: off
 (Low), every 2nd frame (Medium), every frame (High).

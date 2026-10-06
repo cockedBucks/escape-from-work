@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.7 Procedural audio
-- Status: P7.6 done. `npm run verify` passes (432 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P7.8 Performance pass
+- Status: P7.7 done. `npm run verify` passes (432 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track. Shots: juice 23 draws / 27k tris (software GL in the cloud).
 
 ## Half-done
@@ -115,6 +115,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   over the boardroom table, Server Closet shortcut, swap lane, 166 props), carpet ground, Office =
   default track, `shots --track`. Bot drift fixes (release on straights, no drift into S-bends or
   shortcuts). D091.
+- 2026-10-06 (cloud): P7.7 Procedural audio — engine voice per car (cars.json `engine`), brake skid,
+  wall/bump/landing thuds, countdown beeps, lobby/results music loop, volume channels + top-right speaker
+  sliders. LOCAL: listen to it on the laptop (no speakers in the cloud). D095.
 - 2026-10-06 (cloud): P7.6 Juice — landing squash & stretch (spring per car), chase-cam hit shake,
   bobblehead kicks on hits/landings (every car), finish confetti (same particle pool), HONK bubble
   polish (tilt, springy pop, tail, float + fade), `juice` scenario. Fixed: cockpit eye now sits at your

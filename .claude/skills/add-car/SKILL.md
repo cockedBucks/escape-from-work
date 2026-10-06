@@ -15,7 +15,7 @@ Car idea: `$ARGUMENTS`
    - body panels take the team color; trim, glass and tires use the shared palette
    - a pun name that fits the office/IT theme
 3. Add the entry to `config/cars.json`: `id`, `name`, `stats` (speed, grip, weight),
-   `visual` (body preset, proportions, parts), `horn` preset. Stats must stay inside the
+   `visual` (body preset, proportions, parts), `horn` and `engine` presets (voices in `audio/horn.ts`, `audio/engine.ts`). Stats must stay inside the
    balance limits in `docs/GAME_DESIGN.md` ("Cars").
 4. New visual parts → add a builder to the client car kit (`packages/client/src/render/cars/`).
    Stay inside the per-car budget in `docs/ART_STYLE.md` (meshes merged per material).
