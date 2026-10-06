@@ -20,6 +20,18 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
 
+## Cloud session (read me first, local Claude)
+- 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
+  session (Linux container, Node 22, no GPU, no speakers, no LAN) on branch
+  `claude/serene-cray-63f01m`, pushed after each task (never `main`; D090).
+- **When back local:** `git fetch origin`, review `main..origin/claude/serene-cray-63f01m`
+  (diff + `npm run verify` on Windows + `npm run shots`), then merge it into `main` if OK
+  (the human approved this plan). Then remove this section.
+- Works in the cloud: `verify`, `track:check`, `test:load`, `bots`, `shots` (Playwright Chromium,
+  software WebGL: images are fine, the fps number is NOT real).
+- Cannot be done in the cloud (do on the Windows laptop): real FPS, listening to audio,
+  LAN/firewall, real `npm run jitter` numbers. Look for "LOCAL:" lines in this file.
+
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
 - Node v24.19.0, npm 11.17.0, git 2.55.0.windows.5
