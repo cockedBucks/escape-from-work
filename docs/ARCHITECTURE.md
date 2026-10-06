@@ -163,7 +163,8 @@ installed types for the API. Anything not on this list → ask the human first.
   is another road is not pushed through it. Bots with `bot.shortcutSkill` follow branches.
 - Optional `sandstorm` (Smart Oasis): thick fog (`fogNear`..`fogFar` m) for one whole lap, while
   the race leader is on lap `lap` (shared `sandstormOn`; drawn only, the sim is unchanged).
-  Ramps may look like sand dunes (`look: "dune"`), slicks like ice (`look: "ice"`).
+  Ramps may look like sand dunes or black chips (`look: "dune"` / `"chip"`), slicks like ice
+  (`look: "ice"`). The road color follows the track `theme` (copper traces on `motherboard`).
 - `dev: true` marks a greybox track (Test Loop): `track:check` skips its lap-time target.
 - `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, branches
   ≥ `track.branchMinWidth`, no curve tighter than half the road width, no crossing walls, each

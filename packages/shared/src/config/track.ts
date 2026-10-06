@@ -20,8 +20,8 @@ const RampZoneSchema = z.strictObject({
   to: progress(),
   /** Multiplies `car.rampLaunch`. */
   launch: z.number().positive(),
-  /** What it looks like (the jump is the same): a wooden ramp or a sand dune. */
-  look: z.enum(['wood', 'dune']).default('wood'),
+  /** What it looks like (the jump is the same): a wooden ramp, a sand dune or a black chip. */
+  look: z.enum(['wood', 'dune', 'chip']).default('wood'),
 });
 
 const SlickZoneSchema = z.strictObject({
@@ -67,12 +67,13 @@ const ZoneSchema = z.discriminatedUnion('type', [
   ItemRowZoneSchema,
 ]);
 
-/** Prop kit pieces (ART_STYLE §5); the client builds them. Office, server room, then oasis sets. */
+/** Prop kit pieces (ART_STYLE §5); the client builds them. Office, server room, oasis, then motherboard sets. */
 export const PROP_KITS = [
   'desk', 'chair', 'cubicle', 'monitor', 'keyboard', 'printer', 'waterCooler', 'coffeeMachine',
   'plant', 'whiteboard', 'filingCabinet', 'reception',
   'serverRack', 'cableTray', 'coolingFan', 'acUnit',
   'palm', 'dune', 'rock', 'tent', 'pond',
+  'chip', 'capacitor', 'resistor', 'cpuFan', 'trace',
 ] as const;
 export type PropKit = (typeof PROP_KITS)[number];
 

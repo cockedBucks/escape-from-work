@@ -18,7 +18,7 @@ and a final stability pass.
   zone, cable-lane layout. `/add-track`.
 - [x] **P10.2 Smart Oasis.** Props (palms, dunes, rocks, tents, pond), dune jumps, oasis shortcut,
   sandstorm event (fog for one lap, config-driven). `/add-track`.
-- [ ] **P10.3 Motherboard.** Props (chips, capacitors, resistors, CPU fan), trace-road look,
+- [x] **P10.3 Motherboard.** Props (chips, capacitors, resistors, CPU fan), trace-road look,
   capacitor jumps, CPU-fan loop. `/add-track`.
 - [ ] **P10.4 Office deployment.** `start-server.bat` and `start-server.sh` (install if needed,
   build, start, print URLs). `docs/LAN.md` final: daily start, firewall, troubleshooting,

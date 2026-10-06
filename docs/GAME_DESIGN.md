@@ -190,7 +190,7 @@ Lap target 40–55 s.
    an icy cold aisle, blinking racks.
 4. **Smart Oasis** (built in P10.2: `smart-oasis.json`, ~1.2 km, ~44 s): desert dunes (gentle jumps), a palm-tree oasis shortcut, a sandstorm
    event that lowers visibility for a lap.
-5. **Motherboard**: tiny cars on a circuit board, driving on traces, jumps over capacitors,
+5. **Motherboard** (built in P10.3: `motherboard.json`, ~1.4 km, ~52 s): tiny cars on a circuit board, driving on traces, jumps over capacitors,
    a loop around the CPU fan.
 
 ## 10. League and awards

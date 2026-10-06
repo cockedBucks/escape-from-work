@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
-- Next task: P10.3 Motherboard
-- Status: P10.2 done. `npm run verify` passes (503 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P10.4 Office deployment
+- Status: P10.3 done. `npm run verify` passes (504 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -122,6 +122,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06 (cloud): P10.2 Smart Oasis — dune jumps (`look: dune`), Palm Oasis shortcut past the pond,
   sandstorm on lap 2 (fog, toast; scenario `sandstorm`), palm/dune/rock/tent/pond props, bot laps ~44 s. D110.
+
+- 2026-10-06 (cloud): P10.3 Motherboard — copper trace roads on a green board, chip jumps between
+  capacitors, CPU-fan loop with a push zone, chip/capacitor/resistor/trace props, bot laps ~52 s. D111.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -89,8 +89,12 @@ export const TRACK_LOOK = {
   groundMargin: 400,
   /** The ground is pushed back in depth by this much (polygon offset), so the road always wins over it. */
   groundDepthOffset: 4,
+  /** Road color per track theme (anything else: asphalt): copper-gold traces on the motherboard. */
+  roadByTheme: { motherboard: 0xb8862f } as Readonly<Record<string, number>>,
+  /** Chip ramps (ramp zones with `look: 'chip'`). */
+  chipRampColor: 0x1e2127,
   /** Ground color per track theme (anything else: sand). */
-  groundByTheme: { office: PALETTE.carpet, serverRoom: 0x2b3140, oasis: 0xebcb94 } as Readonly<Record<string, number>>,
+  groundByTheme: { office: PALETTE.carpet, serverRoom: 0x2b3140, oasis: 0xebcb94, motherboard: 0x1d5c3a } as Readonly<Record<string, number>>,
   /** Small lift so flat decals never z-fight with the road (m). */
   decalLift: 0.02,
 } as const;
@@ -460,6 +464,8 @@ export const PROP_COLORS = {
   rack: 0x2a2f3d, led: 0x3dff9a, amber: 0xffb703,
   trunk: 0x9c6b3c, palm: 0x3a9d4f, coconut: 0x6b4423, dune: 0xe0b46e, rock: 0xa58f78,
   cloth: 0xe63946, water: 0x3fa7d6,
+  chip: 0x1e2127, pin: 0xc9ced6, copper: 0xd09a45, capBlue: 0x2f4fa8, ceramic: 0xd8c08f,
+  bandRed: 0xd62828, bandViolet: 0x7b2cbf, fin: 0x9aa3ad,
 } as const;
 
 const box = (w: number, h: number, d: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'box', size: [w, h, d], at: [x, y, z], color });
@@ -601,5 +607,37 @@ export const PROP_SHAPES = {
     blob(5.4, 0.12, 3.9, 0, 0, 0, 'dune'),
     blob(5.0, 0.12, 3.5, 0, 0.04, 0, 'water'),
     ...[[-4.6, 1.4], [3.9, -2.3], [1.2, 3.4]].map(([x, z]) => blob(0.6, 0.4, 0.5, x!, 0.15, z!, 'rock')),
+  ],
+  // Motherboard parts, giant next to the tiny cars. A chip: a black block with silver legs.
+  chip: [
+    box(8, 0.9, 8, 0, 0.45, 0, 'chip'),
+    ...[-1, 1].flatMap((side) => [-3, -1.8, -0.6, 0.6, 1.8, 3].map((x) => box(0.5, 0.5, 0.8, x, 0.25, side * 4.3, 'pin'))),
+    cyl(0.4, 0.05, -2.8, 0.92, -2.8, 'fin'),
+  ],
+  // An electrolytic capacitor: a tall blue can with a silver top and a pale stripe.
+  capacitor: [
+    cyl(1.6, 4.2, 0, 2.1, 0, 'capBlue'),
+    cyl(1.62, 0.1, 0, 4.2, 0, 'pin'),
+    box(0.5, 4.0, 0.1, 0, 2.1, 1.58, 'ceramic'),
+  ],
+  // A resistor lying on the board: a tan body with color bands and wire legs.
+  resistor: [
+    blob(2.4, 0.8, 0.8, 0, 0.9, 0, 'ceramic'),
+    ...[[-1.2, 'bandRed'], [-0.5, 'bandViolet'], [0.2, 'dark'], [1.3, 'amber']].map(([x, c]) => blob(0.18, 0.84, 0.84, x as number, 0.9, 0, c as keyof typeof PROP_COLORS)),
+    ...[-1, 1].map((k) => box(1.6, 0.12, 0.12, k * 3.1, 0.9, 0, 'pin')),
+  ],
+  // The CPU cooler at the middle of the board: heatsink fins under a giant fan.
+  cpuFan: [
+    box(22, 1.0, 22, 0, 0.5, 0, 'fin'),
+    ...[-8, -4, 0, 4, 8].map((x) => box(1.0, 3.0, 22, x, 2.5, 0, 'fin')),
+    box(20, 1.2, 20, 0, 4.6, 0, 'chip'),
+    blob(8.5, 0.35, 1.8, 0, 5.4, 0, 'dark'),
+    blob(1.8, 0.35, 8.5, 0, 5.4, 0, 'dark'),
+    cyl(2.2, 0.6, 0, 5.5, 0, 'pin'),
+  ],
+  // A copper trace on the board with a round pad at its end.
+  trace: [
+    box(10, 0.04, 0.5, 0, 0.02, 0, 'copper'),
+    cyl(0.6, 0.05, 5, 0.025, 0, 'copper'),
   ],
 } as const satisfies Record<string, readonly PropPrim[]>;

@@ -153,7 +153,8 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   }
 
   // Ramps: a wedge rising over the zone, then a vertical drop at its end.
-  const ramps = new RibbonBuilder();
+  const woodRamps = new RibbonBuilder();
+  const chipRamps = new RibbonBuilder();
   const dunes = new RibbonBuilder();
   const slicks = new RibbonBuilder();
   const ice = new RibbonBuilder();
@@ -178,6 +179,7 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
           v3(b.pos, h(i + 1), b.right, -b.width / 2), v3(b.pos, h(i + 1), b.right, b.width / 2));
       }
     } else if (zone.type === 'ramp') {
+      const ramps = zone.look === 'chip' ? chipRamps : woodRamps;
       const span = Math.max(i1 - i0, 1);
       for (let i = i0; i < i1; i++) {
         const a = sample(i);
@@ -278,11 +280,14 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     color: TRACK_LOOK.groundByTheme[track.def.theme] ?? PALETTE.sand, polygonOffset: true,
     polygonOffsetFactor: TRACK_LOOK.groundDepthOffset, polygonOffsetUnits: TRACK_LOOK.groundDepthOffset,
   }), 'ground');
-  add(road.build(), new THREE.MeshLambertMaterial({ color: PALETTE.road }), 'road');
+  add(road.build(), new THREE.MeshLambertMaterial({ color: TRACK_LOOK.roadByTheme[track.def.theme] ?? PALETTE.road }), 'road');
   add(curbs.build(), new THREE.MeshLambertMaterial({ vertexColors: true, ...DECAL }), 'curbs');
   add(wallRb.build(), new THREE.MeshLambertMaterial({ color: PALETTE.cubicle, flatShading: true }), 'walls');
-  if (ramps.indices.length > 0) {
-    add(ramps.build(), new THREE.MeshLambertMaterial({ color: PALETTE.desk, flatShading: true, side: THREE.DoubleSide }), 'ramps');
+  if (woodRamps.indices.length > 0) {
+    add(woodRamps.build(), new THREE.MeshLambertMaterial({ color: PALETTE.desk, flatShading: true, side: THREE.DoubleSide }), 'ramps');
+  }
+  if (chipRamps.indices.length > 0) {
+    add(chipRamps.build(), new THREE.MeshLambertMaterial({ color: TRACK_LOOK.chipRampColor, flatShading: true, side: THREE.DoubleSide }), 'chipRamps');
   }
   if (dunes.indices.length > 0) {
     add(dunes.build(), new THREE.MeshLambertMaterial({ color: TRACK_LOOK.duneColor, side: THREE.DoubleSide }), 'dunes');
