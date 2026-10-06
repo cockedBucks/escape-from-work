@@ -42,14 +42,14 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
     const music = new MusicLoop(() => opts.horns.context, () => opts.horns.bus('music'));
     const settingsScreen = new SettingsScreen(document.body, {
       settings: loadSettings(),
-      volumes: opts.horns.volumes,
-      camera: loadCameraMode(),
+      volumes: () => opts.horns.volumes,
+      camera: loadCameraMode,
       inRace: false,
       onSettings: (s) => saveSettings(s),
       onVolumes: (v) => opts.horns.setVolumes(v),
       onCamera: (mode) => saveCameraMode(mode),
     });
-    const volume = new VolumePanel(document.body, opts.horns.volumes, (v) => opts.horns.setVolumes(v), () => settingsScreen.open('settings'));
+    const volume = new VolumePanel(document.body, () => opts.horns.volumes, (v) => opts.horns.setVolumes(v), () => settingsScreen.open('settings'));
     let frame = 0;
     let done = false;
     const menu = new MainMenu(document.body, {

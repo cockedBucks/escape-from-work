@@ -28,3 +28,18 @@ describe('settings', () => {
     }
   });
 });
+
+describe('the help key', () => {
+  const key = (k: string, code = '', repeat = false) => ({ key: k, code, repeat });
+  it('"?" (also the Arabic ؟) or F1 opens the keys, again closes them; held keys do nothing', async () => {
+    const { helpKeyAction } = await import('./ui/settingsScreen');
+    expect(helpKeyAction(key('?', 'Slash'), false, false)).toBe('openKeys');
+    expect(helpKeyAction(key('؟', 'Slash'), false, false)).toBe('openKeys');
+    expect(helpKeyAction(key('F1', 'F1'), false, false)).toBe('openKeys');
+    expect(helpKeyAction(key('?', 'Slash'), true, true)).toBe('close');
+    expect(helpKeyAction(key('?', 'Slash'), true, false)).toBe('openKeys'); // settings tab open: switch to keys
+    expect(helpKeyAction(key('?', 'Slash', true), false, false)).toBe(null);
+    expect(helpKeyAction(key('Escape', 'Escape'), true, false)).toBe('close');
+    expect(helpKeyAction(key('Escape', 'Escape'), false, false)).toBe(null); // the lobby gets it
+  });
+});

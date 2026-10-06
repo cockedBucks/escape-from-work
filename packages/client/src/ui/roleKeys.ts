@@ -42,7 +42,7 @@ export const HOW_TO_CARDS: readonly HowToCard[] = [
     role: 'solo',
     title: 'SOLO',
     job: 'All the controls, all by yourself. Harder: find a teammate!',
-    keys: [['W / S', 'gas / brake'], ['A / D', 'steer'], ['tap S', 'while turning = DRIFT'], ['Shift', 'nitro']],
+    keys: [['W / S', 'gas / brake'], ['A / D', 'steer'], ['tap S', 'while turning = DRIFT'], ['Shift', 'nitro'], ['Space', 'item']],
   },
 ];
 

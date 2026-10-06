@@ -27,19 +27,19 @@ export class Showroom {
     const S = SHOWROOM;
     this.table = new THREE.Group();
     const disc = new THREE.Mesh(
-      new THREE.CylinderGeometry(S.tableRadius, S.tableRadius, S.tableHeight, 48),
+      new THREE.CylinderGeometry(S.tableRadius, S.tableRadius, S.tableHeight, S.segments),
       new THREE.MeshLambertMaterial({ color: S.tableColor }),
     );
     disc.position.y = -S.tableHeight / 2;
     const rim = new THREE.Mesh(
-      new THREE.CylinderGeometry(S.tableRadius + 0.15, S.tableRadius + 0.15, S.tableHeight * 0.8, 48),
+      new THREE.CylinderGeometry(S.tableRadius + S.rimOut, S.tableRadius + S.rimOut, S.tableHeight * S.rimHeightShare, S.segments),
       new THREE.MeshLambertMaterial({ color: S.tableRim }),
     );
-    rim.position.y = -S.tableHeight / 2 - 0.02;
+    rim.position.y = -S.tableHeight / 2 - S.rimDrop;
     this.table.add(rim, disc);
     this.table.position.y = S.tableHeight;
     // The office floor, fading into the fog.
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(S.floorRadius, 48), new THREE.MeshLambertMaterial({ color: PALETTE.carpet }));
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(S.floorRadius, S.segments), new THREE.MeshLambertMaterial({ color: PALETTE.carpet }));
     floor.rotation.x = -Math.PI / 2;
     this.stage.scene.add(this.table, floor);
     this.floor = floor;

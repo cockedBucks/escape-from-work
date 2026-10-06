@@ -585,11 +585,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   room.onStateChange(applyView);
   const engine = new EngineSound(() => horns.context, () => horns.bus('engine'));
   const music = new MusicLoop(() => horns.context, () => horns.bus('music'));
-  const volumePanel = new VolumePanel(document.body, horns.volumes, (v) => horns.setVolumes(v), () => settingsScreen.open('settings'));
+  const volumePanel = new VolumePanel(document.body, () => horns.volumes, (v) => horns.setVolumes(v), () => settingsScreen.open('settings'));
   const settingsScreen = new SettingsScreen(document.body, {
     settings,
-    volumes: horns.volumes,
-    camera: cameraToggle.mode,
+    volumes: () => horns.volumes,
+    camera: () => cameraToggle.mode,
     inRace: true,
     onSettings: (s) => {
       saveSettings(s);

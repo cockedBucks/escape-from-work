@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from './config';
 import { isFaceFile } from './faces';
@@ -13,6 +13,6 @@ export const MENU_DIR = path.join(REPO_ROOT, 'assets', 'menu');
 export function listMenuImages(dir = MENU_DIR): string[] {
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((f) => isFaceFile(f))
+    .filter((f) => isFaceFile(f) && statSync(path.join(dir, f)).isFile())
     .sort((a, b) => a.localeCompare(b));
 }

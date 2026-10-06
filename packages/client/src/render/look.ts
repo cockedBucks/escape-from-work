@@ -302,6 +302,17 @@ export const SHOWROOM = {
   tableRim: 0x1e2230,
   /** Office carpet around the table (m). */
   floorRadius: 120,
+  /** The dark rim under the table: wider by, as tall as (× table height), and how much lower (m); round segments. */
+  rimOut: 0.15,
+  rimHeightShare: 0.8,
+  rimDrop: 0.02,
+  segments: 48,
+} as const;
+
+/** Main menu timings (ms): how long each fake loading message and each slideshow image stays. */
+export const MENU = {
+  messageMs: 2600,
+  slideMs: 5000,
 } as const;
 
 /** Chaos items in the world (ART_STYLE: chunky, bright, readable from the chase cam). */

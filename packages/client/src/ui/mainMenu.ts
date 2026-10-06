@@ -1,6 +1,8 @@
 // Main menu (P8.1, GAME_DESIGN §11): title, fake IT loading messages, wobbly PLAY, a big HONK
 // button, the car on the turntable, and a slideshow of company images (assets/menu/).
 
+import { MENU } from '../render/look';
+
 /** Fake IT loading messages (original text; no real products or brands). */
 export const LOADING_MESSAGES = [
   'Waiting for IT to approve your ticket…',
@@ -17,9 +19,6 @@ export const LOADING_MESSAGES = [
   'Turning it off and on again…',
 ] as const;
 
-/** How often the loading message and the slideshow image change (ms). */
-const MESSAGE_MS = 2600;
-const SLIDE_MS = 5000;
 
 /** Which of `count` items shows at `now` ms when each stays `periodMs`. Pure, for tests. */
 export const cycleIndex = (now: number, periodMs: number, count: number): number =>
@@ -111,7 +110,7 @@ export class MainMenu {
 
   /** Rotate the loading message and the slideshow. Call every frame with the time in ms. */
   update(now: number): void {
-    const m = cycleIndex(now, MESSAGE_MS, LOADING_MESSAGES.length);
+    const m = cycleIndex(now, MENU.messageMs, LOADING_MESSAGES.length);
     if (m !== this.shownMessage) {
       this.shownMessage = m;
       this.loading.textContent = LOADING_MESSAGES[m]!;
@@ -120,7 +119,7 @@ export class MainMenu {
       this.loading.classList.add('fresh');
     }
     if (this.images.length === 0) return;
-    const s = cycleIndex(now, SLIDE_MS, this.images.length);
+    const s = cycleIndex(now, MENU.slideMs, this.images.length);
     if (s !== this.shownSlide) {
       this.shownSlide = s;
       const url = this.images[s]!;

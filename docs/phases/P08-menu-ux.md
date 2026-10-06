@@ -24,4 +24,4 @@ join and play without anyone explaining.
 - [~] **HUMAN GATE — first-time players.** (deferred)
   1. Find 2 coworkers who have never seen the game. Give them only the URL. Watch, do not help.
   2. Reply: where they got stuck, what made them laugh, what they asked.
-- [ ] **P8.6 Phase end.** Reviewer, fixes, `git tag p8-done`, report.
+- [x] **P8.6 Phase end.** Reviewer, fixes, `git tag p8-done`, report.

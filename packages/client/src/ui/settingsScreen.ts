@@ -12,8 +12,10 @@ export type SettingsTab = 'settings' | 'keys';
 
 export interface SettingsHandlers {
   settings: Settings;
-  volumes: Volumes;
-  camera: CameraMode;
+  /** The shared levels (read on open, so other panels' changes show). */
+  volumes: () => Volumes;
+  /** The current camera mode (read on open: C may have switched it). */
+  camera: () => CameraMode;
   /** In a race: changing quality needs a reload. */
   inRace: boolean;
   onSettings(s: Settings): void;
@@ -21,9 +23,21 @@ export interface SettingsHandlers {
   onCamera(mode: CameraMode): void;
 }
 
+/** What a key press does to the help window. "?" by character (any layout: `؟` on Arabic), or F1. Pure, for tests. */
+export function helpKeyAction(
+  e: { key: string; code: string; repeat: boolean },
+  open: boolean,
+  showingKeys: boolean,
+): 'openKeys' | 'close' | null {
+  if (e.repeat) return null;
+  if (e.key === '?' || e.key === '؟' || e.code === 'F1') return open && showingKeys ? 'close' : 'openKeys';
+  if (e.code === 'Escape' && open) return 'close';
+  return null;
+}
+
 const QUALITY_LABEL: Record<QualitySetting, string> = { auto: 'Auto', low: 'Low', medium: 'Medium', high: 'High' };
 
-/** A row of toggle buttons; returns the row and a function that marks the chosen one. */
+/** A row of toggle buttons (the chosen one is `.on`). */
 function choices<T extends string>(options: readonly T[], label: (o: T) => string, chosen: T, pick: (o: T) => void): HTMLElement {
   const row = document.createElement('div');
   row.className = 'choice-row';
@@ -34,6 +48,7 @@ function choices<T extends string>(options: readonly T[], label: (o: T) => strin
     b.dataset.value = o;
     b.textContent = label(o);
     b.addEventListener('click', () => {
+      b.blur(); // Enter must not click it again mid-race
       for (const other of buttons) other.classList.toggle('on', other === b);
       pick(o);
     });
@@ -57,6 +72,8 @@ export class SettingsScreen {
   private readonly tabs: Record<SettingsTab, HTMLElement>;
   private readonly tabButtons: Record<SettingsTab, HTMLButtonElement>;
   private settings: Settings;
+  private refreshVolumes: () => void = () => {};
+  private cameraRow: HTMLElement | null = null;
 
   constructor(parent: HTMLElement, private readonly h: SettingsHandlers) {
     this.settings = { ...h.settings };
@@ -69,7 +86,10 @@ export class SettingsScreen {
     close.className = 'modal-close';
     close.dataset.action = 'close';
     close.textContent = '×';
-    close.addEventListener('click', () => this.close());
+    close.addEventListener('click', () => {
+      close.blur();
+      this.close();
+    });
     const tabRow = document.createElement('div');
     tabRow.className = 'tab-row';
     const tabButton = (tab: SettingsTab, text: string): HTMLButtonElement => {
@@ -78,7 +98,10 @@ export class SettingsScreen {
       b.className = 'tab';
       b.dataset.tab = tab;
       b.textContent = text;
-      b.addEventListener('click', () => this.open(tab));
+      b.addEventListener('click', () => {
+        b.blur();
+        this.open(tab);
+      });
       tabRow.appendChild(b);
       return b;
     };
@@ -99,14 +122,12 @@ export class SettingsScreen {
   /** "?" (or F1) opens the key help any time and closes it again; Esc closes the window. */
   private readonly onKey = (e: KeyboardEvent): void => {
     if (isTyping(e.target)) return;
-    if (e.key === '?' || e.code === 'F1') {
-      e.preventDefault();
-      if (this.isOpen && !this.tabs.keys.hidden) this.close();
-      else this.open('keys');
-    } else if (e.code === 'Escape' && this.isOpen) {
-      e.stopImmediatePropagation(); // just close this, do not also toggle the lobby
-      this.close();
-    }
+    const action = helpKeyAction(e, this.isOpen, !this.tabs.keys.hidden);
+    if (!action) return;
+    e.preventDefault();
+    if (e.code === 'Escape') e.stopImmediatePropagation(); // just close this, do not also toggle the lobby
+    if (action === 'close') this.close();
+    else this.open('keys');
   };
 
   get isOpen(): boolean {
@@ -115,6 +136,9 @@ export class SettingsScreen {
 
   open(tab: SettingsTab): void {
     this.root.hidden = false;
+    this.refreshVolumes();
+    const mode = this.h.camera();
+    this.cameraRow?.querySelectorAll<HTMLElement>('.choice').forEach((b) => b.classList.toggle('on', b.dataset.value === mode));
     for (const t of ['settings', 'keys'] as const) {
       this.tabs[t].hidden = t !== tab;
       this.tabButtons[t].classList.toggle('on', t === tab);
@@ -142,7 +166,10 @@ export class SettingsScreen {
     const qualityNote = document.createElement('p');
     qualityNote.className = 'note';
     qualityNote.textContent = 'Low for slow laptops; Auto uses the host’s default.';
-    const camera = choices(['chase', 'cockpit'] as const, (c) => (c === 'chase' ? 'Behind the car' : 'Cockpit'), this.h.camera, (c) => this.h.onCamera(c));
+    const camera = choices(['chase', 'cockpit'] as const, (c) => (c === 'chase' ? 'Behind the car' : 'Cockpit'), this.h.camera(), (c) => this.h.onCamera(c));
+    this.cameraRow = camera;
+    const volumes = volumeSliders(this.h.volumes, (v) => this.h.onVolumes(v));
+    this.refreshVolumes = volumes.refresh;
     const fpsLabel = document.createElement('label');
     fpsLabel.className = 'check';
     const fps = document.createElement('input');
@@ -157,7 +184,7 @@ export class SettingsScreen {
     fpsLabel.append(fps, ' Show FPS in the corner');
     page.append(
       section('Picture quality', quality, qualityNote, reload),
-      section('Sound', volumeSliders(this.h.volumes, (v) => this.h.onVolumes(v))),
+      section('Sound', volumes.el),
       section('Default camera (C switches any time)', camera),
       section('Screen', fpsLabel),
     );

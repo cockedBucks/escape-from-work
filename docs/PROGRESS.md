@@ -4,9 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P8 — Menu and UX (`docs/phases/P08-menu-ux.md`)
-- Next task: P8.6 Phase end
-- Status: P8.5 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Phase: P9 — League and awards (`docs/phases/P09-league.md`)
+- Next task: P9.1 League store
+- Status: P8 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -100,21 +100,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   budget (standalone tick max 5 ms). Two parallel P7.5s merged (D093). Gate deferred. Review fixes
   D097. Decisions D085–D097. Tag `p7-done` was made in the cloud on commit "P7.9" (re-tag locally).
 
-- 2026-10-06 (cloud): P8.1 Main menu — turntable showroom, wobbly PLAY, HONK, fake IT loading
-  messages, company-image slideshow (`/menu/menu.json` lists assets/menu/ live), menu music; reload
-  with a held seat skips it. `menu` scenario. D098.
-
-- 2026-10-06 (cloud): P8.2 Settings — settings/keys window (menu buttons + ⚙ next to the speaker):
-  quality, volumes, default camera, show FPS, full key help; saved per browser. D099.
-
-- 2026-10-06 (cloud): P8.3 Onboarding — first-countdown role card, "?"/F1 key help anywhere, first
-  swap-lane and item hints (once per browser). D100.
-
-- 2026-10-06 (cloud): P8.4 UI polish — font weights, one outlined/shadowed style for panels and
-  buttons, pop-in transitions, results podium with bobbling faces, lobby/results fit 1280×720. D101.
-
-- 2026-10-06 (cloud): P8.5 Shots — menu, lobby, results, garage pass at Low and High (max: garage
-  High 94 draws / 56k tris). P8 gate deferred.
+- 2026-10-06: **P8 done** (cloud) — main menu (turntable, HONK, IT jokes, assets/menu slideshow,
+  held seat skips it), settings + key help window (quality, volumes, camera, FPS), first-race
+  onboarding (role card, "?", swap/item hints), UI polish (one button/panel style, podium with faces,
+  fits 1366×768). Gate deferred. Review fixes D102. Decisions D098–D102. Tag `p8-done` made in the
+  cloud on commit "P8.6" (re-tag locally).
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

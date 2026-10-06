@@ -2,12 +2,18 @@ import { VOLUME_KEYS, type Volumes } from '../audio/mixer';
 
 const LABELS: Record<(typeof VOLUME_KEYS)[number], string> = { master: 'Master', engine: 'Engine', sfx: 'Effects', music: 'Music' };
 
+/** Four labelled volume sliders; `refresh()` moves them to the current levels (another panel may have changed them). */
+export interface VolumeSliders {
+  el: HTMLElement;
+  refresh(): void;
+}
+
 /**
- * Four labelled volume sliders (0–100). `onChange` gets the new levels on every move. Shared by
- * the speaker button and the settings screen.
+ * Four labelled volume sliders (0–100), shared by the speaker button and the settings screen.
+ * Each move merges into the CURRENT levels (`get`), so two panels never undo each other.
  */
-export function volumeSliders(volumes: Volumes, onChange: (v: Volumes) => void): HTMLElement {
-  let vol = { ...volumes };
+export function volumeSliders(get: () => Volumes, set: (v: Volumes) => void): VolumeSliders {
+  const sliders: HTMLInputElement[] = [];
   const box = document.createElement('div');
   box.className = 'volume-sliders';
   for (const key of VOLUME_KEYS) {
@@ -18,18 +24,20 @@ export function volumeSliders(volumes: Volumes, onChange: (v: Volumes) => void):
     slider.type = 'range';
     slider.min = '0';
     slider.max = '100';
-    slider.value = String(Math.round(vol[key] * 100));
     slider.dataset.key = key;
     // Hand the keys back to the game after dragging (arrows would move the slider).
     slider.addEventListener('change', () => slider.blur());
-    slider.addEventListener('input', () => {
-      vol = { ...vol, [key]: Number(slider.value) / 100 };
-      onChange(vol);
-    });
+    slider.addEventListener('input', () => set({ ...get(), [key]: Number(slider.value) / 100 }));
+    sliders.push(slider);
     label.append(name, slider);
     box.appendChild(label);
   }
-  return box;
+  const refresh = (): void => {
+    const v = get();
+    VOLUME_KEYS.forEach((key, i) => (sliders[i]!.value = String(Math.round(v[key] * 100))));
+  };
+  refresh();
+  return { el: box, refresh };
 }
 
 /**
@@ -41,7 +49,8 @@ export class VolumePanel {
   private readonly button = document.createElement('button');
   private readonly panel = document.createElement('div');
 
-  constructor(parent: HTMLElement, volumes: Volumes, private readonly onChange: (v: Volumes) => void, onSettings?: () => void) {
+  /** `get`/`set` = the shared levels (HornPlayer.volumes / setVolumes). */
+  constructor(parent: HTMLElement, private readonly get: () => Volumes, private readonly set: (v: Volumes) => void, onSettings?: () => void) {
     this.root.className = 'volume';
     const row = document.createElement('div');
     row.className = 'volume-row';
@@ -50,13 +59,17 @@ export class VolumePanel {
     this.button.title = 'Sound volume';
     this.panel.className = 'volume-panel';
     this.panel.hidden = true;
-    this.panel.appendChild(volumeSliders(volumes, (v) => {
-      this.onChange(v);
+    const sliders = volumeSliders(get, (v) => {
+      this.set(v);
       this.paint(v);
-    }));
+    });
+    this.panel.appendChild(sliders.el);
     this.button.addEventListener('click', (e) => {
       e.stopPropagation(); // not a click on the game (pointer lock)
+      this.button.blur(); // Enter must not click it again mid-race
       this.panel.hidden = !this.panel.hidden;
+      if (!this.panel.hidden) sliders.refresh();
+      this.paint(this.get());
     });
     this.panel.addEventListener('click', (e) => e.stopPropagation());
     if (onSettings) {
@@ -68,6 +81,7 @@ export class VolumePanel {
       gear.textContent = '⚙';
       gear.addEventListener('click', (e) => {
         e.stopPropagation();
+        gear.blur();
         this.panel.hidden = true;
         onSettings();
       });
@@ -76,7 +90,7 @@ export class VolumePanel {
     row.appendChild(this.button);
     this.root.append(row, this.panel);
     parent.appendChild(this.root);
-    this.paint(volumes);
+    this.paint(get());
   }
 
   private paint(v: Volumes): void {
