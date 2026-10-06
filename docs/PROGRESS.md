@@ -6,9 +6,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Now
 - Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
 - Next task: P6.1 Item system (Phase 6 — chaos items, `docs/phases/P06-chaos-items.md`)
-- Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
-  `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
-  Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
+- Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
+  Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
 
 ## Half-done
 - (nothing)
