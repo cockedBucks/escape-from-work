@@ -41,7 +41,8 @@ try {
     handleSignals: true,
     dev: !isProd,
     watchConfig: !isProd,
-    leagueFile: LEAGUE_FILE,
+    // EFW_NO_LEAGUE=1: tools (shots, jitter) run the real server without the host's league.
+    leagueFile: process.env['EFW_NO_LEAGUE'] ? undefined : LEAGUE_FILE,
   }));
 } catch (err) {
   if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {

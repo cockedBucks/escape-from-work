@@ -4,9 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P9 — League and awards (`docs/phases/P09-league.md`)
-- Next task: P9.5 Phase end
-- Status: P9.4 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
+- Next task: P10.0 Track picker (added: the lobby must pick tracks before new tracks matter)
+- Status: P9 done. `npm run verify` passes (490 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -108,18 +108,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   fits 1366×768). Gate deferred. Review fixes D102. Decisions D098–D102. Tag `p8-done` made in the
   cloud on commit "P8.6" (re-tag locally).
 
-- 2026-10-06 (cloud): P9.1 League store — race-history schema (shared), atomic JSON store with
-  corrupt-file backup (server), tests. D103.
-
-- 2026-10-06 (cloud): P9.2 Scoring — points by place (config), per-player / weekly / duo tables,
-  best lap per track, all computed from the history; the server records each finished race with
-  people in it to data/league.json; bot clients are never scored. D104.
-
-- 2026-10-06 (cloud): P9.3 Awards — counters from sim events, award rules in config (6 awards,
-  max 3) + the Rubber Duck of Shame; the record with awards is broadcast at race end. D105.
-
-- 2026-10-06 (cloud): P9.4 League UI — results show points and awards; League screen in the menu
-  (week, all time, duos, lap records) from /league/tables.json; `results`/`league` scenarios. D106.
+- 2026-10-06: **P9 done** (cloud) — league on the host PC (data/league.json: race history, atomic +
+  fsync, corrupt-file backup), points by place from config (people only, once per race), weekly cup
+  by the host-local date, duos, lap records, award counters + 6 config awards + the Rubber Duck of
+  Shame, results points/awards, League screen (/league/tables.json). Gate deferred. Review fixes
+  D107. Decisions D103–D107. Tag `p9-done` made in the cloud (re-tag locally).
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

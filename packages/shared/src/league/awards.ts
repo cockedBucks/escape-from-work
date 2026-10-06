@@ -70,20 +70,21 @@ export function countTick(
 }
 
 /**
- * The awards of a race: each rule (in config order, until `maxAwards`) goes to the one car with
- * people in it that is best at its stat and passes the limit (a tie = nobody: no shared
- * trophies). Then the Rubber Duck of Shame for the last place, always (bots included).
+ * The awards of a race: each rule (in config order, until `maxAwards`) goes to the one car that
+ * is best at its stat and passes the limit (a tie = nobody: no shared trophies). Bots are rivals
+ * (a solo player racing bots can win) but never winners: a bot on top means nobody gets it.
+ * Then the Rubber Duck of Shame for the last place, always (bots included).
  */
 export function pickAwards(cars: readonly RaceCar[], rules: readonly AwardRule[], maxAwards: number): RaceRecord['awards'] {
   const out: RaceRecord['awards'] = [];
   for (const rule of rules) {
     if (out.length >= maxAwards) break;
-    const eligible = cars.filter((c) => !c.bot && (!rule.finishedOnly || c.finished));
+    const eligible = cars.filter((c) => !rule.finishedOnly || c.finished);
     if (eligible.length < 2) continue; // an award needs a rival
     const value = (c: RaceCar): number => c.counts[rule.stat];
     const best = rule.pick === 'most' ? Math.max(...eligible.map(value)) : Math.min(...eligible.map(value));
     const winners = eligible.filter((c) => value(c) === best);
-    if (winners.length !== 1) continue;
+    if (winners.length !== 1 || winners[0]!.bot) continue;
     if (rule.pick === 'most' ? best < rule.limit : best > rule.limit) continue;
     out.push({ id: rule.id, slot: winners[0]!.slot });
   }

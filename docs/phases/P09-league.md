@@ -24,4 +24,4 @@ Rubber Duck of Shame, stored safely on the host PC.
 - [~] **HUMAN GATE — a league week.** (deferred)
   1. Play normally for a few days. Look at the League screen.
   2. Reply: anything unfair, missing or not funny enough? Which awards should change?
-- [ ] **P9.5 Phase end.** Reviewer, fixes, `git tag p9-done`, report.
+- [x] **P9.5 Phase end.** Reviewer, fixes, `git tag p9-done`, report.

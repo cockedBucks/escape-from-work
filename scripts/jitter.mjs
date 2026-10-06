@@ -17,7 +17,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 spawnSync(process.execPath, [path.join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), 'build', '--logLevel', 'error'], {
   cwd: path.join(ROOT, 'packages', 'client'), stdio: 'inherit',
 });
-const srv = spawn(process.execPath, ['--import', 'tsx', path.join('packages', 'server', 'src', 'index.ts'), '--prod', '--port', String(PORT)], { cwd: ROOT, stdio: 'ignore' });
+const srv = spawn(process.execPath, ['--import', 'tsx', path.join('packages', 'server', 'src', 'index.ts'), '--prod', '--port', String(PORT)], {
+  cwd: ROOT,
+  stdio: 'ignore',
+  env: { ...process.env, EFW_NO_LEAGUE: '1' }, // a test race must never land in the host's league
+});
 let browser;
 try {
   for (let i = 0; i < 60; i++) { try { if ((await fetch(`http://localhost:${PORT}/`)).ok) break; } catch {} await sleep(500); }

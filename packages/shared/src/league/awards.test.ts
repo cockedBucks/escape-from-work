@@ -46,9 +46,15 @@ describe('picking awards', () => {
       car(0, 1, { wallHits: 4 }),
       car(1, 3, { wallHits: 0 }, { finished: false, dnf: true }),
       car(2, 2, { wallHits: 0 }),
-      car(3, 4, { wallHits: 0 }, { bot: true, players: [] }),
+      car(3, 4, { wallHits: 2 }, { bot: true, players: [] }),
     ];
     expect(pickAwards(cars, [clean], 3)).toEqual([{ id: 'clean', slot: 2 }, { id: DUCK_AWARD, slot: 3 }]);
+  });
+
+  it('one person racing bots can win (bots are rivals), but a bot on top means nobody wins', () => {
+    const me = car(0, 1, { wallHits: 7 });
+    expect(pickAwards([me, car(1, 2, { wallHits: 1 }, { bot: true, players: [] })], [rule({})], 3)[0]).toEqual({ id: 'wallHugger', slot: 0 });
+    expect(pickAwards([me, car(1, 2, { wallHits: 9 }, { bot: true, players: [] })], [rule({})], 3).map((a) => a.id)).toEqual([DUCK_AWARD]);
   });
 
   it('at most `maxAwards` (config order), then always the duck', () => {

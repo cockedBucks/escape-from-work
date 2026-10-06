@@ -133,6 +133,7 @@ export {
   emptyLeague,
   LEAGUE_VERSION,
   LeagueSchema,
+  isDefaultName,
   NO_COUNTS,
   playerKey,
   RaceRecordSchema,

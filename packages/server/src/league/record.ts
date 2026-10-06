@@ -1,4 +1,4 @@
-import { NO_COUNTS, type CarCounts, type RaceRecord, type ResultRow } from '@escape/shared';
+import { isDefaultName, NO_COUNTS, type CarCounts, type RaceRecord, type ResultRow } from '@escape/shared';
 
 /** Who is in a car at the end of the race (names from the room state). */
 export interface RecordPlayer {
@@ -46,7 +46,8 @@ export function raceRecord(input: RecordInput): RaceRecord | null {
       team: input.teamNames[slot] ?? `Team ${slot + 1}`,
       car: input.carModels[slot] ?? '',
       bot,
-      players: bot ? [] : people.map((p) => ({ name: p.name.trim() || `Player`, seat: p.seat as Seat })),
+      // Someone who never typed a name ("Player 3") drives but is not scored.
+      players: bot ? [] : people.filter((p) => p.name.trim() !== '' && !isDefaultName(p.name)).map((p) => ({ name: p.name.trim(), seat: p.seat as Seat })),
       place: r.place,
       finished: !r.dnf,
       dnf: r.dnf,

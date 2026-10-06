@@ -42,6 +42,12 @@ describe('league race record', () => {
     expect(raceRecord(input({ players: [] }))).toBeNull();
   });
 
+  it('people who never typed a name drive but are not scored (the car is still not a bot)', () => {
+    const r = raceRecord(input({ players: [{ name: 'Player 3', slot: 1, seat: 'solo', bot: false }, { name: 'Dina', slot: 0, seat: 'pilot', bot: false }] }))!;
+    expect(r.cars[0]).toMatchObject({ slot: 1, bot: false, players: [] });
+    expect(r.cars[1]!.players).toEqual([{ name: 'Dina', seat: 'pilot' }]);
+  });
+
   it('writes the host\'s local time with its offset', () => {
     const s = localIso(new Date('2026-10-06T12:30:00.000Z'));
     expect(s).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d\d:\d\d$/);

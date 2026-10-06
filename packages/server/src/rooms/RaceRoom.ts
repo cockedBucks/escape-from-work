@@ -17,6 +17,7 @@ import {
   effectiveRole,
   pickAwards,
   type LobbyError,
+  type RaceRecord,
   type Tuning,
   type World,
 } from '@escape/shared';
@@ -51,6 +52,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   private unsubscribe: () => void = () => {};
   private tickMsAvg = 0;
   private joinCount = 0;
+  /** The record of the last race (sent again to anyone who (re)joins during the results). */
+  private lastRecord: RaceRecord | null = null;
   /** Sessions that joined as networked bot clients (scripts/bots): never scored in the league. */
   private readonly botClients = new Set<string>();
 
@@ -233,6 +236,11 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     if (hostBefore !== flow.host) this.logHost();
   }
 
+  /** Joining or back during the results: the points and awards of the race just finished. */
+  private sendRecord(client: Client): void {
+    if (this.lastRecord && this.sim.flow.phase === 'results') client.send(MSG.raceRecord, this.lastRecord);
+  }
+
   /**
    * The finished race's record with its awards: sent to everyone (results screen) and saved to
    * the league (real server only). Bots-only races have no record.
@@ -256,14 +264,15 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     });
     if (!record) return;
     record.awards = pickAwards(record.cars, this.tuning.league.awards, this.tuning.league.maxAwards);
+    this.lastRecord = record;
     this.broadcast(MSG.raceRecord, record);
     const store = league();
     if (!store) return;
     try {
       store.addRace(record);
     } catch (err) {
-      // Never let the league stop the game; the race is lost from the history, say so once.
-      console.warn(`[league] could not save the race: ${String(err instanceof Error ? err.message : err).split('\n')[0]}`);
+      // Never let the league stop the game. The race stays in memory; the next save writes it too.
+      console.warn(`[league] could not save the race (kept in memory, retried after the next race): ${String(err instanceof Error ? err.message : err).split('\n')[0]}`);
     }
   }
 
@@ -349,6 +358,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     this.syncPlayers();
     // The page bundles tuning.json at build time; this makes sure it uses the live values.
     client.send(MSG.tuning, this.tuning);
+    this.sendRecord(client);
     console.log(`[room] join  ${client.sessionId} (${this.state.players.size} connected)`);
   }
 
@@ -366,6 +376,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     this.trackHost(() => this.sim.setConnected(client.sessionId, true));
     this.syncPlayers();
     client.send(MSG.tuning, this.tuning);
+    this.sendRecord(client);
     console.log(`[room] back  ${client.sessionId}`);
   }
 

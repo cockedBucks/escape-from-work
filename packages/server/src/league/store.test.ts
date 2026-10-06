@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -75,6 +75,19 @@ describe('league store', () => {
     const before = readFileSync(file, 'utf8');
     expect(() => store.addRace({ ...race(), at: 'yesterday' })).toThrow();
     expect(readFileSync(file, 'utf8')).toBe(before);
+  });
+
+  it('a file it cannot READ is left alone and this run keeps no league (no data loss)', () => {
+    const file = tempFile();
+    mkdirSync(file, { recursive: true }); // a folder where the file should be: reading fails
+    const logs: string[] = [];
+    const store = new LeagueStore(file, () => NOW, (m) => logs.push(m));
+    expect(store.disabled).toContain('could not read');
+    expect(store.backedUp).toBeNull();
+    store.addRace(race()); // ignored, no crash
+    expect(store.data.races).toEqual([]);
+    expect(existsSync(file)).toBe(true);
+    expect(logs.join()).toContain('keeps no league');
   });
 
   it('backup names are safe on every OS', () => {

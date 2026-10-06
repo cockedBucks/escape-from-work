@@ -73,5 +73,8 @@ export const emptyLeague = (): LeagueData => ({ version: LEAGUE_VERSION, races: 
 
 export const NO_COUNTS: Readonly<CarCounts> = { wallHits: 0, brakeSeconds: 0, driftBoosts: 0, maxDriftLevel: 0, itemHits: 0, honks: 0 };
 
+/** The server's name for someone who never typed one ("Player 3"): never scored (the number restarts). */
+export const isDefaultName = (name: string): boolean => /^Player \d+$/.test(name.trim());
+
 /** Players are the same person when their names match ignoring case and outer spaces. */
 export const playerKey = (name: string): string => name.trim().toLocaleLowerCase();

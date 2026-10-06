@@ -57,6 +57,7 @@ function startServer() {
   const child = spawn(process.execPath, ['--import', 'tsx', SERVER_ENTRY, '--prod', '--port', '0'], {
     cwd: ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, EFW_NO_LEAGUE: '1' }, // never touch the host's data/league.json
   });
   let output = '';
   const port = new Promise((resolve, reject) => {

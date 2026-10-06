@@ -33,26 +33,35 @@ export interface PlayerRow {
   bestPlace: number;
 }
 
+/** Finished cars by place, then the rest. */
+const placeRank = (car: RaceCar): number => (car.finished && car.place > 0 ? car.place : Number.MAX_SAFE_INTEGER);
+
 const better = (a: number, b: number): number => (a === 0 ? b : b === 0 ? a : Math.min(a, b));
 
 /** Points table over `races`: every human in a car gets the car's points. Most points first. */
 export function playerTable(races: readonly RaceRecord[], cfg: LeagueTuning): PlayerRow[] {
   const rows = new Map<string, PlayerRow>();
   for (const race of races) {
+    // One person, one result per race: a name in two seats (two tabs) counts once, its best car.
+    const best = new Map<string, { car: RaceCar; name: string; points: number }>();
     for (const car of race.cars) {
       if (car.bot) continue;
       const points = pointsFor(car, cfg);
       for (const p of car.players) {
         const key = playerKey(p.name);
-        const row = rows.get(key) ?? { key, name: p.name, points: 0, races: 0, wins: 0, podiums: 0, bestPlace: 0 };
-        row.name = p.name.trim();
-        row.points += points;
-        row.races++;
-        if (car.finished && car.place === 1) row.wins++;
-        if (car.finished && car.place >= 1 && car.place <= 3) row.podiums++;
-        if (car.finished) row.bestPlace = better(row.bestPlace, car.place);
-        rows.set(key, row);
+        const had = best.get(key);
+        if (!had || points > had.points || (points === had.points && placeRank(car) < placeRank(had.car))) best.set(key, { car, name: p.name, points });
       }
+    }
+    for (const [key, { car, name, points }] of best) {
+      const row = rows.get(key) ?? { key, name, points: 0, races: 0, wins: 0, podiums: 0, bestPlace: 0 };
+      row.name = name.trim();
+      row.points += points;
+      row.races++;
+      if (car.finished && car.place === 1) row.wins++;
+      if (car.finished && car.place >= 1 && car.place <= 3) row.podiums++;
+      if (car.finished) row.bestPlace = better(row.bestPlace, car.place);
+      rows.set(key, row);
     }
   }
   return [...rows.values()].sort((a, b) => b.points - a.points || b.wins - a.wins || a.races - b.races || a.key.localeCompare(b.key));

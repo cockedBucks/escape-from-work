@@ -41,6 +41,14 @@ describe('points', () => {
   });
 });
 
+describe('one person, one result per race', () => {
+  it('a name in two seats (two tabs) scores once, with its best car', () => {
+    const races = [race('2026-10-05T10:00:00+03:00', [car(0, 1, ['Dina', 'dina ']), car(1, 2, ['Omar']), car(2, 3, ['DINA'])])];
+    const dina = playerTable(races, cfg).find((r) => r.key === 'dina')!;
+    expect(dina).toMatchObject({ points: 10, races: 1, wins: 1, podiums: 1 });
+  });
+});
+
 describe('week boundaries', () => {
   it('weeks start on the configured day, by the host\'s local date', () => {
     // 2026-10-04 is a Sunday.
