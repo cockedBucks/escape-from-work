@@ -271,7 +271,10 @@ lobby / rematch. The server owns a `RaceFlow` (phase, phaseTick, host, laps) and
 earliest-joined connected player, passed on automatically. `host:start` (host, between races, ≥1
 seated car) puts cars on the grid and starts the countdown, during which controls are ignored
 (clients also pause prediction). Seats lock from countdown to results. `host:laps {laps}`,
-`host:lobby` (after results). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
+`host:lobby` (after results), `host:track {id}` (P10.0: a valid non-dev track; the server loads
+it, syncs `state.track` and sends `reload {reason:'track'}`; pages reload into it with their seats
+held, the host keeps host over the reload, and a page whose track differs from `state.track`
+reloads itself). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
 `race.maxSpectators`.
 Disconnects (P2.4): an unplanned drop (`onDrop`: Wi-Fi blip, closed or reloaded tab) keeps the
 seat for `net.reconnectSeconds`; the player shows as away and their partner drives solo. The

@@ -10,6 +10,7 @@ interface PlayerView {
   seat: string;
   role: string;
   ackSeq: number;
+  connected: boolean;
 }
 
 interface StateView {
@@ -104,6 +105,33 @@ describe('race room (real server, real clients)', () => {
     expect((await devTrack).reason).toMatch(/no such track/);
     await b.leave();
     await a.leave();
+  });
+
+  it('a track switch: everyone reloads into it, and the host stays host over the reload (P10.7)', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId && s.track === DEFAULT_TRACK, 'A is host, the default track');
+    const reloadOf = (r: typeof a) => new Promise<{ reason?: string }>((resolve) => r.onMessage(MSG.reload, resolve));
+    const [ra, rb] = [reloadOf(a), reloadOf(b)];
+    a.send(MSG.hostTrack, { id: 'server-room' });
+    expect((await ra).reason).toBe('track');
+    expect((await rb).reason).toBe('track');
+    await waitForState(b, (s) => s.track === 'server-room', 'B sees the new track');
+
+    // A's page reloads (the connection drops, the seat is held); B has not reloaded yet.
+    const aId = a.sessionId;
+    const token = a.reconnectionToken;
+    await a.leave(false);
+    await waitForState(b, (s) => s.players?.get(aId)?.connected === false, 'A away');
+    expect(b.state.host).toBe(aId);
+    const back = await new Client(endpoint).reconnect<StateView>(token);
+    await waitForState(back, (s) => s.host === aId && s.track === 'server-room', 'A back as host on the new track');
+
+    // Put the process-wide config back on the default track for the other tests.
+    back.send(MSG.hostTrack, { id: DEFAULT_TRACK });
+    await waitForState(back, (s) => s.track === DEFAULT_TRACK, 'back on the default track');
+    await b.leave();
+    await back.leave();
   });
 
   it('only the host starts the race; the phase goes countdown → racing', async () => {

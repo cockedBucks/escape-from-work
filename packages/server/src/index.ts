@@ -34,12 +34,18 @@ if (isProd && !existsSync(path.join(clientDir, 'index.html'))) {
   process.exit(1);
 }
 
-// The real league (npm start): one safety copy per day in data/backups/.
-const backup = isProd && !process.env['EFW_NO_LEAGUE']
-  ? dailyBackup(LEAGUE_FILE, path.join(path.dirname(LEAGUE_FILE), 'backups'), localIso(new Date()).slice(0, 10), tuning.league.backupKeep)
-  : null;
-if (backup instanceof Error) console.warn(`League backup failed (the game still runs): ${backup.message}`);
-else if (backup) console.log(`League backup: ${path.relative(REPO_ROOT, backup)}`);
+// The real league (npm start): one safety copy per day in data/backups/, at start and then
+// checked every hour (a no-op until the date changes), so a server left running keeps making them.
+const BACKUP_CHECK_MS = 60 * 60 * 1000;
+function backupLeague(): void {
+  const backup = dailyBackup(LEAGUE_FILE, path.join(path.dirname(LEAGUE_FILE), 'backups'), localIso(new Date()).slice(0, 10), tuning.league.backupKeep);
+  if (backup instanceof Error) console.warn(`League backup failed (the game still runs): ${backup.message}`);
+  else if (backup) console.log(`League backup: ${path.relative(REPO_ROOT, backup)}`);
+}
+if (isProd && !process.env['EFW_NO_LEAGUE']) {
+  backupLeague();
+  setInterval(backupLeague, BACKUP_CHECK_MS).unref();
+}
 
 let port: number;
 try {

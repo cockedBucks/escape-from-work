@@ -365,6 +365,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     } else {
       this.sim.setTrack(change.track);
       this.state.track = liveConfig().trackId;
+      this.sim.keepHostThroughReload();
       this.broadcast(MSG.reload, { reason: 'track' });
     }
   }

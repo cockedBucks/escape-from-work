@@ -447,6 +447,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let lastRecord: RaceRecord | null = null;
   /** The track's sandstorm is blowing (Smart Oasis: one lap of thick fog). */
   let stormOn = false;
+  let reloading = false;
   /** Cars seen finished this race (confetti once each; joining during results throws none). */
   const finishedCars = new Set<string>();
   const carDefOf = (carId: string): CarDef => {
@@ -457,6 +458,13 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   const shots: ShotSnap[] = [];
   const itemsView: ItemsView = { boxesUp: '', shots, shotsTime: 0 };
   room.onStateChange((state) => {
+    // Drawing (and predicting on) another track than the server races: missed the switch's
+    // reload message (asleep, reconnecting) or the first state came late. Load the right one.
+    if (state.track && state.track !== trackId && !reloading) {
+      reloading = true;
+      window.location.reload();
+      return;
+    }
     const now = performance.now();
     source.push(now, state);
     liveStats.tickMs = state.tickMs;

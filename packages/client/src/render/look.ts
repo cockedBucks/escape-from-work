@@ -61,7 +61,7 @@ export const TRACK_LOOK = {
   slickOpacity: 0.65,
   /** Dune jumps (ramp zones with `look: 'dune'`): sand color; the back slope is this share of the rise. */
   duneColor: 0xe0b46e,
-  duneBackSlope: 0.6,
+  duneBackSlope: 0.3,
   /** Icy cold aisle (slick zones with `look: "ice"`). */
   iceColor: 0xb8e6ff,
   iceOpacity: 0.55,

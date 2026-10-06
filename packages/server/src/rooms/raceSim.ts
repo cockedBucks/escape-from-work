@@ -160,8 +160,28 @@ export class RaceSim {
     );
   }
 
+  /** The host before a track switch reloaded every page: keeps host while their seat is held. */
+  private reloadHost: string | null = null;
+
   private updateHost(): void {
+    if (this.reloadHost !== null) {
+      const p = this.players.get(this.reloadHost);
+      if (p) {
+        this.flow.host = this.reloadHost;
+        if (p.connected) this.reloadHost = null; // back: normal rules again
+        return;
+      }
+      this.reloadHost = null; // their seat expired
+    }
     this.flow.host = chooseHost(this.joinOrder, (id) => this.players.get(id)?.connected === true, this.flow.host);
+  }
+
+  /**
+   * Every page is about to reload (track switch): the current host stays host while they
+   * reconnect, instead of whoever reloads fastest (or a bot client that never reloads).
+   */
+  keepHostThroughReload(): void {
+    this.reloadHost = this.flow.host;
   }
 
   /**

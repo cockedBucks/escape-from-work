@@ -104,7 +104,8 @@ game.
 - The league (every race result, points, cups, records, awards) is one file on the host PC:
   **`data/league.json`**. It is not in git and never leaves this PC.
 - **Automatic backups:** every time the server starts with the start script (or `npm start`) it
-  copies the league to `data/backups/league-<date>.json`, once per day, and keeps the newest
+  copies the league to `data/backups/league-<date>.json`, once per day (also while it keeps
+  running overnight), and keeps the newest
   30 days (`league.backupKeep` in `config/tuning.json`).
 - **Extra safety:** now and then copy the whole `data/` folder to a USB stick or a shared drive.
 - **Restore a backup:** stop the server, copy `data/backups/league-<date>.json` over

@@ -1828,10 +1828,11 @@ body {
   font-weight: 600;
 }
 
-.track-pick button {
+.track-pick select {
   font: inherit;
-  font-size: 0.9rem;
-  padding: 0.15rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
   border: var(--edge);
   border-radius: 0.5rem;
   background: #fff;

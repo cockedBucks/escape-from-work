@@ -100,15 +100,18 @@ describe('lobbyHtml faces', () => {
 
 describe('track line (P10.0)', () => {
   const tracks = [{ id: 'office', name: 'The Office' }, { id: 'server-room', name: 'Server <Room>' }];
-  it('the host gets ◀ name ▶; everyone else just sees the name', () => {
-    expect(trackHtml(base({ track: 'office', tracks }))).toContain('data-action="track-next"');
+  it('the host gets a drop-down (current track selected); everyone else just sees the name', () => {
+    const mine = trackHtml(base({ track: 'office', tracks }));
+    expect(mine).toContain('<select data-action="track"');
+    expect(mine).toContain('<option value="office" selected>The Office</option>');
+    expect(mine).toContain('<option value="server-room">Server &lt;Room&gt;</option>');
     const other = trackHtml(base({ track: 'server-room', tracks, host: 'b' }));
-    expect(other).not.toContain('track-next');
+    expect(other).not.toContain('select');
     expect(other).toContain('Server &lt;Room&gt;');
   });
 
-  it('no arrows when there is only one track; nothing before the state arrives', () => {
-    expect(trackHtml(base({ track: 'office', tracks: tracks.slice(0, 1) }))).not.toContain('button');
+  it('no drop-down when there is only one track; nothing before the state arrives', () => {
+    expect(trackHtml(base({ track: 'office', tracks: tracks.slice(0, 1) }))).not.toContain('select');
     expect(trackHtml(base({}))).toBe('');
   });
 });

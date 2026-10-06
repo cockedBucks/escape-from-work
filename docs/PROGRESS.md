@@ -5,12 +5,23 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
-- Next task: HUMAN GATE — launch party (deferred), then P10.7 Release
+- Next task: P10.7 Release (half done, see Half-done)
 - Status: P10.6 done. `npm run verify` passes (513 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
-- (nothing)
+- P10.7 Release. DONE and committed ("P10.7 (part 1)"): reviewer ran on p9-done..HEAD — no
+  Critical. Fixed: host keeps host over a track-switch reload (`RaceSim.keepHostThroughReload`,
+  tests), a page on the wrong track reloads itself (main.ts), track picker is now a drop-down
+  (one pick = one reload; verified live in a browser), integration test for a successful switch
+  (tests/race-room.test.ts), hourly backup check, dune back slope 0.3, ARCHITECTURE protocol line.
+  LEFT TO DO: (1) glance at artifacts/shots/lobby.png (drop-down look; run `npm run shots -- lobby`);
+  (2) DECISIONS D115 line for these fixes (skipped: `LiveConfig.availableTracks()` caching);
+  (3) tick P10.7 in docs/phases/P10-tracks-and-ship.md, update "Now" here (all phases done);
+  (4) `npm run verify`, commit "P10.7: release", push; (5) tags: cloud tags are NOT pushed and
+  are lost with the container — make `git tag p10-done` and `git tag v1.0` on the final commit
+  (and re-tag p7/p8/p9-done locally, see the phase lines below); (6) final report to the human, then
+  run the "Deferred human tests" with them.
 
 ## Deferred human tests (run all after the last phase; human's request 2026-10-06)
 - P2 FUN GATE step 3: close a tab mid-lap and reopen it (reconnect keeps your seat).
@@ -25,7 +36,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - P9 a league week: play normally for a few days, look at the League screen (menu → 🏆 League).
   Reply: anything unfair, missing or not funny enough? Which awards should change?
 - P10 launch party: host on the office PC with `start-server.bat` (double-click). Get as many
-  people as possible and race all four tracks (lobby: ◀ track ▶): The Office, Server Room, Smart
+  people as possible and race all four tracks (lobby: the Track drop-down): The Office, Server Room, Smart
   Oasis (sandstorm on lap 2), Motherboard. Reply: anything broken, plus the next features you want
   (see "Later ideas" in docs/ROADMAP.md).
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
@@ -124,7 +135,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Shame, results points/awards, League screen (/league/tables.json). Gate deferred. Review fixes
   D107. Decisions D103–D107. Tag `p9-done` made in the cloud (re-tag locally).
 
-- 2026-10-06 (cloud): P10.0 Track picker — host ◀ track ▶ in the lobby, server checks and loads it,
+- 2026-10-06 (cloud): P10.0 Track picker — host picks the track in the lobby, server checks and loads it,
   pages reload into it (seat held), pages load the server's track. D108.
 
 - 2026-10-06 (cloud): P10.1 Server Room — fan push zones, icy cold aisle (slick `look: ice`), rack /

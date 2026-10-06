@@ -164,13 +164,19 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
   return html.join('');
 }
 
-/** The track line at the top of the lobby: ◀ name ▶ for the host, just the name otherwise. Pure, tested. */
+/**
+ * The track line at the top of the lobby: a drop-down for the host (one pick = one switch, so
+ * every page reloads once), just the name for everyone else. Pure, tested.
+ */
 export function trackHtml(v: LobbyView): string {
   const tracks = v.tracks ?? [];
   const name = escapeHtml(tracks.find((t) => t.id === v.track)?.name ?? v.track ?? '');
   if (!name) return '';
   if (v.myId !== v.host || tracks.length < 2) return `<span class="track-label">Track</span><strong>${name}</strong>`;
-  return `<span class="track-label">Track</span><button data-action="track-prev" title="Previous track">◀</button><strong>${name}</strong><button data-action="track-next" title="Next track">▶</button>`;
+  const options = tracks
+    .map((t) => `<option value="${escapeHtml(t.id)}"${t.id === v.track ? ' selected' : ''}>${escapeHtml(t.name)}</option>`)
+    .join('');
+  return `<span class="track-label">Track</span><select data-action="track" title="Race this track next (everyone's page reloads)">${options}</select>`;
 }
 
 const laps = (n: number): string => `${n} lap${n === 1 ? '' : 's'}`;
@@ -195,6 +201,7 @@ export class LobbyScreen {
   private readonly trackEl = document.createElement('div');
   private view: LobbyView | null = null;
   private lastHtml = '';
+  private lastTrackHtml = '';
 
   constructor(
     parent: HTMLElement,
@@ -216,7 +223,7 @@ export class LobbyScreen {
     const topRow = document.createElement('div');
     topRow.className = 'lobby-top';
     this.trackEl.className = 'track-pick';
-    this.trackEl.addEventListener('click', this.onTrackClick);
+    this.trackEl.addEventListener('change', this.onTrackChange);
     topRow.append(nameRow, this.trackEl);
     this.body.addEventListener('click', this.onClick);
     this.body.addEventListener('change', this.onChange);
@@ -247,14 +254,11 @@ export class LobbyScreen {
     this.handlers.setName(name);
   }
 
-  private readonly onTrackClick = (e: MouseEvent): void => {
-    const action = (e.target as HTMLElement).closest('button')?.dataset['action'];
-    const v = this.view;
-    const tracks = v?.tracks ?? [];
-    if (!v || (action !== 'track-prev' && action !== 'track-next') || tracks.length === 0) return;
-    const at = tracks.findIndex((t) => t.id === v.track);
-    const next = tracks[(at + (action === 'track-next' ? 1 : -1) + tracks.length) % tracks.length];
-    if (next) this.handlers.setTrack(next.id);
+  private readonly onTrackChange = (e: Event): void => {
+    const select = e.target as HTMLSelectElement;
+    if (select.dataset['action'] !== 'track' || !this.view || select.value === this.view.track) return;
+    // The server checks it; every page then reloads into the new track.
+    this.handlers.setTrack(select.value);
   };
 
   private readonly onKey = (e: KeyboardEvent): void => {
@@ -339,7 +343,10 @@ export class LobbyScreen {
     const typing = document.activeElement instanceof HTMLInputElement && this.body.contains(document.activeElement);
     if (!force && typing) return;
     const track = trackHtml(this.view);
-    if (this.trackEl.innerHTML !== track) this.trackEl.innerHTML = track;
+    if (track !== this.lastTrackHtml) {
+      this.lastTrackHtml = track;
+      this.trackEl.innerHTML = track;
+    }
     const next = lobbyHtml(this.view, this.limits);
     if (next === this.lastHtml) return;
     this.lastHtml = next;

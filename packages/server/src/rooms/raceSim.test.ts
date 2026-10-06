@@ -194,6 +194,31 @@ describe('RaceSim race flow', () => {
     expect(sim.flow.host).toBe('c');
   });
 
+  it('a track switch reloads every page: the host keeps host while reconnecting (P10.7)', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    for (const id of ['a', 'b', 'bot']) sim.addPlayer(id);
+    sim.keepHostThroughReload();
+    sim.setConnected('a', false);
+    sim.setConnected('b', false);
+    expect(sim.flow.host).toBe('a'); // the bot client that never reloads does not take over
+    sim.setConnected('b', true);
+    expect(sim.flow.host).toBe('a'); // nor whoever reloads first
+    sim.setConnected('a', true);
+    expect(sim.flow.host).toBe('a');
+    sim.setConnected('a', false); // later drops follow the normal rules again
+    expect(sim.flow.host).toBe('b');
+  });
+
+  it('a host whose seat expires during the reload hands host on', () => {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.addPlayer('a');
+    sim.addPlayer('b');
+    sim.keepHostThroughReload();
+    sim.setConnected('a', false);
+    sim.removePlayer('a');
+    expect(sim.flow.host).toBe('b');
+  });
+
   it('only the host starts; cars go to the grid, wait out the countdown, then race', () => {
     const sim = soloSim('a', 'b');
     sim.handleInput('a', { seq: 1, gas: true });
