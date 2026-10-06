@@ -13,14 +13,16 @@ You build everything else, agentically, from these docs. Explain decisions in pl
 - Every session starts with `/next`. It reads `docs/PROGRESS.md`, then ONLY the current
   phase file in `docs/phases/`, does the next task, verifies, commits, updates PROGRESS.
 - One task = one commit. Commit message starts with the task id: `P1.3: car physics v1`.
-- Stop at every **HUMAN GATE** in a phase file. Print the human checklist and wait.
+- **HUMAN GATEs are deferred** (human's request, 2026-10-06: no playtest partner until the end).
+  At a gate, do not stop: mark it `[~] deferred`, add it to "Deferred human tests" in
+  `docs/PROGRESS.md`, and continue. After the last phase, run all deferred tests with the human.
 - Before stopping mid-task (or when context feels large), run `/handoff`.
 - A task is DONE only when: `/verify` passes, new logic has tests, the phase checkbox is
   ticked, touched docs are updated, and it is committed.
 - Visual change (rendering, UI, camera, cars, tracks) → also run `/shots`.
 - End of phase → `reviewer` subagent on the phase diff, fix Critical items, `git tag pN-done`,
   give the phase report, then continue into the next phase (the human wants `/next` to keep
-  going and stop only for HUMAN GATEs or decisions).
+  going and stop only for decisions or blockers; gates are deferred, see above).
 
 ## Commands
 

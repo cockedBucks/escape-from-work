@@ -30,7 +30,8 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
   browser; find and fix jumps (prediction corrections, timeline, camera).
 - [x] **P5.6c Gate fixes: sense of speed.** Engine hum (pitch follows speed), tire squeal while
   drifting, speed FOV, speed lines, roadside markers so speed is visible.
-- [ ] **HUMAN GATE — duo mechanics.**
+- [~] **HUMAN GATE — duo mechanics.** (deferred to the end of all phases, human's request
+  2026-10-06; first try's feedback fixed in P5.6a–c)
   1. Race as a duo. Try to chain drifts into nitro without overheating. Use the swap lane once.
   2. Reply: is drifting understandable? Does heat create good tension or just annoy?
      Is the swap lane worth taking? Use `/feedback` for tuning.

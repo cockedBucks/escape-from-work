@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: HUMAN GATE — duo mechanics (re-test after P5.6a–c), then P5.7 phase end
+- Next task: P5.7 Phase end (P5 duo gate deferred, see below)
 - Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
   `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
@@ -13,11 +13,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Half-done
 - (nothing)
 
-## Waiting on the human
-- P5 HUMAN GATE "duo mechanics": race as a duo, chain drifts into nitro without overheating,
-  use the swap lane once; reply: drifting understandable? heat tension or annoying? swap lane
-  worth it? (`/feedback` for tuning).
-- Later: try the FUN GATE step 3 (close the tab mid-lap and reopen it) — not tested yet.
+## Deferred human tests (run all after the last phase; human's request 2026-10-06)
+- P2 FUN GATE step 3: close a tab mid-lap and reopen it (reconnect keeps your seat).
+- P5 duo mechanics (re-test after P5.6a–c): duo race, chain drifts into nitro without
+  overheating, swap lane once from lap 2. Ask: drifting understandable/fun? heat (nitro only)
+  better? any stutter left (`npm run jitter`)? feels fast now?
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631

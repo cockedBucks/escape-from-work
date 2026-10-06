@@ -21,7 +21,10 @@ Argument: `$ARGUMENTS`
 2. Run `git status --short`. If there are uncommitted changes, a previous session was cut
    off: read the "Half-done" notes in PROGRESS and finish or repair that work first.
 3. Read ONLY the current phase file in `docs/phases/`. Pick the first unchecked task.
-4. If that item is a **HUMAN GATE**: stop. Print its checklist exactly, the commands to run,
+4. If that item is a **HUMAN GATE**: gates are DEFERRED until all phases are built (human's
+   request 2026-10-06; see CLAUDE.md). Mark it `- [~] **HUMAN GATE ...** (deferred)`, add its
+   checklist to "Deferred human tests" in `docs/PROGRESS.md`, and continue with the next task.
+   (Only once every phase is done:) stop. Print its checklist exactly, the commands to run,
    and what the human should reply. Do not continue until they answer. When they answer,
    record the result in PROGRESS ("Playtest log") and DECISIONS if it decides something,
    tick the gate, and continue.
