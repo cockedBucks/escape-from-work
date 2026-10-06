@@ -8,7 +8,10 @@ import { resetDrift, stepDrift } from './drift';
 import { stepHeat } from './heat';
 import { stepNitro } from './nitro';
 import { stepBoxes } from '../items/chaos';
-import { dot, forward } from '../util/math';
+import { stepPuddles } from '../items/coffeeSpill';
+import { useItems } from '../items/index';
+import { stepEnvelopes } from '../items/replyAll';
+import { TAU, dot, forward, wrapAngle } from '../util/math';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { collideWalls } from './walls';
 
@@ -24,9 +27,14 @@ const ticks = (seconds: number, dt: number): number => Math.round(seconds / dt);
 export function step(world: World, inputs: InputsByCar, cfg: Tuning): SimEvent[] {
   const events: SimEvent[] = [];
   const now = world.tick + 1;
+  if (world.chaos) useItems(world, world.chaos, inputs, cfg, now, events);
   for (const car of world.cars) stepCar(world, car, inputs[car.id] ?? NO_INPUT, cfg, now, events);
   collideCars(world.cars, now, cfg.car, events);
-  if (world.chaos) stepBoxes(world, world.chaos, cfg.sim.dt, now, events);
+  if (world.chaos) {
+    stepEnvelopes(world, world.chaos, cfg, now, events);
+    stepPuddles(world, world.chaos, cfg, now, events);
+    stepBoxes(world, world.chaos, cfg.sim.dt, now, events);
+  }
   world.tick = now;
   return events;
 }
@@ -58,12 +66,27 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     input = NO_INPUT;
   }
 
+  // Item effects: a Firewall runs down; spinning out = no control, the car twirls and slows.
+  if (car.shieldTicks > 0) car.shieldTicks--;
+  const spinning = car.spinTicks > 0;
+  if (spinning) {
+    car.spinTicks--;
+    input = NO_INPUT;
+    const spin = world.chaos?.cfg.spin;
+    if (spin) {
+      car.yaw = wrapAngle(car.yaw + TAU * spin.turnsPerSec * dt);
+      const keep = Math.exp(-spin.slowPerSec * dt);
+      car.vx *= keep;
+      car.vz *= keep;
+    }
+  }
+
   // 2. Nitro, engine heat (a stalled engine gives no gas), drift (a tap does not brake), then drive
   // (on the ground only), move, fall, hit walls.
   stepNitro(car, input, cfg, now, events);
   input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
   input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), cfg, events);
-  if (!isAirborne(car)) drive(car, input, cfg.car, cfg, dt);
+  if (!isAirborne(car) && !spinning) drive(car, input, cfg.car, cfg, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;
   const impact = fall(car, cfg.car, dt);

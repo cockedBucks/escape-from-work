@@ -2,6 +2,8 @@ import type { ItemsConfig } from '../config/items';
 import type { Track } from '../track/build';
 import { Rng } from '../util/rng';
 import type { CarState, SimEvent, World } from '../sim/types';
+import type { Puddle } from './coffeeSpill';
+import type { Envelope } from './replyAll';
 import { bucketOf, racePlaces, rollItem } from './roll';
 
 /** One item box ("Mystery Packet") on the road. */
@@ -21,6 +23,9 @@ export interface ChaosState {
   boxes: ItemBox[];
   /** Seeded RNG state for item rolls (`Rng.state`). */
   rng: number;
+  /** Flying Reply-All envelopes and Coffee Spill puddles. */
+  envelopes: Envelope[];
+  puddles: Puddle[];
 }
 
 /** Item boxes for a track: each `itemRow` zone puts `count` boxes evenly across the road. */
@@ -40,7 +45,7 @@ export function buildBoxes(track: Track): ItemBox[] {
 
 /** Turn chaos mode on for a world (boxes from its track). */
 export function createChaos(track: Track, cfg: ItemsConfig, seed: number): ChaosState {
-  return { cfg, boxes: buildBoxes(track), rng: seed >>> 0 };
+  return { cfg, boxes: buildBoxes(track), rng: seed >>> 0, envelopes: [], puddles: [] };
 }
 
 const canPickUp = (car: CarState): boolean => car.respawnAtTick < 0;

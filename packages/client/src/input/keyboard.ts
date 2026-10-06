@@ -7,6 +7,8 @@ const KEYS = {
   gas: ['KeyW', 'ArrowUp'],
   brake: ['KeyS', 'ArrowDown'],
   nitro: ['ShiftLeft', 'ShiftRight'],
+  fire: ['Space'],
+  aimBack: ['KeyQ'],
   respawn: ['KeyR'],
   honk: ['KeyH'],
 } as const;
@@ -24,6 +26,8 @@ export function controlsFrom(held: ReadonlySet<Action>): Omit<InputMessage, 'seq
     gas: held.has('gas'),
     brake: held.has('brake'),
     nitro: held.has('nitro'),
+    fire: held.has('fire'),
+    aimBack: held.has('aimBack'),
     respawn: held.has('respawn'),
     honk: held.has('honk'),
   };
@@ -77,6 +81,8 @@ export class KeyboardControls {
     out.gas = this.held.has('gas');
     out.brake = this.held.has('brake');
     out.nitro = this.held.has('nitro');
+    out.fire = this.held.has('fire');
+    out.aimBack = this.held.has('aimBack');
     out.respawn = this.held.has('respawn');
     out.honk = this.held.has('honk');
     return out;

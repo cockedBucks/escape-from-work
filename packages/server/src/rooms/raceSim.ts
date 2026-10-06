@@ -71,6 +71,9 @@ interface Player extends SeatedPlayer {
   /** Same once-per-press handling for the horn. */
   honkHeld: boolean;
   honkPending: boolean;
+  /** Items fire once per press of Space, like the horn. */
+  fireHeld: boolean;
+  firePending: boolean;
   /** Pressed Ready in the lobby. */
   ready: boolean;
 }
@@ -190,7 +193,7 @@ export class RaceSim {
     if (this.players.has(id)) return;
     this.players.set(id, {
       id, slot: -1, seat: null, connected: true,
-      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, ready: false,
+      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, fireHeld: false, firePending: false, ready: false,
     });
     this.joinOrder.push(id);
     this.updateHost();
@@ -212,6 +215,8 @@ export class RaceSim {
     p.respawnPending = false;
     p.honkHeld = false;
     p.honkPending = false;
+    p.fireHeld = false;
+    p.firePending = false;
     this.updateHost();
   }
 
@@ -429,6 +434,9 @@ export class RaceSim {
     const honk = p.input.honk ?? false;
     if (honk && !p.honkHeld) p.honkPending = true;
     p.honkHeld = honk;
+    const fire = p.input.fire ?? false;
+    if (fire && !p.fireHeld) p.firePending = true;
+    p.fireHeld = fire;
     return true;
   }
 
@@ -442,7 +450,7 @@ export class RaceSim {
       const p = this.players.get(s.id);
       const role = effectiveRole(seating, s.id);
       if (!p || !role || !s.connected) continue;
-      parts.push({ role, input: { ...p.input, respawn: p.respawnPending, honk: p.honkPending } });
+      parts.push({ role, input: { ...p.input, respawn: p.respawnPending, honk: p.honkPending, fire: p.firePending } });
     }
     return mergeCarInput(parts);
   }
@@ -492,6 +500,7 @@ export class RaceSim {
     for (const p of this.players.values()) {
       p.respawnPending = false;
       p.honkPending = false;
+      p.firePending = false;
     }
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);

@@ -86,6 +86,9 @@ export const CarView = schema(
     solo: t.boolean().default(false),
     /** The held item id ('' = empty slot). */
     item: t.string().default(''),
+    /** Seconds left spinning out (item hit) and of Firewall (0 = none). */
+    spinLeft: t.float32().default(0),
+    shieldLeft: t.float32().default(0),
   },
   'CarView',
 );

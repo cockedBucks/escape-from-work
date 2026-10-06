@@ -42,6 +42,8 @@ export interface OwnCarView {
   nitro: number;
   nitroOn: boolean;
   solo: boolean;
+  /** Seconds left spinning out (item hit): not predicted, drawn from the server. */
+  spinLeft: number;
   /** Merged input the server applied (your partner's half comes from here). */
   inSteer: number;
   inGas: boolean;
@@ -134,6 +136,7 @@ export class OwnCarPredictor {
     car.nitroOn = view.nitroOn;
     car.solo = view.solo;
     car.onSwap = view.onSwap;
+    car.spinTicks = view.spinLeft > 0 ? 1 : 0;
     // The brake as the server last applied it: held = no fresh press to start a drift with.
     car.brakeTicks = view.inBrake ? 1 : 0;
     const loc = locateOnTrack(this.track, { x: view.x, z: view.z }, near ? prev.segment : undefined);
@@ -188,7 +191,8 @@ export class OwnCarPredictor {
   predict(now: number, local: CarInput, role: Role | null, leadMs: number, cfg: Tuning, out: CarSnap): boolean {
     const world = this.world;
     const base = this.base;
-    if (!world || !base || role === null || cfg.net.predictMaxMs <= 0 || base.car.respawnAtTick >= 0) {
+    // Not while respawning or spinning out (an item hit): the server's car is drawn as it is.
+    if (!world || !base || role === null || cfg.net.predictMaxMs <= 0 || base.car.respawnAtTick >= 0 || base.car.spinTicks > 0) {
       this.shown = false;
       return false;
     }

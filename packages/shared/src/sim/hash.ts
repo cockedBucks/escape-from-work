@@ -40,6 +40,15 @@ export function hashWorld(world: World): string {
       num(b.z);
       num(b.respawnAtTick);
     }
+    for (const e of world.chaos.envelopes) {
+      str(e.owner);
+      for (const v of [e.x, e.z, e.vx, e.vz, e.ticksLeft, e.bounces, e.armedAtTick]) num(v);
+    }
+    for (const p of world.chaos.puddles) {
+      str(p.owner);
+      for (const v of [p.x, p.z, p.ticksLeft, p.ownerSafeUntilTick]) num(v);
+      for (const id of p.hit) str(id);
+    }
   }
   return h.toString(16).padStart(8, '0');
 }
@@ -52,5 +61,5 @@ const CAR_HASH_KEYS = [
   'x', 'z', 'y', 'vy', 'yaw', 'vx', 'vz', 'steer', 'segment', 'progress', 'lateral',
   'lastGate', 'onSlick', 'onRamp', 'respawnAtTick', 'ghostUntilTick', 'heat', 'stallUntilTick',
   'driftDir', 'driftCharge', 'driftLevel', 'straightTicks', 'brakeTicks', 'boostTicks', 'nitro', 'nitroOn',
-  'lap', 'onSwap', 'swappedLap', 'solo',
+  'lap', 'onSwap', 'swappedLap', 'solo', 'spinTicks', 'shieldTicks',
 ] as const satisfies readonly (keyof CarState)[];

@@ -58,6 +58,8 @@ export const InputMessageSchema = z.strictObject({
   respawn: z.boolean().optional(),
   honk: z.boolean().optional(),
   nitro: z.boolean().optional(),
+  fire: z.boolean().optional(),
+  aimBack: z.boolean().optional(),
 });
 
 export type InputMessage = z.infer<typeof InputMessageSchema>;
@@ -77,6 +79,8 @@ export function toCarInput(msg: InputMessage): CarInput {
     respawn: msg.respawn ?? false,
     honk: msg.honk ?? false,
     nitro: msg.nitro ?? false,
+    fire: msg.fire ?? false,
+    aimBack: msg.aimBack ?? false,
   };
 }
 

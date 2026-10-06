@@ -30,6 +30,8 @@ export interface CarViewState {
   nitroOn: boolean;
   solo: boolean;
   item: string;
+  spinLeft: number;
+  shieldLeft: number;
   inNitro: boolean;
   vx: number;
   vz: number;

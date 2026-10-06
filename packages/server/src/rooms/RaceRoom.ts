@@ -391,6 +391,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.nitroOn = car.nitroOn;
       view.solo = car.solo;
       view.item = car.item;
+      view.spinLeft = car.spinTicks * this.tuning.sim.dt;
+      view.shieldLeft = car.shieldTicks * this.tuning.sim.dt;
     }
   }
 }

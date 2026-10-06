@@ -22,6 +22,8 @@ export const ItemsSchema = z.strictObject({
     /** A taken box comes back after this long (s). */
     respawnSeconds: pos(),
   }),
+  /** A spin-out (Reply-All, Coffee Spill): turns per second and speed lost (share per second). */
+  spin: z.strictObject({ turnsPerSec: pos(), slowPerSec: pos() }),
   /** Roll weights by race position: front = top 25%, back = bottom 25%, mid = the rest. */
   roll: z.strictObject({ front: WeightsSchema, mid: WeightsSchema, back: WeightsSchema }),
   items: z.strictObject({
@@ -32,6 +34,9 @@ export const ItemsSchema = z.strictObject({
       bounces: z.number().int().nonnegative(),
       radius: pos(),
       spinSeconds: pos(),
+      /** Starts this far in front of (or behind) the car (m); can't hit its sender for this long (s). */
+      spawnAhead: pos(),
+      armSeconds: nonNeg(),
     }),
     firewall: z.strictObject({ seconds: pos() }),
     coffeeSpill: z.strictObject({
@@ -40,6 +45,8 @@ export const ItemsSchema = z.strictObject({
       radius: pos(),
       spinSeconds: pos(),
       dropBack: nonNeg(),
+      /** The car that dropped it can't slip on it for this long (s). */
+      ownerGraceSeconds: nonNeg(),
     }),
     ctrlZ: z.strictObject({ seconds: pos() }),
     blueScreen: z.strictObject({ seconds: pos() }),

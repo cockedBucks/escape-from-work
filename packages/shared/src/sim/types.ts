@@ -14,6 +14,10 @@ export interface CarInput {
   honk?: boolean;
   /** Burn nitro while held (Engineer or solo). */
   nitro?: boolean;
+  /** Use the held item (Engineer or solo; once per press). */
+  fire?: boolean;
+  /** Aim the item backward while held (Pilot or solo). */
+  aimBack?: boolean;
 }
 
 export const NO_INPUT: Readonly<CarInput> = { steer: 0, gas: false, brake: false, respawn: false };
@@ -82,6 +86,10 @@ export interface CarState {
   solo: boolean;
   /** The held item (an `ItemId`), or '' for an empty slot. */
   item: string;
+  /** Spinning out (no control) for this many more ticks. */
+  spinTicks: number;
+  /** Firewall up for this many more ticks (absorbs one hit). */
+  shieldTicks: number;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
@@ -107,6 +115,10 @@ export type SimEvent =
   | { type: 'swap'; car: string }
   /** A car broke item box `box`; `item` = what it got (null: its slot was full). */
   | { type: 'itemBox'; car: string; box: number; item: string | null }
+  /** `car` used its item. */
+  | { type: 'itemUse'; car: string; item: string }
+  /** `car` was hit by `item` from `by` (spin-out etc.), or its Firewall `blocked` it. */
+  | { type: 'itemHit'; car: string; item: string; by: string; blocked: boolean }
   | { type: 'restart'; car: string };
 
 export interface World {

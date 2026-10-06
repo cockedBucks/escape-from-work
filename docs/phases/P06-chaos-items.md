@@ -15,7 +15,7 @@ rubber-banding that keeps races close, and a host toggle to turn chaos off.
 - [x] **P6.1 Item system.** `config/items.json`, item interface + registry, item boxes (rows from
   track zones, respawn), pickup, one-item slot, roll table by position bucket. Tests (sums,
   ordering). Uses the `/add-item` skill steps from here on.
-- [ ] **P6.2 Projectile and defensive items.** Reply-All (bouncing projectile, Q aims back,
+- [x] **P6.2 Projectile and defensive items.** Reply-All (bouncing projectile, Q aims back,
   spin-out on hit), Firewall, Coffee Spill. Tests.
 - [ ] **P6.3 Ctrl+Z.** 3-second per-car history ring buffer on the server, rewind and effect
   clearing. Tests.

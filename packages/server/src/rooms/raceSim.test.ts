@@ -561,3 +561,37 @@ describe('RaceSim chaos items', () => {
     expect(new RaceSim(track, cfg, stats).chaos).toBe(false);
   });
 });
+
+describe('RaceSim firing items', () => {
+  const items = loadItemsFile();
+
+  function duoWithItem(): RaceSim {
+    const sim = new RaceSim(track, cfg, stats, undefined, items);
+    sim.addPlayer('p');
+    sim.addPlayer('e');
+    sim.setSeat('p', 0, 'pilot');
+    sim.setSeat('e', 0, 'engineer');
+    car(sim, 'car0').item = 'firewall';
+    return sim;
+  }
+
+  it('only the Engineer fires (Space from the Pilot does nothing)', () => {
+    const sim = duoWithItem();
+    sim.handleInput('p', { seq: 1, fire: true });
+    sim.tick();
+    expect(car(sim, 'car0').item).toBe('firewall');
+    sim.handleInput('e', { seq: 1, fire: true });
+    const events = sim.tick();
+    expect(events).toContainEqual({ type: 'itemUse', car: 'car0', item: 'firewall' });
+  });
+
+  it('fires once per press, not on every tick while Space is held', () => {
+    const sim = duoWithItem();
+    sim.handleInput('e', { seq: 1, fire: true });
+    sim.tick();
+    car(sim, 'car0').item = 'firewall'; // a new item while Space is still held
+    sim.handleInput('e', { seq: 2, fire: true });
+    sim.tick();
+    expect(car(sim, 'car0').item).toBe('firewall');
+  });
+});
