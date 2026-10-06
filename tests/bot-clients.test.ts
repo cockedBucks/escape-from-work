@@ -1,10 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DEFAULT_TRACK } from '@escape/shared';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../packages/server/src/config';
 import { startServer, type GameServer } from '../packages/server/src/app';
 import { startBotCar, type BotCar } from '../packages/client/src/bot/netBot';
 
-/** One lap of the server's track takes about 45 s in real time (the server runs at real speed). */
+/** One lap takes about 37 s in real time (the server runs at real speed). */
 const LAP_TIMEOUT_MS = 90_000;
 
 describe('networked bots (real server, 2 cars x 2 clients)', () => {
@@ -23,7 +22,7 @@ describe('networked bots (real server, 2 cars x 2 clients)', () => {
     'Pilot and Engineer bots on separate connections finish a lap in both cars',
     async () => {
       const tuning = loadTuningFile();
-      const track = loadTrackFile(DEFAULT_TRACK, tuning);
+      const track = loadTrackFile('test-loop', tuning);
       const stats = loadCarsFile().cars[0]!.stats;
       const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
       for (let i = 0; i < 2; i++) cars.push(await startBotCar({ endpoint, tuning, track, stats }));
@@ -48,7 +47,7 @@ describe('networked bots (real server, 2 cars x 2 clients)', () => {
 
   it('a bot that cannot get its seat fails loudly instead of driving from nowhere', async () => {
     const tuning = loadTuningFile();
-    const track = loadTrackFile(DEFAULT_TRACK, tuning);
+    const track = loadTrackFile('test-loop', tuning);
     const stats = loadCarsFile().cars[0]!.stats;
     const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
     // Car 1 (slot 0) is taken by the bots above.

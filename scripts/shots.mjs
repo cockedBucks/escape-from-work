@@ -1,4 +1,4 @@
-// npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed] [--track <id>]
+// npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed]
 // Builds the client, starts the production server on a free port, opens each
 // `?scenario=` page in the installed Chrome (or Edge), waits for `window.__game.ready`,
 // and writes artifacts/shots/<scenario>.png + artifacts/shots/stats.json.
@@ -30,13 +30,11 @@ const GL_MODES = {
 function parseArgs(argv) {
   const scenarios = [];
   let gl = 'default';
-  let track = '';
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--gl') gl = argv[++i] ?? '';
-    else if (argv[i] === '--track') track = argv[++i] ?? '';
     else scenarios.push(argv[i]);
   }
-  return { scenarios, gl, track };
+  return { scenarios, gl };
 }
 
 function tail(text, n = 12) {
@@ -79,12 +77,6 @@ function startServer() {
 }
 
 async function launchBrowser(mode) {
-  // CHROME_PATH: use this Chrome/Chromium binary instead (machines without Chrome or Edge).
-  const executablePath = process.env.CHROME_PATH;
-  if (executablePath) {
-    const browser = await chromium.launch({ executablePath, headless: mode.headless, args: mode.args });
-    return { browser, channel: path.basename(executablePath) };
-  }
   const errors = [];
   for (const channel of BROWSER_CHANNELS) {
     try {
@@ -97,7 +89,7 @@ async function launchBrowser(mode) {
   throw new Error(`no Chrome or Edge found:\n${errors.join('\n')}`);
 }
 
-async function shoot(browser, port, scenario, track) {
+async function shoot(browser, port, scenario) {
   const page = await browser.newPage({ viewport: VIEWPORT });
   const consoleErrors = [];
   page.on('console', (msg) => {
@@ -109,8 +101,7 @@ async function shoot(browser, port, scenario, track) {
     if (res.status() >= 400) consoleErrors.push(`HTTP ${res.status()} ${res.url()}`);
   });
   try {
-    const trackParam = track ? `&track=${encodeURIComponent(track)}` : '';
-    await page.goto(`http://localhost:${port}/?scenario=${encodeURIComponent(scenario)}&seed=${SEED}${trackParam}`);
+    await page.goto(`http://localhost:${port}/?scenario=${encodeURIComponent(scenario)}&seed=${SEED}`);
     await page.waitForFunction(() => window.__game && (window.__game.ready || window.__game.error !== null), null, {
       timeout: READY_TIMEOUT_MS,
     });
@@ -127,10 +118,10 @@ async function shoot(browser, port, scenario, track) {
 }
 
 async function main() {
-  const { scenarios, gl, track } = parseArgs(process.argv.slice(2));
+  const { scenarios, gl } = parseArgs(process.argv.slice(2));
   const mode = GL_MODES[gl];
   if (scenarios.length === 0 || !mode) {
-    console.log(`usage: npm run shots -- <scenario ...> [--gl ${Object.keys(GL_MODES).join('|')}] [--track <id>]`);
+    console.log(`usage: npm run shots -- <scenario ...> [--gl ${Object.keys(GL_MODES).join('|')}]`);
     process.exitCode = 2;
     return;
   }
@@ -145,7 +136,7 @@ async function main() {
     browser = launched.browser;
 
     const results = [];
-    for (const scenario of scenarios) results.push(await shoot(browser, port, scenario, track));
+    for (const scenario of scenarios) results.push(await shoot(browser, port, scenario));
 
     const report = {
       browser: `${launched.channel} ${browser.version()}`,

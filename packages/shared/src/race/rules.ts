@@ -1,7 +1,6 @@
 import type { Tuning } from '../config/tuning';
 import type { CarState, SimEvent, World } from '../sim/types';
 import type { TrackSample } from '../track/build';
-import { locateOnTrack } from '../track/locate';
 import { Rng } from '../util/rng';
 
 // Race rules (GAME_DESIGN §6): laps by sectors in order, live positions, wrong way, finish
@@ -148,11 +147,8 @@ export function updateWrongWay(run: RaceRun, world: World, race: RaceCfg): void 
       r.wrongWayTicks = 0; // finished: free to drive any way
       continue;
     }
-    // On a shortcut the main road's direction can point anywhere: use the shortcut's.
-    const dir = world.track.branches.length > 0
-      ? locateOnTrack(world.track, { x: car.x, z: car.z }, car.segment).dir
-      : (world.track.samples[car.segment] as TrackSample | undefined)?.dir;
-    const along = dir ? car.vx * dir.x + car.vz * dir.z : 0;
+    const s = world.track.samples[car.segment] as TrackSample | undefined;
+    const along = s ? car.vx * s.dir.x + car.vz * s.dir.z : 0;
     r.wrongWayTicks = along < -race.wrongWayMinSpeed ? r.wrongWayTicks + 1 : 0;
   }
 }

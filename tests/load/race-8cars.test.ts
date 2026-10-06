@@ -3,7 +3,7 @@
 // Run with `npm run test:load` (not part of verify).
 import { Client, type Room } from '@colyseus/sdk';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DEFAULT_TRACK, MSG, ROOM_NAME } from '@escape/shared';
+import { MSG, ROOM_NAME } from '@escape/shared';
 import { startBotCar, type BotCar } from '../../packages/client/src/bot/netBot';
 import { startServer, type GameServer } from '../../packages/server/src/app';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../../packages/server/src/config';
@@ -48,7 +48,7 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
 
   it('every car finishes and the server tick stays fast', async () => {
     const tuning = loadTuningFile();
-    const track = loadTrackFile(DEFAULT_TRACK, tuning);
+    const track = loadTrackFile('test-loop', tuning);
     const stats = loadCarsFile().cars[0]!.stats;
     const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
 

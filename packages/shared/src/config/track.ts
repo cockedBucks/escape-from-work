@@ -67,31 +67,17 @@ const PropSchema = z.strictObject({
   rot: z.number(),
 });
 
-/**
- * A shortcut: an open spline that leaves the main loop at `from` and rejoins it at `to`
- * (progress, from < to). `points` are the control points in between; the builder adds the
- * two junctions on the main centerline. Progress on a shortcut maps linearly onto from–to.
- */
-const ShortcutSchema = z.strictObject({
-  from: progress(),
-  to: progress(),
-  points: z.array(PointSchema).min(1),
-});
-
 export const TrackSchema = z
   .strictObject({
     id: z.string().regex(/^[a-z0-9-]+$/, 'use lowercase letters, digits and dashes'),
     name: z.string().min(1),
     theme: z.string().min(1),
-    /** Dev-only track (Test Loop): exempt from the lap-time target in `track:check`. */
-    dev: z.boolean().default(false),
     laps: z.number().int().min(1),
     /** Control points of a closed Catmull-Rom spline, clockwise seen from above. */
     points: z.array(PointSchema).min(4),
     /** Number of sector gates (checkpoints) around the lap. */
     sectors: z.number().int().min(2),
     zones: z.array(ZoneSchema),
-    shortcuts: z.array(ShortcutSchema).default([]),
     props: z.array(PropSchema),
     start: z.strictObject({ at: progress() }),
   })
@@ -105,21 +91,11 @@ export const TrackSchema = z
         });
       }
     });
-    track.shortcuts.forEach((cut, i) => {
-      if (cut.from >= cut.to) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['shortcuts', i, 'to'],
-          message: `"to" (${cut.to}) must be greater than "from" (${cut.from})`,
-        });
-      }
-    });
   });
 
 export type TrackDef = z.infer<typeof TrackSchema>;
 export type TrackPoint = TrackDef['points'][number];
 export type TrackZone = TrackDef['zones'][number];
-export type TrackShortcut = TrackDef['shortcuts'][number];
 
 /** Validate the contents of a `config/tracks/<id>.json` file. */
 export function parseTrack(raw: unknown, source: string): TrackDef {

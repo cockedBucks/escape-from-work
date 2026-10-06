@@ -179,7 +179,7 @@ Tracks are data (`config/tracks/<id>.json`): a spline loop with widths, zones an
 Lap target 40–55 s.
 
 1. **Test Loop** (dev only, greybox): kidney-shaped loop, one hairpin, one ramp, one slick.
-2. **The Office** (first real track, built in P7.5: `config/tracks/office.json`, ~1.1 km, ~43 s bot lap):
+2. **The Office** (first real track):
    - Start/finish at reception → long straight between desk rows (open-plan) →
      hairpin around **Printer Island** → **kitchen chicane** with coffee slicks →
      ramp jump over the **boardroom table** → corridor with a risky narrow

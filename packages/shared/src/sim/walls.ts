@@ -23,9 +23,6 @@ export function collideWalls(state: CarState, track: Track, car: CarTuning): num
     // segment do we push straight back along the wall normal.
     const pastEnd = t <= 0 || t >= 1;
     const inFront = d > EPSILON && (side >= 0 || pastEnd);
-    // Behind a wall by more than the car's size: that wall belongs to another stretch of
-    // road (a tunneling car is never that deep), so it must not pull the car across.
-    if (!inFront && d > car.radius) continue;
     const n = inFront ? scale(delta, 1 / d) : wall.normal;
     const penetration = inFront ? car.radius - d : car.radius + d;
     if (penetration <= 0) continue;

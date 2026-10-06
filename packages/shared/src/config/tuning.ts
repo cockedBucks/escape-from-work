@@ -84,10 +84,6 @@ const TrackBuildSchema = z.strictObject({
   gridCellSize: pos(),
   /** Narrowest road `track:check` accepts (m). */
   minWidth: pos(),
-  /** `track:check`: the median bot lap must land in this window (s). Dev tracks are exempt. */
-  lapTarget: z
-    .strictObject({ min: pos(), max: pos() })
-    .refine((t) => t.min < t.max, { message: '"min" must be below "max"' }),
 });
 
 /** Bot driver (also used by golden tests, so changing it moves the golden lap window). */

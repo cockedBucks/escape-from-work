@@ -34,8 +34,7 @@
   "track": {
     "sampleSpacing": 2,
     "gridCellSize": 16,
-    "minWidth": 10,
-    "lapTarget": { "min": 40, "max": 55 }
+    "minWidth": 10
   },
   "bot": {
     "lookAheadBase": 6,

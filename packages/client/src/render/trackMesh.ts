@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { insideRoad, type Track, type TrackSample, type Vec2 } from '@escape/shared';
+import type { Track, TrackSample, Vec2 } from '@escape/shared';
 import { PALETTE, TRACK_LOOK } from './look';
 import { buildProps } from './propKit';
 
@@ -76,15 +76,6 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     upQuad(road, v3(a.pos, 0, a.right, -a.width / 2), v3(a.pos, 0, a.right, a.width / 2),
       v3(b.pos, 0, b.right, -b.width / 2), v3(b.pos, 0, b.right, b.width / 2));
   }
-  // Shortcuts: their own ribbons (the walls are already merged into `track.walls`).
-  for (const br of track.branches) {
-    for (let i = 0; i + 1 < br.samples.length; i++) {
-      const a = br.samples[i]!;
-      const b = br.samples[i + 1]!;
-      upQuad(road, v3(a.pos, 0, a.right, -a.width / 2), v3(a.pos, 0, a.right, a.width / 2),
-        v3(b.pos, 0, b.right, -b.width / 2), v3(b.pos, 0, b.right, b.width / 2));
-    }
-  }
 
   // Curbs: red/white stripes along both edges where the road bends.
   const curbs = new RibbonBuilder();
@@ -109,18 +100,13 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     const period = L.centerDash + L.centerGap;
     const y = L.decalLift;
     const half = L.centerWidth / 2;
-    const dashes = (line: readonly TrackSample[], closed: boolean): void => {
-      const count = closed ? line.length : line.length - 1;
-      for (let i = 0; i < count; i++) {
-        const a = line[i]!;
-        const b = line[(i + 1) % line.length]!;
-        if (a.dist % period >= L.centerDash) continue;
-        upQuad(curbs, v3(a.pos, y, a.right, -half), v3(a.pos, y, a.right, half),
-          v3(b.pos, y, b.right, -half), v3(b.pos, y, b.right, half), white);
-      }
-    };
-    dashes(track.samples, true);
-    for (const br of track.branches) dashes(br.samples, false);
+    for (let i = 0; i < n; i++) {
+      const a = sample(i);
+      const b = sample(i + 1);
+      if (a.dist % period >= L.centerDash) continue;
+      upQuad(curbs, v3(a.pos, y, a.right, -half), v3(a.pos, y, a.right, half),
+        v3(b.pos, y, b.right, -half), v3(b.pos, y, b.right, half), white);
+    }
   }
 
   // Start line across the road at gate 0.
@@ -200,7 +186,7 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   }
 
   const bounds = new THREE.Box3();
-  for (const s of [...track.samples, ...track.branches.flatMap((br) => br.samples)]) {
+  for (const s of track.samples) {
     bounds.expandByPoint(new THREE.Vector3(s.pos.x - s.width, 0, s.pos.z - s.width));
     bounds.expandByPoint(new THREE.Vector3(s.pos.x + s.width, 0, s.pos.z + s.width));
   }
@@ -221,8 +207,7 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   groundGeo.rotateX(-Math.PI / 2);
   groundGeo.translate(center.x, -L.decalLift, center.z);
 
-  // Pushed back in depth so the road always wins over it, even far away (no flicker).
-  add(groundGeo, new THREE.MeshLambertMaterial({ color: PALETTE.sand, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 4 }), 'ground');
+  add(groundGeo, new THREE.MeshLambertMaterial({ color: PALETTE.sand }), 'ground');
   add(road.build(), new THREE.MeshLambertMaterial({ color: PALETTE.road }), 'road');
   add(curbs.build(), new THREE.MeshLambertMaterial({ vertexColors: true, ...DECAL }), 'curbs');
   add(wallRb.build(), new THREE.MeshLambertMaterial({ color: PALETTE.cubicle, flatShading: true }), 'walls');
@@ -241,9 +226,7 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     const s = sample(Math.round(d / track.spacing));
     for (const side of [-1, 1]) {
       const off = side * (s.width / 2 + L.postOut);
-      const spot = { x: s.pos.x + s.right.x * off, z: s.pos.z + s.right.z * off };
-      // Not in a shortcut's mouth (or on another stretch of road).
-      if (!insideRoad(track, spot, -L.postSize)) postSpots.push(spot);
+      postSpots.push({ x: s.pos.x + s.right.x * off, z: s.pos.z + s.right.z * off });
     }
   }
   if (postSpots.length > 0) {

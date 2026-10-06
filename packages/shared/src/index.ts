@@ -25,13 +25,11 @@ export { RingBuffer } from './util/ringBuffer';
 export * from './util/math';
 export {
   buildTrack,
-  insideRoad,
   wallsNear,
   type SectorGate,
   type Track,
   type TrackBuildConfig,
   type TrackSample,
-  type TrackBranch,
   type WallSegment,
 } from './track/build';
 export { lapProgress, locateOnTrack, zonesAt, type TrackLocation } from './track/locate';
