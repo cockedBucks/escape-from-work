@@ -330,6 +330,10 @@ describe('RaceSim bot cars', () => {
     for (let t = 0; t < 60 * 90 && sim.flow.phase !== 'results'; t++) sim.tick();
     expect(sim.flow.phase).toBe('results');
     expect(sim.lastResults!.filter((r) => !r.dnf).length).toBe(cfg.race.botFillCars);
+    // Award counters for every car of the race (league, P9.3): bots brake for the corners.
+    expect(sim.lastCounts.size).toBe(cfg.race.botFillCars);
+    const braking = [...sim.lastCounts.values()].reduce((sum, c) => sum + c.brakeSeconds, 0);
+    expect(braking).toBeGreaterThan(0);
   });
 });
 

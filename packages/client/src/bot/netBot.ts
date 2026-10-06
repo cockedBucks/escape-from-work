@@ -99,7 +99,7 @@ const CONFIRM_MS = 5000;
 
 /** Bots do not need these broadcasts; listening keeps the SDK from warning about each one. */
 function ignoreBroadcasts(room: Room): void {
-  for (const type of [MSG.events, MSG.tuning, MSG.reload]) room.onMessage(type, () => {});
+  for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.raceRecord]) room.onMessage(type, () => {});
 }
 
 /**

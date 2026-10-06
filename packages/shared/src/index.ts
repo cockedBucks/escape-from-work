@@ -155,3 +155,4 @@ export {
   type LeagueTables,
   type PlayerRow,
 } from './league/scoring';
+export { AWARD_STATS, awardLine, countTick, DUCK_AWARD, newCounts, pickAwards, type AwardRule, type AwardStat } from './league/awards';

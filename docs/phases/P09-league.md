@@ -17,7 +17,7 @@ Rubber Duck of Shame, stored safely on the host PC.
 - [x] **P9.2 Scoring.** Points table from config, every human in the car scores, bots never score.
   Duo records, best laps per track with car and both names. Weekly cup with
   `league.weekStartsOn` (default Sunday). Tests including week boundaries.
-- [ ] **P9.3 Awards.** Counters from sim events (wall hits, brake time, drift levels, item hits,
+- [x] **P9.3 Awards.** Counters from sim events (wall hits, brake time, drift levels, item hits,
   honks). Award rules in config. Rubber Duck of Shame for last place every race. Tests.
 - [ ] **P9.4 League UI.** Results show points and awards; League screen in the menu (this week,
   all time, records, best duos). Update scenario `results`; add `league` scenario.

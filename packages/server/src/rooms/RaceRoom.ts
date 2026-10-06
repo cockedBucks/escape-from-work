@@ -15,6 +15,7 @@ import {
   SetSeatSchema,
   carIdForSlot,
   effectiveRole,
+  pickAwards,
   type LobbyError,
   type Tuning,
   type World,
@@ -232,11 +233,13 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     if (hostBefore !== flow.host) this.logHost();
   }
 
-  /** Save the finished race to the league (real server only; bots-only races are skipped). */
+  /**
+   * The finished race's record with its awards: sent to everyone (results screen) and saved to
+   * the league (real server only). Bots-only races have no record.
+   */
   private recordRace(): void {
-    const store = league();
     const results = this.sim.lastResults;
-    if (!store || !results) return;
+    if (!results) return;
     const players = [...this.state.players.entries()].map(([id, p]) => ({ name: p.name, slot: p.slot, seat: p.seat, bot: this.botClients.has(id) }));
     const record = raceRecord({
       at: localIso(new Date()),
@@ -249,8 +252,13 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       carModels: this.sim.carModels,
       isBotSlot: (slot) => this.sim.isBot(carIdForSlot(slot)),
       players,
+      counts: this.sim.lastCounts,
     });
     if (!record) return;
+    record.awards = pickAwards(record.cars, this.tuning.league.awards, this.tuning.league.maxAwards);
+    this.broadcast(MSG.raceRecord, record);
+    const store = league();
+    if (!store) return;
     try {
       store.addRace(record);
     } catch (err) {

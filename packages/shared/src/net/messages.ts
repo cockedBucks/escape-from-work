@@ -14,6 +14,8 @@ export const MSG = {
   tuning: 'tuning',
   /** server → clients (dev): a track or car file changed; reload the page to rebuild it. */
   reload: 'reload',
+  /** server → clients: the league record of the race that just ended (`RaceRecord`: places, counters, awards). */
+  raceRecord: 'race:record',
   /** client → server: `{ yaw, pitch }` head angles (cockpit look), ~20/s. */
   head: 'head',
   /** client → server: `{ face }` pick your bobblehead face ('' = placeholder). */

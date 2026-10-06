@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P9 — League and awards (`docs/phases/P09-league.md`)
-- Next task: P9.3 Awards
-- Status: P9.2 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P9.4 League UI
+- Status: P9.3 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -112,6 +112,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06 (cloud): P9.2 Scoring — points by place (config), per-player / weekly / duo tables,
   best lap per track, all computed from the history; the server records each finished race with
   people in it to data/league.json; bot clients are never scored. D104.
+
+- 2026-10-06 (cloud): P9.3 Awards — counters from sim events, award rules in config (6 awards,
+  max 3) + the Rubber Duck of Shame; the record with awards is broadcast at race end. D105.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -197,6 +197,17 @@
   },
   "league": {
     "pointsByPlace": [10, 8, 6, 5, 4, 3, 2, 1],
-    "weekStartsOn": "sunday"
+    "weekStartsOn": "sunday",
+    "brakeMinSpeed": 2,
+    "maxAwards": 3,
+    "awards": [
+      { "id": "wallHugger", "title": "Wall Hugger", "line": "bounced off {n} walls", "stat": "wallHits", "pick": "most", "limit": 4, "finishedOnly": false },
+      { "id": "itemSniper", "title": "Item Sniper", "line": "{n} direct hits", "stat": "itemHits", "pick": "most", "limit": 2, "finishedOnly": false },
+      { "id": "driftKing", "title": "Drift King", "line": "{n} drift boosts", "stat": "driftBoosts", "pick": "most", "limit": 3, "finishedOnly": false },
+      { "id": "brakeAbuser", "title": "Brake Abuser", "line": "{n} s on the brake", "stat": "brakeSeconds", "pick": "most", "limit": 8, "finishedOnly": false },
+      { "id": "honkChampion", "title": "Honk Champion", "line": "honked {n} times", "stat": "honks", "pick": "most", "limit": 6, "finishedOnly": false },
+      { "id": "cleanDriver", "title": "Clean Driver", "line": "{n} wall hits. Respect.", "stat": "wallHits", "pick": "fewest", "limit": 0, "finishedOnly": true }
+    ],
+    "duck": { "title": "Rubber Duck of Shame", "line": "last place. Quack." }
   }
 }

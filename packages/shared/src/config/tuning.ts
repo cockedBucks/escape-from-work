@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AWARD_STATS } from '../league/awards';
 import { parseConfig } from './parse';
 
 // Strict objects: an unknown key (usually a typo) is an error, not silently ignored.
@@ -347,12 +348,31 @@ const NetSchema = z.strictObject({
 /** Days of the week, Sunday first (the same order as `Date.getUTCDay()`). */
 export const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
 
+/** One award (GAME_DESIGN §10): the one car with the most / fewest of a stat, past `limit`. */
+const AwardRuleSchema = z.strictObject({
+  id: z.string().regex(/^[a-zA-Z]+$/),
+  title: z.string().min(1),
+  /** Shown under the title; `{n}` = the number. */
+  line: z.string().min(1),
+  stat: z.enum(AWARD_STATS),
+  pick: z.enum(['most', 'fewest']),
+  limit: z.number().min(0),
+  finishedOnly: z.boolean(),
+});
+
 /** League (GAME_DESIGN §10). */
 const LeagueTuningSchema = z.strictObject({
   /** Points for 1st, 2nd, …; every human in the car gets them, bots none; places past the list score 0. */
   pointsByPlace: z.array(z.number().int().min(0)).min(1),
   /** The weekly cup starts on this day (the host PC's local date). */
   weekStartsOn: z.enum(WEEKDAYS),
+  /** Braking counts toward the Brake Abuser award only above this speed (m/s). */
+  brakeMinSpeed: z.number().min(0),
+  /** Awards after each race: at most this many (rules in order), plus the duck. */
+  maxAwards: z.number().int().min(0),
+  awards: z.array(AwardRuleSchema),
+  /** The Rubber Duck of Shame, always for last place. */
+  duck: z.strictObject({ title: z.string().min(1), line: z.string().min(1) }),
 });
 
 export const TuningSchema = z.strictObject({

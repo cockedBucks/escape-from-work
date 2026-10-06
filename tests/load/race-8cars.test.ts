@@ -60,7 +60,7 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
 
     // A watching host joins first (the first player is host), then the 16 bot clients.
     host = await new Client(endpoint).join<StateView>(ROOM_NAME);
-    for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.lobbyError]) host.onMessage(type, () => {});
+    for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.lobbyError, MSG.raceRecord]) host.onMessage(type, () => {});
     await waitForState(host, (s) => s.host === host!.sessionId, 'watcher is host');
     // Car 1's clients play people (scored); the rest say they are bots (never scored).
     for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster, markBot: i > 0 }));

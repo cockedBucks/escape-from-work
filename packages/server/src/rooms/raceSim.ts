@@ -2,6 +2,9 @@ import {
   NO_INPUT,
   Rng,
   createChaos,
+  countTick,
+  newCounts,
+  type CarCounts,
   type CarDef,
   type ItemsConfig,
   applyEvents,
@@ -106,6 +109,10 @@ export class RaceSim {
   run: RaceRun | null = null;
   /** Results of the last finished race (grid order for the next one). */
   lastResults: ResultRow[] | null = null;
+  /** Award counters of the race running now, by car id (league, P9.3). */
+  private counts = new Map<string, CarCounts>();
+  /** The counters of the race that just ended, by car slot (for the league record). */
+  lastCounts: ReadonlyMap<number, CarCounts> = new Map();
   /** Host asked to end the race (applied on the next tick). */
   private endRequested = false;
   /** Car in first place (racing). */
@@ -570,6 +577,7 @@ export class RaceSim {
     let over = false;
     if (this.flow.phase === 'racing' && this.run) {
       applyEvents(this.run, events, tick);
+      countTick(this.counts, events, this.brakingCars(inputs), sim.dt);
       updateWrongWay(this.run, this.world, race);
       if (this.endRequested) {
         for (const c of this.run.cars.values()) if (c.finishTick === null) c.dnf = true;
@@ -581,8 +589,10 @@ export class RaceSim {
     if (changed === 'racing') {
       // GO: the race clock starts now.
       this.run = newRun(this.world.cars.map((c) => c.id), this.flow.laps, tick);
+      this.counts = newCounts(this.world.cars.map((c) => c.id));
     } else if (changed === 'results' && this.run) {
       this.lastResults = results(this.run, this.world);
+      this.lastCounts = new Map([...this.counts].map(([id, c]) => [slotOfCar(id), { ...c }]));
     }
     // Places after any phase change, so the first racing tick already has them.
     if (this.run && this.flow.phase === 'racing') {
@@ -593,4 +603,14 @@ export class RaceSim {
     }
     return events;
   }
+
+  /** Cars whose applied input brakes while moving (the Brake Abuser counter). */
+  private brakingCars(inputs: Readonly<Record<string, CarInput>>): Set<string> {
+    const out = new Set<string>();
+    for (const car of this.world.cars) {
+      if (inputs[car.id]?.brake && Math.hypot(car.vx, car.vz) >= this.cfg.league.brakeMinSpeed) out.add(car.id);
+    }
+    return out;
+  }
 }
+
