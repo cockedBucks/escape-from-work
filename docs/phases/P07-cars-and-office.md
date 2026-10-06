@@ -32,9 +32,9 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   finish confetti, head wobble, honk bubble polish.
 - [x] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,
   bumps, landings, item sounds, countdown beeps, a light menu loop. Volume settings.
-- [ ] **P7.8 Performance pass.** Shots stats at Low and High for chase, cockpit and overview on
+- [x] **P7.8 Performance pass.** Shots stats at Low and High for chase, cockpit and overview on
   The Office; fix anything over budget.
-- [ ] **HUMAN GATE — looks, sound, real FPS.**
+- [~] **HUMAN GATE — looks, sound, real FPS.** (deferred)
   1. On a normal work laptop: race The Office with F3 open, on Medium.
   2. Reply: the FPS you saw (min and typical), your favorite and least favorite car,
      anything ugly or confusing on the track, too loud/quiet sounds.
