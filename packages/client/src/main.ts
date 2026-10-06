@@ -351,7 +351,9 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     },
   };
   let serverGas = false;
-  const itemsView: ItemsView = { boxesUp: '', shots: [], shotsTime: 0 };
+  const shotPool: ShotSnap[] = [];
+  const shots: ShotSnap[] = [];
+  const itemsView: ItemsView = { boxesUp: '', shots, shotsTime: 0 };
   room.onStateChange((state) => {
     const now = performance.now();
     source.push(now, state);
@@ -375,8 +377,19 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     serverGas = myCar?.inGas ?? false;
     // Item boxes, envelopes and puddles for the 3D view.
     itemsView.boxesUp = state.boxesUp;
-    itemsView.shots = [];
-    state.shots.forEach((s) => (itemsView.shots as ShotSnap[]).push({ kind: s.kind, x: s.x, z: s.z, vx: s.vx, vz: s.vz }));
+    // Reuse the shot objects (no new ones per patch).
+    let n = 0;
+    state.shots.forEach((s) => {
+      const o = (shotPool[n] ??= { kind: '', x: 0, z: 0, vx: 0, vz: 0 });
+      o.kind = s.kind;
+      o.x = s.x;
+      o.z = s.z;
+      o.vx = s.vx;
+      o.vz = s.vz;
+      n++;
+    });
+    shots.length = n;
+    for (let i = 0; i < n; i++) shots[i] = shotPool[i]!;
     itemsView.shotsTime = now;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');

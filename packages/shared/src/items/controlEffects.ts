@@ -9,15 +9,16 @@ export interface InputLog {
 }
 
 const blank = (): CarInput => ({ steer: 0, gas: false, brake: false, respawn: false, nitro: false });
+const SCRATCH: CarInput = blank();
 
 /**
  * Control Swap: the Pilot's steering now works the pedals (right = gas, left = brake) and the
  * Engineer's pedals steer (gas = left, brake = right). Works the same for a solo player.
  */
-export function swapControls(input: CarInput, out: CarInput): CarInput {
+export function swapControls(input: CarInput, out: CarInput, threshold: number): CarInput {
   out.steer = (input.brake ? 1 : 0) - (input.gas ? 1 : 0);
-  out.gas = input.steer > 0.5;
-  out.brake = input.steer < -0.5;
+  out.gas = input.steer > threshold;
+  out.brake = input.steer < -threshold;
   out.nitro = input.nitro;
   out.respawn = input.respawn;
   return out;
@@ -45,21 +46,24 @@ export function applyControlEffects(chaos: ChaosState, car: CarState, raw: CarIn
   const size = log.inputs.length;
   log.next = (log.next + 1) % size;
 
+  // The cars step one after another and each uses its input before the next is made, so one
+  // scratch object is enough (no allocation per tick).
   let input = raw;
   if (car.lagTicks > 0) {
     car.lagTicks--;
     // The oldest slot is `delay` ticks back; respawn stays instant (it is a rescue button).
     const late = log.inputs[log.next % size]!;
-    input = { ...late, respawn: raw.respawn, fire: raw.fire, aimBack: raw.aimBack };
+    input = Object.assign(SCRATCH, late, { respawn: raw.respawn, fire: raw.fire, aimBack: raw.aimBack });
   }
   if (car.controlSwapTicks > 0) {
     car.controlSwapTicks--;
-    input = swapControls(input, { ...input });
+    input = swapControls(input === SCRATCH ? { ...input } : input, SCRATCH, chaos.cfg.items.controlSwap.steerThreshold);
   }
   if (car.updateTicks > 0) {
     const mash = Math.round(chaos.cfg.items.forcedUpdate.mashSeconds / cfg.sim.dt);
     car.updateTicks = Math.max(0, car.updateTicks - 1 - (raw.mash ?? 0) * mash);
-    return { steer: 0, gas: false, brake: true, respawn: raw.respawn };
+    // Gas + brake = brake to a stop and stay put (brake alone would reverse once stopped).
+    return Object.assign(SCRATCH, { steer: 0, gas: true, brake: true, respawn: raw.respawn, nitro: false, fire: false, aimBack: false });
   }
   return input;
 }

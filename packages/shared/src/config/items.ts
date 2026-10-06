@@ -52,13 +52,16 @@ export const ItemsSchema = z.strictObject({
     ctrlZ: z.strictObject({ seconds: pos(), sampleSeconds: pos() }),
     blueScreen: z.strictObject({ seconds: pos() }),
     lagSpike: z.strictObject({ seconds: pos(), delaySeconds: pos() }),
-    controlSwap: z.strictObject({ seconds: pos() }),
+    /** Steering past `steerThreshold` (0–1) works the pedals while it lasts. */
+    controlSwap: z.strictObject({ seconds: pos(), steerThreshold: z.number().min(0).max(1) }),
     forcedUpdate: z.strictObject({
       /** Longest the car is stopped (s); each key mash takes this much off (s). */
       maxSeconds: pos(),
       mashSeconds: pos(),
       /** It picks a random car ahead, from the top `preferTop` places when any of them is ahead. */
       preferTop: z.number().int().min(1),
+      /** Key presses counted per second at most (a modified client can't mash faster). */
+      maxMashPerSec: pos(),
     }),
   }),
 });

@@ -29,4 +29,4 @@ rubber-banding that keeps races close, and a host toggle to turn chaos off.
   1. Race with chaos on, 3+ cars (bots allowed).
   2. Reply: which items are the most fun, which are annoying or unclear, is anything too strong?
      Use `/feedback` for weights and durations.
-- [ ] **P6.7 Phase end.** Reviewer, fixes, `git tag p6-done`, report.
+- [x] **P6.7 Phase end.** Reviewer, fixes, `git tag p6-done`, report.

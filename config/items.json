@@ -19,7 +19,7 @@
     "ctrlZ": { "seconds": 3, "sampleSeconds": 0.1 },
     "blueScreen": { "seconds": 2 },
     "lagSpike": { "seconds": 4, "delaySeconds": 0.8 },
-    "controlSwap": { "seconds": 5 },
-    "forcedUpdate": { "maxSeconds": 2.5, "mashSeconds": 0.08, "preferTop": 3 }
+    "controlSwap": { "seconds": 5, "steerThreshold": 0.5 },
+    "forcedUpdate": { "maxSeconds": 2.5, "mashSeconds": 0.08, "preferTop": 3, "maxMashPerSec": 12 }
   }
 }

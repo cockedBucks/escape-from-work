@@ -93,7 +93,7 @@ describe('Lag Spike', () => {
 
 describe('Control Swap', () => {
   it('steering works the pedals and the pedals steer', () => {
-    const out = (i: CarInput) => swapControls(i, { ...NO_INPUT });
+    const out = (i: CarInput) => swapControls(i, { ...NO_INPUT }, items.items.controlSwap.steerThreshold);
     expect(out({ ...NO_INPUT, steer: 1 })).toMatchObject({ gas: true, brake: false, steer: 0 });
     expect(out({ ...NO_INPUT, steer: -1 })).toMatchObject({ gas: false, brake: true });
     expect(out({ ...NO_INPUT, gas: true }).steer).toBe(-1);
@@ -115,10 +115,27 @@ describe('Forced Update', () => {
     use(w, 'b', 'forcedUpdate');
     const a = car(w, 'a');
     expect(a.updateTicks).toBe(secs(items.items.forcedUpdate.maxSeconds) - 1); // the hit tick already counts
-    expect(applyControlEffects(w.chaos!, a, { ...NO_INPUT, gas: true, steer: 1 }, cfg)).toMatchObject({ gas: false, brake: true, steer: 0 });
+    expect(applyControlEffects(w.chaos!, a, { ...NO_INPUT, gas: true, steer: 1 }, cfg)).toMatchObject({ gas: true, brake: true, steer: 0 });
     const lazy = a.updateTicks;
     applyControlEffects(w.chaos!, a, { ...NO_INPUT, mash: 3 }, cfg);
     expect(lazy - a.updateTicks).toBe(1 + 3 * Math.round(items.items.forcedUpdate.mashSeconds / dt));
+  });
+});
+
+describe('Forced Update holds the car still', () => {
+  it('a hit car brakes to a stop and never rolls backwards', () => {
+    const w = world(['a', 0.6], ['b', 0.4]);
+    const a = car(w, 'a');
+    a.vx = Math.sin(a.yaw) * 15;
+    a.vz = Math.cos(a.yaw) * 15;
+    use(w, 'b', 'forcedUpdate');
+    let minForward = Infinity;
+    for (let i = 0; i < secs(items.items.forcedUpdate.maxSeconds) - 2; i++) {
+      step(w, { a: { ...NO_INPUT, gas: true } }, cfg);
+      minForward = Math.min(minForward, a.vx * Math.sin(a.yaw) + a.vz * Math.cos(a.yaw));
+    }
+    expect(minForward).toBeGreaterThanOrEqual(-1e-9);
+    expect(Math.hypot(a.vx, a.vz)).toBeLessThan(0.5);
   });
 });
 

@@ -3,7 +3,11 @@ import type { CarState, World } from '../sim/types';
 import type { ChaosState } from './chaos';
 import { clearBadEffects } from './effects';
 
-/** Where a car was at one moment (enough to put it back there), and how hot its engine was. */
+/**
+ * Where a car was at one moment (enough to put it back there), and how hot its engine was.
+ * Lap progress (`lastGate`, `lap`) is NOT rewound: gates already passed stay passed, so driving
+ * through them again never counts twice (the race rules would otherwise count extra sectors).
+ */
 export interface PoseSample {
   x: number;
   z: number;
@@ -13,10 +17,6 @@ export interface PoseSample {
   vx: number;
   vz: number;
   segment: number;
-  progress: number;
-  lateral: number;
-  lastGate: number;
-  lap: number;
   heat: number;
 }
 
@@ -27,9 +27,15 @@ export interface CarHistory {
   count: number;
 }
 
-const POSE_KEYS = ['x', 'z', 'y', 'vy', 'yaw', 'vx', 'vz', 'segment', 'progress', 'lateral', 'lastGate', 'lap', 'heat'] as const satisfies readonly (keyof PoseSample & keyof CarState)[];
+const POSE_KEYS = ['x', 'z', 'y', 'vy', 'yaw', 'vx', 'vz', 'segment', 'heat'] as const satisfies readonly (keyof PoseSample & keyof CarState)[];
 
-const emptySample = (): PoseSample => ({ x: 0, z: 0, y: 0, vy: 0, yaw: 0, vx: 0, vz: 0, segment: 0, progress: 0, lateral: 0, lastGate: 0, lap: 1, heat: 0 });
+const emptySample = (): PoseSample => ({ x: 0, z: 0, y: 0, vy: 0, yaw: 0, vx: 0, vz: 0, segment: 0, heat: 0 });
+
+/** Forget a car's history (after a respawn: Ctrl+Z must not take it back to where it fell off). */
+export function forgetHistory(chaos: ChaosState, carId: string): void {
+  const h = chaos.history[carId];
+  if (h) h.count = 0;
+}
 
 /**
  * Every `ctrlZ.sampleSeconds`, remember each car's pose. History is derived from the world

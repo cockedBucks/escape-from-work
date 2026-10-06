@@ -4,10 +4,10 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
-- Next task: P6.7 Phase end (chaos gate deferred)
-- Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
-  Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
+- Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
+- Next task: P7.1 Car kit (Phase 7 — cars and The Office, `docs/phases/P07-cars-and-office.md`)
+- Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
+  `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
 
 ## Half-done
 - (nothing)
@@ -73,34 +73,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   (`npm run jitter`), sense of speed (engine hum, squeal, speed FOV, speed lines, center dashes,
   posts). Duo gate deferred (D075). Review fixes D076. Decisions D067–D076.
 
-- 2026-10-06: P6.1 item system — `config/items.json` + schema (weights sum to 100), item boxes from
-  `itemRow` zones (Test Loop: two rows of 4), pickup → one-item slot rolled by position bucket
-  (sim ranks cars by lap + progress), seeded item RNG in `world.chaos` (absent = chaos off, hashes
-  unchanged), server `setChaos`, item name on the HUD. D077.
-
-- 2026-10-06: P6.2 items — Space fires (Engineer/solo, once per press), Q aims back (Pilot/solo);
-  Reply-All envelope (bounces off road edges ×3, spin-out, arm time), Firewall (absorbs one hit),
-  Coffee Spill (puddle, spins each car once); spin-out = no control, twirl, slow down (not
-  predicted). Item registry in `items/index.ts`. D078.
-
-- 2026-10-06: P6.3 Ctrl+Z — every car's pose + heat sampled every 0.1 s (fixed slots, in the sim,
-  not hashed); using it jumps back 3 s (or to the oldest pose), clears spin/stall, ghosts the car
-  briefly; usable even while spinning. D079.
-
-- 2026-10-06: P6.4 Blue Screen (car ahead, fake error screen on both its screens), Lag Spike
-  (car ahead: inputs 0.8 s late), Control Swap (leader: steering ↔ pedals), Forced Update (random
-  car ahead from the top 3: stopped, mash any key); all Firewall-blockable, all cleared by Ctrl+Z;
-  effect timers synced; no prediction while they last. D080.
-
-- 2026-10-06: P6.5 item presentation — boxes/envelopes/puddles/Firewall bubbles (4 instanced
-  draw calls, synced via `boxesUp` + `shots` map, envelopes extrapolated), SVG item icons in the
-  HUD, toasts (got / hit by / blocked) for both players of a car, item sounds, `items` scenario
-  (18 draw calls). D081.
-
-- 2026-10-06: P6.6 chaos toggle (host lobby button, `host:chaos`, between races) + bot items
-  (skill ≥ 1: Firewall/targeted at once, Ctrl+Z in trouble, Reply-All at a car in its sights
-  ahead or behind, Coffee Spill with a car close behind; network bots split fire/aim). Chaos bot
-  race test (4 skilled bots, 2 laps) and the load test pass. D082.
+- 2026-10-06: **P6 done** — chaos items: boxes in item rows rolled by position (rubber-banding),
+  Reply-All, Firewall, Coffee Spill, Ctrl+Z, Blue Screen, Lag Spike, Control Swap, Forced Update
+  (Space fires, Q aims back, mash any key), effects on both screens, item props / icons / toasts /
+  sounds, host chaos toggle, bots use items (skill ≥ 1). Chaos gate deferred. Review fixes D083.
+  Decisions D077–D083.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

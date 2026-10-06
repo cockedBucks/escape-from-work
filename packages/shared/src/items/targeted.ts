@@ -9,32 +9,36 @@ import { racePlaces } from './roll';
 // Swap, Forced Update. All can be blocked by a Firewall. Effects hit the whole car, so both
 // of its players feel them.
 
-/** Cars ordered by place (1 = leading) that items may hit right now. */
-function standings(world: World, now: number): CarState[] {
+/** Cars items may hit right now, by place (1 = leading), and the places themselves. */
+function standings(world: World, now: number): { order: CarState[]; places: Map<string, number> } {
   const places = racePlaces(world.cars);
-  return [...world.cars].filter((c) => canBeHit(c, now)).sort((a, b) => places.get(a.id)! - places.get(b.id)!);
+  const order = [...world.cars].filter((c) => canBeHit(c, now)).sort((a, b) => places.get(a.id)! - places.get(b.id)!);
+  return { order, places };
 }
 
-const placeOf = (world: World, car: CarState): number => racePlaces(world.cars).get(car.id) ?? 1;
+/** The cars ahead of `car`, best first. */
+function aheadOf(world: World, car: CarState, now: number): { ahead: CarState[]; places: Map<string, number> } {
+  const { order, places } = standings(world, now);
+  const mine = places.get(car.id) ?? 1;
+  return { ahead: order.filter((c) => c.id !== car.id && places.get(c.id)! < mine), places };
+}
 
 /** The car directly ahead of `car` in the race (null if it is leading). */
 export function carAhead(world: World, car: CarState, now: number): CarState | null {
-  const mine = placeOf(world, car);
-  const ahead = standings(world, now).filter((c) => c.id !== car.id && placeOf(world, c) < mine);
+  const { ahead } = aheadOf(world, car, now);
   return ahead[ahead.length - 1] ?? null;
 }
 
 /** The race leader (the next car down if that is you). */
 export function leader(world: World, car: CarState, now: number): CarState | null {
-  return standings(world, now).find((c) => c.id !== car.id) ?? null;
+  return standings(world, now).order.find((c) => c.id !== car.id) ?? null;
 }
 
-/** A random car ahead of `car`, picked from the top 3 when any of them is ahead. */
+/** A random car ahead of `car`, picked from the top `topN` places when any of them is ahead. */
 export function randomAhead(world: World, chaos: ChaosState, car: CarState, now: number, topN: number): CarState | null {
-  const mine = placeOf(world, car);
-  const ahead = standings(world, now).filter((c) => c.id !== car.id && placeOf(world, c) < mine);
+  const { ahead, places } = aheadOf(world, car, now);
   if (ahead.length === 0) return null;
-  const top = ahead.filter((c) => placeOf(world, c) <= topN);
+  const top = ahead.filter((c) => places.get(c.id)! <= topN);
   const pool = top.length > 0 ? top : ahead;
   const rng = new Rng(chaos.rng);
   const pick = pool[Math.floor(rng.next() * pool.length)]!;

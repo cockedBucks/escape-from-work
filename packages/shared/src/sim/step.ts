@@ -9,7 +9,7 @@ import { stepHeat } from './heat';
 import { stepNitro } from './nitro';
 import { stepBoxes } from '../items/chaos';
 import { stepPuddles } from '../items/coffeeSpill';
-import { recordHistory } from '../items/ctrlZ';
+import { forgetHistory, recordHistory } from '../items/ctrlZ';
 import { applyControlEffects } from '../items/controlEffects';
 import { useItems } from '../items/index';
 import { stepEnvelopes } from '../items/replyAll';
@@ -63,6 +63,7 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
       car.respawnAtTick = -1;
       car.ghostUntilTick = now + ticks(cfg.race.respawnGhostSeconds, dt);
       resetDrift(car);
+      if (world.chaos) forgetHistory(world.chaos, car.id);
       events.push({ type: 'respawn', car: car.id, gate: car.lastGate });
       return;
     }

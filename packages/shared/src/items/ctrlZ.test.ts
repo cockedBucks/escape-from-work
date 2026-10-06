@@ -9,6 +9,8 @@ import { createCar, createWorld } from '../sim/car';
 import { step } from '../sim/step';
 import { NO_INPUT, type CarInput, type World } from '../sim/types';
 import { buildTrack } from '../track/build';
+import { botInput } from '../bot/driver';
+import { newBotMemory } from '../bot/engineer';
 import { createChaos } from './chaos';
 
 const cfg = parseTuning(realTuning);
@@ -79,5 +81,37 @@ describe('Ctrl+Z', () => {
     step(w, { a: NO_INPUT }, cfg);
     step(w, { a: FIRE }, cfg);
     expect(Math.hypot(car.x - before.x, car.z - before.z)).toBeLessThan(1); // no history left yet
+  });
+});
+
+describe('Ctrl+Z and lap counting', () => {
+  it('rewinding across the finish line never counts the line (or any gate) twice', () => {
+    const w = world();
+    const car = w.cars[0]!;
+    // A bot drives until just after crossing the finish line at the end of lap 1.
+    const memory = newBotMemory();
+    const drive = () => step(w, { a: botInput(car, track, cfg, memory) }, cfg);
+    let crossed = false;
+    for (let i = 0; i < secs(120) && !crossed; i++) crossed = drive().some((e) => e.type === 'checkpoint' && e.gate === 0);
+    expect(car.lap).toBe(2);
+    drive();
+    car.item = 'ctrlZ';
+    step(w, { a: FIRE }, cfg); // back before the line
+    const gates: number[] = [];
+    for (let i = 0; i < secs(5); i++) for (const e of drive()) if (e.type === 'checkpoint') gates.push(e.gate);
+    expect(car.lap).toBe(2);
+    expect(gates).not.toContain(0);
+  });
+
+  it('a respawn wipes the rewind history (Ctrl+Z must not go back to where it fell off)', () => {
+    const w = world();
+    driveAndRecord(w, 4);
+    const car = w.cars[0]!;
+    step(w, { a: { ...NO_INPUT, respawn: true } }, cfg);
+    for (let i = 0; i < secs(cfg.race.respawnFadeSeconds) + 2; i++) step(w, { a: NO_INPUT }, cfg);
+    const placed = { x: car.x, z: car.z };
+    car.item = 'ctrlZ';
+    step(w, { a: { ...NO_INPUT, fire: true } }, cfg);
+    expect(Math.hypot(car.x - placed.x, car.z - placed.z)).toBeLessThan(1);
   });
 });

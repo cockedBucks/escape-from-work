@@ -339,6 +339,9 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     }
   }
 
+  /** Envelope / puddle keys seen this tick (reused). */
+  private readonly liveShots = new Set<string>();
+
   /** Item boxes (up/down) and flying envelopes / puddles. */
   private syncChaos(world: World): void {
     const chaos = world.chaos;
@@ -346,7 +349,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     let up = '';
     if (chaos) for (const b of chaos.boxes) up += b.respawnAtTick > world.tick ? '0' : '1';
     this.state.boxesUp = up;
-    const live = new Set<string>();
+    const live = this.liveShots;
+    live.clear();
     const put = (key: string, kind: string, x: number, z: number, vx: number, vz: number): void => {
       live.add(key);
       let v = this.state.shots.get(key);
@@ -364,7 +368,10 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       for (const e of chaos.envelopes) put(`m${e.id}`, 'mail', e.x, e.z, e.vx, e.vz);
       for (const p of chaos.puddles) put(`c${p.id}`, 'coffee', p.x, p.z, 0, 0);
     }
-    for (const key of [...this.state.shots.keys()]) if (!live.has(key)) this.state.shots.delete(key);
+    // Something gone? (Only then walk the map; deleting while iterating needs a copy of the keys.)
+    if (this.state.shots.size !== live.size) {
+      for (const key of [...this.state.shots.keys()]) if (!live.has(key)) this.state.shots.delete(key);
+    }
   }
 
   /** Copy the sim's cars into the synced state (Colyseus sends only what changed). */

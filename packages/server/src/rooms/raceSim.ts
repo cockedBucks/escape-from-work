@@ -61,6 +61,9 @@ const SEATS_LOCKED = 'seats are locked during the race';
 /** Grid position of a server car: its slot ("car3" → 3). */
 const slotOfCar = (id: string): number => Number(id.slice('car'.length));
 
+/** Mixed into the race-start tick to seed item rolls (any fixed number; differs per race). */
+const CHAOS_SEED = 11;
+
 interface Player extends SeatedPlayer {
   lastSeq: number;
   input: CarInput;
@@ -77,6 +80,8 @@ interface Player extends SeatedPlayer {
   /** Key presses the client has reported (running count) and the ones the next tick uses. */
   mashTotal: number;
   mashPending: number;
+  /** Tick of the last press that counted (presses are capped at forcedUpdate.maxMashPerSec). */
+  mashTick: number;
   /** Pressed Ready in the lobby. */
   ready: boolean;
 }
@@ -122,7 +127,7 @@ export class RaceSim {
 
   /** Fresh item boxes (race start, new track, chaos switched); no items config = chaos off. */
   private resetChaos(): void {
-    this.world.chaos = this.items && this.chaosEnabled ? createChaos(this.world.track, this.items, this.world.tick + 11) : undefined;
+    this.world.chaos = this.items && this.chaosEnabled ? createChaos(this.world.track, this.items, this.world.tick + CHAOS_SEED) : undefined;
   }
 
   /** Host switch: bots drive empty cars up to `race.botFillCars` cars. */
@@ -196,7 +201,7 @@ export class RaceSim {
     if (this.players.has(id)) return;
     this.players.set(id, {
       id, slot: -1, seat: null, connected: true,
-      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, fireHeld: false, firePending: false, mashTotal: 0, mashPending: 0, ready: false,
+      lastSeq: -1, input: { ...NO_INPUT }, respawnHeld: false, respawnPending: false, honkHeld: false, honkPending: false, fireHeld: false, firePending: false, mashTotal: 0, mashPending: 0, mashTick: -Infinity, ready: false,
     });
     this.joinOrder.push(id);
     this.updateHost();
@@ -450,10 +455,14 @@ export class RaceSim {
     const fire = p.input.fire ?? false;
     if (fire && !p.fireHeld) p.firePending = true;
     p.fireHeld = fire;
-    // Forced Update mashing: at most one new press per message (so a modified client can't
-    // finish an update instantly); a lower count means the client restarted.
+    // Forced Update mashing: a new press counts at most `maxMashPerSec` times a second per
+    // player (a modified client can't finish an update instantly); a lower count = restarted.
     const mash = msg.mash ?? p.mashTotal;
-    if (mash > p.mashTotal) p.mashPending++;
+    const gap = this.items ? Math.round(1 / this.items.items.forcedUpdate.maxMashPerSec / this.cfg.sim.dt) : 0;
+    if (mash > p.mashTotal && this.world.tick - p.mashTick >= gap) {
+      p.mashPending = 1;
+      p.mashTick = this.world.tick;
+    }
     p.mashTotal = mash;
     return true;
   }

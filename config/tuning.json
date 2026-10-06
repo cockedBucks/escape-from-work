@@ -57,6 +57,7 @@
     "itemAimCone": 0.15,
     "itemAimRange": 70,
     "itemDropRange": 25,
+    "itemDropCone": 0.3,
     "balanceGain": [0.02, 0.12]
   },
   "drift": {

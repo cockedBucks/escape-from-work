@@ -125,6 +125,8 @@ const BotSchema = z.strictObject({
   itemAimCone: pos(),
   itemAimRange: pos(),
   itemDropRange: pos(),
+  /** Coffee Spill: a car counts as "behind" within this angle (rad) of straight back. */
+  itemDropCone: pos(),
   /** Balance test: a skill-2 bot must be this much faster than a plain one (share of race time, min–max). */
   balanceGain: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
 });

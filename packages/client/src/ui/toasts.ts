@@ -9,6 +9,7 @@ export type ToastKind = 'good' | 'bad' | 'info';
 
 export class Toasts {
   private readonly el = document.createElement('div');
+  private readonly timers = new Set<number>();
 
   constructor(parent: HTMLElement) {
     this.el.className = 'toasts';
@@ -22,10 +23,16 @@ export class Toasts {
     t.innerHTML = html;
     this.el.appendChild(t);
     while (this.el.childElementCount > MAX_TOASTS) this.el.firstElementChild?.remove();
-    window.setTimeout(() => t.remove(), SHOW_MS);
+    const id = window.setTimeout(() => {
+      this.timers.delete(id);
+      t.remove();
+    }, SHOW_MS);
+    this.timers.add(id);
   }
 
   dispose(): void {
+    for (const id of this.timers) window.clearTimeout(id);
+    this.timers.clear();
     this.el.remove();
   }
 }

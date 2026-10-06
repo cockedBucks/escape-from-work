@@ -25,7 +25,7 @@ const inTrouble = (car: CarState): boolean =>
  */
 export function botItem(car: CarState, others: readonly CarState[], cfg: Tuning, skill: number): { fire: boolean; aimBack: boolean } {
   if (skill < 1 || car.item === '' || car.respawnAtTick >= 0) return NONE;
-  const { itemAimCone: cone, itemAimRange: range, itemDropRange: drop } = cfg.bot;
+  const { itemAimCone: cone, itemAimRange: range, itemDropRange: drop, itemDropCone: dropCone } = cfg.bot;
   switch (car.item) {
     case 'ctrlZ':
       return { fire: inTrouble(car), aimBack: false };
@@ -35,7 +35,7 @@ export function botItem(car: CarState, others: readonly CarState[], cfg: Tuning,
       return NONE;
     }
     case 'coffeeSpill':
-      return { fire: others.some((o) => o.id !== car.id && inSights(car, o, -1, cone * 2, drop)), aimBack: false };
+      return { fire: others.some((o) => o.id !== car.id && inSights(car, o, -1, dropCone, drop)), aimBack: false };
     default:
       // Firewall, Blue Screen, Lag Spike, Control Swap, Forced Update: no reason to wait.
       return { fire: true, aimBack: false };
