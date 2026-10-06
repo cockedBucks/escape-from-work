@@ -1,6 +1,8 @@
 // Client entry. Picks what to show: the P0 hello page, a frozen test scenario, or the live
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
+import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
+import '@fontsource/fredoka/700.css';
 import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';

@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P8 — Menu and UX (`docs/phases/P08-menu-ux.md`)
-- Next task: P8.4 UI polish
-- Status: P8.3 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P8.5 Shots
+- Status: P8.4 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -107,6 +107,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06 (cloud): P8.3 Onboarding — first-countdown role card, "?"/F1 key help anywhere, first
   swap-lane and item hints (once per browser). D100.
+
+- 2026-10-06 (cloud): P8.4 UI polish — font weights, one outlined/shadowed style for panels and
+  buttons, pop-in transitions, results podium with bobbling faces, lobby/results fit 1280×720. D101.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

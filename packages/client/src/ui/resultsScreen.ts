@@ -17,7 +17,7 @@ export interface ResultCar {
 
 export interface ResultsView {
   cars: ResultCar[];
-  players: { name: string; slot: number; seat: string }[];
+  players: { name: string; slot: number; seat: string; face?: string }[];
   teams: readonly string[];
   myId: string;
   host: string;
@@ -30,6 +30,31 @@ export interface ResultsHandlers {
 }
 
 const hex = (c: number): string => `#${c.toString(16).padStart(6, '0')}`;
+
+/** One bobblehead on the podium: the player's face photo, else a drawn smiley. */
+function headHtml(name: string, face: string | undefined, i: number): string {
+  const photo = face ? `background-image:url('/faces/${encodeURIComponent(face)}');` : '';
+  return `<span class="bobble${face ? ' photo' : ''}" title="${escapeHtml(name)}" style="${photo}--i:${i}">${face ? '' : '🙂'}</span>`;
+}
+
+/** The top three on a podium (2nd, 1st, 3rd), heads bobbling on top. Pure, tested. */
+export function podiumHtml(v: ResultsView): string {
+  const top = v.cars.filter((c) => c.finished && c.place >= 1 && c.place <= 3);
+  if (top.length === 0) return '';
+  const step = (place: number): string => {
+    const c = top.find((x) => x.place === place);
+    if (!c) return `<div class="step empty p${place}"></div>`;
+    const inCar = v.players.filter((p) => p.slot === c.slot && p.seat !== '');
+    const heads = c.bot
+      ? ['<span class="bobble">🤖</span>']
+      : inCar.map((p, i) => headHtml(p.name, p.face, i));
+    if (!c.bot && inCar.length === 1) heads.push('<span class="bobble duck">🦆</span>');
+    const team = escapeHtml(v.teams[c.slot] ?? `Team ${c.slot + 1}`);
+    return `<div class="step p${place}" style="--team:${hex(TEAM_COLORS[c.slot % TEAM_COLORS.length]!)}">
+      <div class="heads">${heads.join('')}</div><div class="block"><b>${place}</b><span>${team}</span></div></div>`;
+  };
+  return `<div class="podium">${step(2)}${step(1)}${step(3)}</div>`;
+}
 
 /** The results panel HTML (pure, tested). */
 export function resultsHtml(v: ResultsView): string {
@@ -54,7 +79,7 @@ export function resultsHtml(v: ResultsView): string {
     v.myId === v.host
       ? '<button class="big start" data-action="rematch">REMATCH</button><button class="big" data-action="lobby">Back to lobby</button>'
       : `<p class="waiting">Waiting for <strong>${escapeHtml(v.hostName)}</strong>: rematch or lobby</p>`;
-  return `<table><thead><tr><th></th><th>Team</th><th>Time</th><th>Best lap</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+  return `${podiumHtml(v)}<table><thead><tr><th></th><th>Team</th><th>Time</th><th>Best lap</th></tr></thead><tbody>${rows.join('')}</tbody></table>
     <div class="lobby-actions">${actions}</div>`;
 }
 
