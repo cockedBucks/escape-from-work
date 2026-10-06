@@ -4,7 +4,7 @@ import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
@@ -312,11 +312,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   // Sim events (bumps, jumps, …): for now they shake the cockpit head; sounds and effects in P7.
   let onEvents: (events: SimEvent[]) => void = () => {};
   room.onMessage(MSG.events, (events: SimEvent[]) => onEvents(events));
-  // The league record of the race that just ended (points and awards on the results screen, P9.4).
-  let lastRecord: RaceRecord | null = null;
-  room.onMessage(MSG.raceRecord, (record: RaceRecord) => {
-    lastRecord = record;
-  });
+  // The league record of the race that just ended (points and awards: the results screen, P9.4).
+  room.onMessage(MSG.raceRecord, () => {});
   // Faces on the host PC (none = everyone gets the drawn placeholder).
   // Loaded before the lobby is drawn, so the face picker does not appear late and push the
   // seat buttons down under the player's mouse.
