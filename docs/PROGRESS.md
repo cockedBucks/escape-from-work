@@ -5,9 +5,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.5 The Office track
-- Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
-  `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
+- Next task: P7.6 Juice
+- Status: P7.5 done. `npm run verify` passes (421 tests + bot race, best lap 35.52 s).
+  The Office is the default race track (`track:check -- office` OK: plain bots 42–43 s, skilled 39 s).
+  Shots: track-overview-office 50 draw calls, chase-office 22 (software GL in the cloud).
 
 ## Half-done
 - (nothing)
@@ -108,6 +109,13 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06: P7.4 office prop kit — 12 props as data (`PROP_SHAPES`, real sizes ×
   `officeScale` 2), built by the shared kit builder, one InstancedMesh per kind (track `props`
   now drawn), `props` scenario; track schema validates prop kinds. D089.
+
+- 2026-10-06 (cloud): P7.5 The Office — branch splines (shortcuts: open spline, progress mapped,
+  walls cut at junctions, bots with `shortcutSkill` follow them), `track:check` lap target (40–55 s,
+  `dev` flag exempts Test Loop) + shortcut bot laps, office.json (hairpin, chicane + slicks, jump
+  over the boardroom table, Server Closet shortcut, swap lane, 166 props), carpet ground, Office =
+  default track, `shots --track`. Bot drift fixes (release on straights, no drift into S-bends or
+  shortcuts). D091.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

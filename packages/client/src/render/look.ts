@@ -66,6 +66,8 @@ export const TRACK_LOOK = {
   swapOpacity: 0.7,
   /** Ground plane extends this far past the track bounds (m). */
   groundMargin: 400,
+  /** Ground color per track theme (anything else: sand). */
+  groundByTheme: { office: PALETTE.carpet } as Readonly<Record<string, number>>,
   /** Small lift so flat decals never z-fight with the road (m). */
   decalLift: 0.02,
 } as const;

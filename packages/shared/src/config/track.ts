@@ -58,6 +58,19 @@ export const PROP_KITS = [
 ] as const;
 export type PropKit = (typeof PROP_KITS)[number];
 
+/**
+ * A shortcut: an open spline that leaves the main loop at progress `from` and rejoins it at
+ * `to`, through its own control points. Its progress maps linearly onto from..to, so laps,
+ * sectors and places work unchanged. Walls open where the two roads overlap.
+ */
+const BranchSchema = z.strictObject({
+  name: z.string().min(1),
+  from: progress(),
+  to: progress(),
+  /** Control points between the two junctions (the junction ends come from the main loop). */
+  points: z.array(PointSchema).min(1),
+});
+
 const PropSchema = z.strictObject({
   /** Prop kit piece (ART_STYLE §5). */
   kit: z.enum(PROP_KITS),
@@ -80,6 +93,10 @@ export const TrackSchema = z
     zones: z.array(ZoneSchema),
     props: z.array(PropSchema),
     start: z.strictObject({ at: progress() }),
+    /** Shortcuts (branch splines); see BranchSchema. */
+    branches: z.array(BranchSchema).default([]),
+    /** Dev-only track (greybox): `track:check` skips the lap-time target. */
+    dev: z.boolean().default(false),
   })
   .superRefine((track, ctx) => {
     track.zones.forEach((zone, i) => {
@@ -91,11 +108,21 @@ export const TrackSchema = z
         });
       }
     });
+    track.branches.forEach((b, i) => {
+      if (b.from >= b.to) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['branches', i, 'to'],
+          message: `"to" (${b.to}) must be greater than "from" (${b.from})`,
+        });
+      }
+    });
   });
 
 export type TrackDef = z.infer<typeof TrackSchema>;
 export type TrackPoint = TrackDef['points'][number];
 export type TrackZone = TrackDef['zones'][number];
+export type TrackBranchDef = TrackDef['branches'][number];
 
 /** Validate the contents of a `config/tracks/<id>.json` file. */
 export function parseTrack(raw: unknown, source: string): TrackDef {

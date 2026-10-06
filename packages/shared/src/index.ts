@@ -25,9 +25,11 @@ export { RingBuffer } from './util/ringBuffer';
 export * from './util/math';
 export {
   buildTrack,
+  insideOtherRoad,
   wallsNear,
   type SectorGate,
   type Track,
+  type TrackBranch,
   type TrackBuildConfig,
   type TrackSample,
   type WallSegment,
@@ -47,7 +49,8 @@ export { ITEMS, useItems, type ItemDef } from './items/index';
 export type { Envelope } from './items/replyAll';
 export type { Puddle } from './items/coffeeSpill';
 export { botSteer, lookAheadPoint } from './bot/pilot';
-export { botPedals, cornerAhead, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
+export { botRoute, routeSample } from './bot/route';
+export { botPedals, cornerAhead, newBotMemory, plannedSpeed, resetStuck, type BotMemory } from './bot/engineer';
 export { botItem } from './bot/items';
 export { botInput } from './bot/driver';
 export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import officeJson from '../../../../config/tracks/office.json';
 import testLoopJson from '../../../../config/tracks/test-loop.json';
 import realTuning from '../../../../config/tuning.json';
 import { parseTrack } from '../config/track';
@@ -9,8 +10,9 @@ import { step } from '../sim/step';
 import type { CarInput } from '../sim/types';
 import { buildTrack } from '../track/build';
 import { forward } from '../util/math';
-import { botPedals, newBotMemory, plannedSpeed } from './engineer';
+import { botPedals, cornerReverses, newBotMemory, plannedSpeed } from './engineer';
 import { botSteer } from './pilot';
+import { botInput } from './driver';
 import { runBotRace } from './race';
 
 const cfg = parseTuning(realTuning);
@@ -56,11 +58,17 @@ describe('bot engineer', () => {
     expect(botPedals(car, track, cfg, newBotMemory())).toMatchObject({ gas: false, brake: true });
   });
 
-  it('presses respawn after being stuck for stuckSeconds', () => {
-    const car = createCar('a', STATS, track);
+  it('when stuck, backs up (up to maxBackUps times), then presses respawn after stuckSeconds', () => {
+    const car = createCar('a', STATS, track); // never moves: these pedals are not simulated
     const memory = newBotMemory();
-    const stuckTicks = Math.round(cfg.bot.stuckSeconds / cfg.sim.dt);
-    for (let i = 0; i < stuckTicks - 1; i++) expect(botPedals(car, track, cfg, memory).respawn).toBe(false);
+    const ticks = (s: number) => Math.round(s / cfg.sim.dt);
+    for (let k = 0; k < cfg.bot.maxBackUps; k++) {
+      for (let i = 0; i < ticks(cfg.bot.backUpAfter) - 1; i++) expect(botPedals(car, track, cfg, memory).brake).toBe(false);
+      for (let i = 0; i < ticks(cfg.bot.backUpSeconds); i++) {
+        expect(botPedals(car, track, cfg, memory)).toMatchObject({ gas: false, brake: true, respawn: false });
+      }
+    }
+    for (let i = 0; i < ticks(cfg.bot.stuckSeconds) - 1; i++) expect(botPedals(car, track, cfg, memory).respawn).toBe(false);
     expect(botPedals(car, track, cfg, memory).respawn).toBe(true);
     expect(memory.stuckTicks).toBe(0);
   });
@@ -187,6 +195,87 @@ describe('bot skills (drift, nitro)', () => {
     car.heat = cfg.bot.nitroMaxHeat;
     expect(botPedals(car, track, cfg, newBotMemory(2)).nitro).toBe(false);
     expect(botPedals(beforeHairpin(fast), track, cfg, newBotMemory(2)).nitro).toBe(false);
+  });
+});
+
+describe('skilled bots on real corners', () => {
+  const office = buildTrack(parseTrack(officeJson, 'office'), cfg.track);
+
+  it('a skilled Pilot straightens the wheel once the corner is over, even pointed sideways mid-drift', () => {
+    const car = createCar('a', STATS, track); // start line: a long straight ahead
+    car.driftDir = 1;
+    car.yaw += 0.7; // the slide points the nose well off the road direction
+    const f = forward(car.yaw);
+    car.vx = f.x * 25;
+    car.vz = f.z * 25;
+    expect(Math.abs(botSteer(car, track, cfg, 1))).toBeLessThan(cfg.drift.releaseSteer);
+  });
+
+  it('spots S-bends (a tight corner the other way soon after this one)', () => {
+    const at = (t: typeof track, i: number) => ({ ...createCar('a', STATS, t), segment: i });
+    const tight = cfg.bot.driftMinCurvature;
+    // The Test Loop hairpin turns one way only.
+    const c = track.samples[hairpin]!.curvature;
+    expect(cornerReverses(at(track, hairpin - 5), track, cfg.bot.driftClearAhead, c, tight)).toBe(false);
+    // The Office kitchen chicane (0.37–0.47 of the lap) does reverse.
+    const n = office.samples.length;
+    let found = false;
+    for (let i = Math.round(0.37 * n); i < Math.round(0.47 * n); i++) {
+      const ci = office.samples[i]!.curvature;
+      if (Math.abs(ci) >= tight && cornerReverses(at(office, i), office, cfg.bot.driftClearAhead, ci, tight)) found = true;
+    }
+    expect(found).toBe(true);
+  });
+
+  it('a bot spun round in the narrow shortcut backs out and drives on without a respawn', () => {
+    const closet = office.branches[0]!;
+    const s = closet.samples[Math.floor(closet.samples.length / 2)]!;
+    const drive = (tuning: typeof cfg) => {
+      const car = createCar('a', STATS, office);
+      car.yaw = Math.atan2(s.dir.x, s.dir.z) + 2.8; // spun almost all the way round, facing a wall
+      car.x = s.pos.x + s.right.x * (s.width / 2 - cfg.car.radius);
+      car.z = s.pos.z + s.right.z * (s.width / 2 - cfg.car.radius);
+      car.segment = Math.floor(s.progress * office.samples.length);
+      const world = createWorld(office, [car]);
+      const memory = newBotMemory(2);
+      let respawned = false;
+      for (let t = 0; t < Math.round(6 / tuning.sim.dt); t++) {
+        for (const e of step(world, { a: botInput(car, office, tuning, memory) }, tuning)) if (e.type === 'respawn') respawned = true;
+      }
+      return { respawned, progress: car.progress };
+    };
+    const backedUp = drive(cfg);
+    expect(backedUp.respawned).toBe(false);
+    expect(backedUp.progress).toBeGreaterThan(s.progress); // on its way again
+    // The same spot really is stuck: without backing up or turning round, the bot has to respawn.
+    expect(drive({ ...cfg, bot: { ...cfg.bot, maxBackUps: 0, turnAroundAngle: Math.PI } }).respawned).toBe(true);
+  });
+
+  it('turns round (reverses with the wheel turned) when the road ahead is behind it', () => {
+    const car = createCar('a', STATS, track); // stopped on the start straight…
+    car.yaw += Math.PI; // …facing backwards
+    const memory = newBotMemory();
+    expect(botPedals(car, track, cfg, memory)).toMatchObject({ gas: false, brake: true });
+    expect(memory.turnTicks).toBeGreaterThan(0);
+    car.vx = -forward(car.yaw).x * 3; // rolling backwards: the Pilot steers the other way round
+    car.vz = -forward(car.yaw).z * 3;
+    const reversing = botSteer(car, track, cfg);
+    car.vx = -car.vx;
+    car.vz = -car.vz;
+    expect(Math.sign(reversing)).toBe(-Math.sign(botSteer(car, track, cfg)));
+    car.yaw -= Math.PI; // facing the road again: done turning, back on the gas
+    car.vx = 0;
+    car.vz = 0;
+    expect(botPedals(car, track, cfg, memory)).toMatchObject({ gas: true, brake: false });
+    expect(memory.turnTicks).toBe(0);
+  });
+
+  it('drifting bots lap The Office (chicane, jump, shortcut) without hitting a wall', () => {
+    for (const skill of [1, 2]) {
+      const race = runBotRace(office, cfg, { cars: 1, laps: 2, maxSeconds: 200, skill });
+      expect(race.finished).toBe(true);
+      expect(race.cars[0]!.wallHits).toBe(0);
+    }
   });
 });
 

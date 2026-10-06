@@ -42,10 +42,16 @@ describe('a chaos race with skilled bots', () => {
     expect(world.cars.every((c) => Number.isFinite(c.x) && Number.isFinite(c.z))).toBe(true);
   });
 
-  it('bots pick up and use items, and items hit cars', () => {
-    expect(counts['itemBox'] ?? 0).toBeGreaterThan(4);
-    expect(counts['itemUse'] ?? 0).toBeGreaterThan(2);
-    expect(counts['itemHit'] ?? 0).toBeGreaterThan(0);
+  it('bots pick up and use items, and items hit cars (counted over three races)', () => {
+    // One race can starve (a lone leader keeps its Coffee Spill for a car close behind), so
+    // count over a few seeds.
+    const total: Record<string, number> = { ...counts };
+    for (const seed of [1, 2, 3]) {
+      for (const [type, k] of Object.entries(chaosRace(2, seed).counts)) total[type] = (total[type] ?? 0) + k;
+    }
+    expect(total['itemBox'] ?? 0).toBeGreaterThan(16);
+    expect(total['itemUse'] ?? 0).toBeGreaterThan(8);
+    expect(total['itemHit'] ?? 0).toBeGreaterThan(4);
   });
 
   it('is deterministic: the same seed gives the same race', () => {

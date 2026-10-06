@@ -1,5 +1,5 @@
 import type { CarTuning } from '../config/tuning';
-import { wallsNear, type Track } from '../track/build';
+import { insideOtherRoad, wallsNear, type Track } from '../track/build';
 import { closestOnSegment, dot, EPSILON, scale, sub, add, type Vec2 } from '../util/math';
 import type { CarState } from './types';
 
@@ -23,6 +23,9 @@ export function collideWalls(state: CarState, track: Track, car: CarTuning): num
     // segment do we push straight back along the wall normal.
     const pastEnd = t <= 0 || t >= 1;
     const inFront = d > EPSILON && (side >= 0 || pastEnd);
+    // Behind a wall whose back is another road (a shortcut beside the main road): that is
+    // the other road's business, not a car that slipped through this wall.
+    if (!inFront && track.branches.length > 0 && insideOtherRoad(track, pos, wall.road)) continue;
     const n = inFront ? scale(delta, 1 / d) : wall.normal;
     const penetration = inFront ? car.radius - d : car.radius + d;
     if (penetration <= 0) continue;

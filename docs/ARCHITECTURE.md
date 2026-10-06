@@ -136,7 +136,10 @@ installed types for the API. Anything not on this list → ask the human first.
     { "type": "itemRow", "at": 0.20, "count": 4 }
   ],
   "props": [ { "kit": "desk", "x": 12, "z": 30, "rot": 1.57 } ],
-  "start": { "at": 0.0 }
+  "start": { "at": 0.0 },
+  "branches": [ { "name": "Server Closet", "from": 0.69, "to": 0.83,
+                  "points": [ { "x": -32, "z": 204, "width": 7 } ] } ],
+  "dev": false
 }
 ```
 
@@ -148,10 +151,20 @@ installed types for the API. Anything not on this list → ask the human first.
   wall segments, sector gates (gate 0 = start line) and spatial grids (`track.gridCellSize`) for
   fast "where am I on the track" and "which walls are near" lookups. `locateOnTrack` takes last
   tick's segment as a hint so a car stays on its own part of the track where it passes close.
-- Shortcuts (later tracks) are extra branch splines that rejoin the main loop; progress on a
-  branch maps to the main loop.
-- `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, no curve
-  tighter than half the road width, no crossing walls); bot laps join in P1.4.
+- Shortcuts are `branches`: open splines that leave the main centerline at `from`, pass their
+  own `points` and rejoin at `to` (phantom end points keep both ends tangent to the main road).
+  Progress on a branch maps linearly onto from..to, so laps, sectors, places and respawn work
+  unchanged; `locateOnTrack` returns `road` (0 = main, b + 1 = branch b) and, as `segment`, the
+  main segment at the same progress. Main-loop zones do not apply on a branch. Walls: a wall
+  piece with both ends inside the other road is dropped and one that straddles its edge is cut
+  there, so the roads open into each other at the junctions; a car behind a wall whose back
+  is another road is not pushed through it. Bots with `bot.shortcutSkill` follow branches.
+- `dev: true` marks a greybox track (Test Loop): `track:check` skips its lap-time target.
+- `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, branches
+  ≥ `track.branchMinWidth`, no curve tighter than half the road width, no crossing walls, each
+  branch shorter than what it skips and off the main road between its junctions), then bot laps:
+  no respawns, median lap inside `track.lapTargetMin`–`lapTargetMax` (not for dev tracks), and
+  shortcut bots through every branch.
 
 ## 6. Networking
 

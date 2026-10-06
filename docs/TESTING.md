@@ -37,12 +37,15 @@ split-control networking end to end. Bots also fill empty cars in real races.
 
 ## 4. Shots (visual checks)
 
-`npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed]` (`scripts/shots.mjs`):
+`npm run shots -- <scenario ...> [--track <id>] [--gl default|swiftshader|angle|headed]` (`scripts/shots.mjs`):
 1. Builds the client and starts the real server entry with `--prod --port 0` (a free port).
 2. Launches the system browser with `playwright-core` (`channel: "chrome"`, then `"msedge"`),
-   so no browser download is needed.
-3. Opens `http://localhost:<port>/?scenario=<name>&seed=1` per scenario, waits for
-   `window.__game.ready`, saves `artifacts/shots/<name>.png` (1280×720) and adds
+   so no browser download is needed. Without either (cloud/CI containers) it falls back to a
+   plain Chromium: `BROWSER_PATH`, else the Playwright bundle under `PLAYWRIGHT_BROWSERS_PATH`
+   (`scripts/browser.mjs`). Software WebGL there: images are fine, fps numbers are not real.
+3. Opens `http://localhost:<port>/?scenario=<name>&seed=1` per scenario (`&track=<id>` with
+   `--track`), waits for `window.__game.ready`, saves `artifacts/shots/<name>.png`
+   (`<name>-<track>.png` with `--track`; 1280×720) and adds
    `window.__game.stats()` to `artifacts/shots/stats.json`, plus console errors and failed
    requests (HTTP ≥ 400) per scenario.
 4. An unknown scenario sets `window.__game.error`, so that shot fails at once instead of

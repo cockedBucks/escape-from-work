@@ -7,10 +7,12 @@ import {
   ROOM_NAME,
   botItem,
   botPedals,
+  botRoute,
   botSteer,
   carIdForSlot,
   carStateFromView,
   newBotMemory,
+  resetStuck,
   type BotMemory,
   type CarState,
   type CarStats,
@@ -22,6 +24,7 @@ import {
 } from '@escape/shared';
 
 interface BotStateView {
+  phase?: string;
   players?: {
     forEach(cb: (p: { slot: number; seat: string }, id: string) => void): void;
     get(id: string): { slot: number; seat: string } | undefined;
@@ -138,9 +141,10 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   // see the same cars, so they agree).
   const halfFor = (seat: string | undefined, car: CarState, memory: BotMemory, others: readonly CarState[]): Omit<InputMessage, 'seq'> => {
     const item = botItem(car, others, tuning, tuning.bot.skill);
+    const route = botRoute(car, track, tuning, tuning.bot.skill);
     return seat === 'engineer'
-      ? { ...botPedals(car, track, tuning, memory), fire: item.fire }
-      : { steer: botSteer(car, track, tuning, tuning.bot.skill), aimBack: item.aimBack };
+      ? { ...botPedals(car, track, tuning, memory, route), fire: item.fire }
+      : { steer: botSteer(car, track, tuning, tuning.bot.skill, route), aimBack: item.aimBack };
   };
   /** The other cars, rebuilt from synced state (positions are all the item aim needs). */
   const othersIn = (s: BotStateView): CarState[] => {
@@ -160,6 +164,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     if (!view) return;
     const car = carStateFromView(carId, view, track, stats, pilotHint);
     pilotHint = car.segment;
+    if (s.phase !== 'racing') resetStuck(pilotMemory);
     pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s)) });
   });
 
@@ -176,6 +181,8 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     if (!view) return;
     const car = carStateFromView(carId, view, track, stats, engHint);
     engHint = car.segment;
+    // Controls are ignored outside a race (countdown): standing still there is not stuck.
+    if (s.phase !== 'racing') resetStuck(memory);
     // Engineer half (until a swap): pedals, heat, drift taps, nitro.
     const seat = s.players?.get(engineer.sessionId)?.seat;
     engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s)) });
