@@ -75,7 +75,7 @@ export class LiveConfig {
 
   reloadTrack(): void {
     const track = loadTrackFile(this.trackId, this.tuning, path.join(this.configDir, 'tracks'));
-    const { issues } = checkTrack(track, this.tuning.track.minWidth);
+    const { issues } = checkTrack(track, this.tuning.track.minWidth, this.tuning.track.branchMinWidth);
     if (issues.length > 0) throw new ConfigError(`track ${this.trackId}: ${issues.join('; ')}`);
     this.track = track;
     this.emit({ kind: 'track', track: this.track });

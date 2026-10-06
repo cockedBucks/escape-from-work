@@ -2,6 +2,7 @@
   "id": "test-loop",
   "name": "Test Loop",
   "theme": "greybox",
+  "dev": true,
   "laps": 3,
   "points": [
     { "x": 0, "z": 0, "width": 16 },

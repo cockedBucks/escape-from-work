@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Track, TrackSample, Vec2 } from '@escape/shared';
+import { insideOtherRoad, type Track, type TrackSample, type Vec2 } from '@escape/shared';
 import { PALETTE, TRACK_LOOK } from './look';
 import { buildProps } from './propKit';
 
@@ -49,6 +49,11 @@ function zoneSamples(track: Track, from: number, to: number): [number, number] {
   return [Math.floor(from * n), Math.min(Math.ceil(to * n), n)];
 }
 
+/** Would an edge decoration at `p` lie on another road's surface (or the gap of a junction)? */
+function onOtherRoad(track: Track, p: THREE.Vector3, road: number): boolean {
+  return track.branches.length > 0 && insideOtherRoad(track, { x: p.x, z: p.z }, road);
+}
+
 export interface TrackMeshes {
   group: THREE.Group;
   /** Track bounds (for the overview camera and the ground). */
@@ -77,21 +82,41 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
       v3(b.pos, 0, b.right, -b.width / 2), v3(b.pos, 0, b.right, b.width / 2));
   }
 
+  // Shortcuts (branch roads): same ribbon, open ends (they start on the main centerline).
+  for (const b of track.branches) {
+    for (let k = 0; k < b.samples.length - 1; k++) {
+      const a = b.samples[k] as TrackSample;
+      const c = b.samples[k + 1] as TrackSample;
+      upQuad(road, v3(a.pos, 0, a.right, -a.width / 2), v3(a.pos, 0, a.right, a.width / 2),
+        v3(c.pos, 0, c.right, -c.width / 2), v3(c.pos, 0, c.right, c.width / 2));
+    }
+  }
+
   // Curbs: red/white stripes along both edges where the road bends.
   const curbs = new RibbonBuilder();
   const red = new THREE.Color(PALETTE.curbRed);
   const white = new THREE.Color(PALETTE.line);
-  for (let i = 0; i < n; i++) {
-    const a = sample(i);
-    const b = sample(i + 1);
-    if (Math.abs(a.curvature) < L.curbMinCurvature) continue;
-    const color = Math.floor(i / L.curbStripeSamples) % 2 === 0 ? red : white;
-    const y = L.decalLift;
-    for (const s of [-1, 1]) {
-      const inner = (w: number) => s * (w / 2 - L.curbWidth);
-      const outer = (w: number) => s * (w / 2);
-      upQuad(curbs, v3(a.pos, y, a.right, inner(a.width)), v3(a.pos, y, a.right, outer(a.width)),
-        v3(b.pos, y, b.right, inner(b.width)), v3(b.pos, y, b.right, outer(b.width)), color);
+  // Shortcuts get curbs all along (they are narrow and risky); no edge marking is drawn
+  // where it would lie on the other road (the junctions).
+  const roads = [
+    { road: 0, samples: track.samples, count: n, always: false },
+    ...track.branches.map((b, r) => ({ road: r + 1, samples: b.samples, count: b.samples.length - 1, always: true })),
+  ];
+  for (const { road: id, samples, count, always } of roads) {
+    const at = (i: number): TrackSample => samples[i % samples.length] as TrackSample;
+    for (let i = 0; i < count; i++) {
+      const a = at(i);
+      const b = at(i + 1);
+      if (!always && Math.abs(a.curvature) < L.curbMinCurvature) continue;
+      const color = Math.floor(i / L.curbStripeSamples) % 2 === 0 ? red : white;
+      const y = L.decalLift;
+      for (const s of [-1, 1]) {
+        const inner = (w: number) => s * (w / 2 - L.curbWidth);
+        const outer = (w: number) => s * (w / 2);
+        if (onOtherRoad(track, v3(a.pos, 0, a.right, outer(a.width)), id)) continue;
+        upQuad(curbs, v3(a.pos, y, a.right, inner(a.width)), v3(a.pos, y, a.right, outer(a.width)),
+          v3(b.pos, y, b.right, inner(b.width)), v3(b.pos, y, b.right, outer(b.width)), color);
+      }
     }
   }
 
@@ -100,12 +125,18 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     const period = L.centerDash + L.centerGap;
     const y = L.decalLift;
     const half = L.centerWidth / 2;
-    for (let i = 0; i < n; i++) {
-      const a = sample(i);
-      const b = sample(i + 1);
-      if (a.dist % period >= L.centerDash) continue;
-      upQuad(curbs, v3(a.pos, y, a.right, -half), v3(a.pos, y, a.right, half),
-        v3(b.pos, y, b.right, -half), v3(b.pos, y, b.right, half), white);
+    for (const { road: id, samples, count } of roads) {
+      let along = 0;
+      for (let i = 0; i < count; i++) {
+        const a = samples[i % samples.length] as TrackSample;
+        const b = samples[(i + 1) % samples.length] as TrackSample;
+        const d = id === 0 ? a.dist : along;
+        along += Math.hypot(b.pos.x - a.pos.x, b.pos.z - a.pos.z);
+        if (d % period >= L.centerDash) continue;
+        if (id > 0 && onOtherRoad(track, v3(a.pos, 0, a.right, 0), id)) continue;
+        upQuad(curbs, v3(a.pos, y, a.right, -half), v3(a.pos, y, a.right, half),
+          v3(b.pos, y, b.right, -half), v3(b.pos, y, b.right, half), white);
+      }
     }
   }
 
@@ -207,7 +238,7 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   groundGeo.rotateX(-Math.PI / 2);
   groundGeo.translate(center.x, -L.decalLift, center.z);
 
-  add(groundGeo, new THREE.MeshLambertMaterial({ color: PALETTE.sand }), 'ground');
+  add(groundGeo, new THREE.MeshLambertMaterial({ color: TRACK_LOOK.groundByTheme[track.def.theme] ?? PALETTE.sand }), 'ground');
   add(road.build(), new THREE.MeshLambertMaterial({ color: PALETTE.road }), 'road');
   add(curbs.build(), new THREE.MeshLambertMaterial({ vertexColors: true, ...DECAL }), 'curbs');
   add(wallRb.build(), new THREE.MeshLambertMaterial({ color: PALETTE.cubicle, flatShading: true }), 'walls');
@@ -226,7 +257,24 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     const s = sample(Math.round(d / track.spacing));
     for (const side of [-1, 1]) {
       const off = side * (s.width / 2 + L.postOut);
-      postSpots.push({ x: s.pos.x + s.right.x * off, z: s.pos.z + s.right.z * off });
+      const spot = { x: s.pos.x + s.right.x * off, z: s.pos.z + s.right.z * off };
+      if (!onOtherRoad(track, new THREE.Vector3(spot.x, 0, spot.z), 0)) postSpots.push(spot);
+    }
+  }
+  for (const [r, b] of track.branches.entries()) {
+    let along = 0;
+    let next = L.postSpacing / 2;
+    for (let k = 0; k < b.samples.length - 1; k++) {
+      const s = b.samples[k] as TrackSample;
+      const c = b.samples[k + 1] as TrackSample;
+      along += Math.hypot(c.pos.x - s.pos.x, c.pos.z - s.pos.z);
+      if (along < next) continue;
+      next += L.postSpacing;
+      for (const side of [-1, 1]) {
+        const off = side * (s.width / 2 + L.postOut);
+        const spot = { x: s.pos.x + s.right.x * off, z: s.pos.z + s.right.z * off };
+        if (!onOtherRoad(track, new THREE.Vector3(spot.x, 0, spot.z), r + 1)) postSpots.push(spot);
+      }
     }
   }
   if (postSpots.length > 0) {

@@ -84,6 +84,11 @@ const TrackBuildSchema = z.strictObject({
   gridCellSize: pos(),
   /** Narrowest road `track:check` accepts (m). */
   minWidth: pos(),
+  /** Narrowest shortcut (branch) `track:check` accepts (m): shortcuts are meant to be tight. */
+  branchMinWidth: pos(),
+  /** Median bot lap time window for real (non-dev) tracks (s), GAME_DESIGN §9. */
+  lapTargetMin: pos(),
+  lapTargetMax: pos(),
 });
 
 /** Bot driver (also used by golden tests, so changing it moves the golden lap window). */
@@ -105,18 +110,37 @@ const BotSchema = z.strictObject({
   /** Below this speed (m/s) for `stuckSeconds`, the bot presses respawn. */
   stuckSpeed: nonNeg(),
   stuckSeconds: pos(),
+  /** Stuck this long (s): first back up (reverse) for `backUpSeconds`, up to `maxBackUps` times. */
+  backUpAfter: pos(),
+  backUpSeconds: pos(),
+  maxBackUps: z.number().int().min(0),
+  /** Making this much progress along the track (m) counts as unstuck again (back-ups allowed again). */
+  backUpResetDistance: pos(),
+  /** Slower than `turnAroundSpeed` (m/s) with the road ahead more than `turnAroundAngle` (rad) off
+   * the nose: reverse with the wheel turned (three-point turn) for up to `turnAroundSeconds`,
+   * until it is within `turnAroundDone` (rad). */
+  turnAroundAngle: z.number().positive().max(Math.PI),
+  turnAroundDone: z.number().positive().max(Math.PI),
+  turnAroundSpeed: pos(),
+  turnAroundSeconds: pos(),
   /** Engineer: lets go of the gas at this engine heat (0–1) so the engine never stalls. */
   heatLiftAt: z.number().min(0).max(1),
   /** Skill 1+: while drifting it stays on the gas up to this heat, so letting go still boosts. */
   driftHeatLiftAt: z.number().min(0).max(1),
   /** Skill of server and network bots: 0 = plain driving, 1 = also drifts, 2 = drifts + nitro. */
   skill: z.number().int().min(0).max(2),
+  /** Bots with at least this skill take shortcuts (track branches). */
+  shortcutSkill: z.number().int().min(0).max(3),
+  /** Look-ahead distance multiplier while aiming into a shortcut (narrow: aim closer). */
+  shortcutLookAhead: z.number().min(0.1).max(1),
   /** Skill 1+: tap for a drift when a corner this tight (1/m) is within `driftLookAhead` m... */
   driftMinCurvature: pos(),
   driftLookAhead: pos(),
   /** ...and hold it only while the road within `driftHoldAhead` m still turns that way that tightly. */
   driftHoldAhead: pos(),
   /** Skill 1+: steer this much past the drift entry / release thresholds (0–1), to be sure. */
+  /** No drift start when a tight corner the other way comes within this many meters (S-bends). */
+  driftClearAhead: pos(),
   driftSteerMargin: fraction(),
   /** Skill 2: burn nitro on a clear straight while the engine is below this heat (0–1). */
   nitroMaxHeat: z.number().min(0).max(1),

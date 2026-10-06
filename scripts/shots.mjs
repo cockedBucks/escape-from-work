@@ -1,13 +1,13 @@
-// npm run shots -- <scenario ...> [--gl default|swiftshader|angle|headed]
+// npm run shots -- <scenario ...> [--track <id>] [--gl default|swiftshader|angle|headed]
 // Builds the client, starts the production server on a free port, opens each
 // `?scenario=` page in the installed Chrome (or Edge), waits for `window.__game.ready`,
-// and writes artifacts/shots/<scenario>.png + artifacts/shots/stats.json.
+// and writes artifacts/shots/<scenario>.png (<scenario>-<track>.png with --track) + stats.json.
 // See docs/TESTING.md "Shots". Terse output: one line per scenario + a summary.
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright-core';
+import { launchBrowser as launchAny } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'artifacts', 'shots');
@@ -17,7 +17,6 @@ const VIEWPORT = { width: 1280, height: 720 };
 const SEED = 1;
 const SERVER_START_TIMEOUT_MS = 30_000;
 const READY_TIMEOUT_MS = 20_000;
-const BROWSER_CHANNELS = ['chrome', 'msedge'];
 
 // WebGL fallbacks from docs/TESTING.md, tried by hand in this order if WebGL fails headless.
 const GL_MODES = {
@@ -30,11 +29,13 @@ const GL_MODES = {
 function parseArgs(argv) {
   const scenarios = [];
   let gl = 'default';
+  let track = null;
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--gl') gl = argv[++i] ?? '';
+    else if (argv[i] === '--track') track = argv[++i] ?? null;
     else scenarios.push(argv[i]);
   }
-  return { scenarios, gl };
+  return { scenarios, gl, track };
 }
 
 function tail(text, n = 12) {
@@ -76,20 +77,12 @@ function startServer() {
   return { child, port };
 }
 
-async function launchBrowser(mode) {
-  const errors = [];
-  for (const channel of BROWSER_CHANNELS) {
-    try {
-      const browser = await chromium.launch({ channel, headless: mode.headless, args: mode.args });
-      return { browser, channel };
-    } catch (err) {
-      errors.push(`${channel}: ${String(err).split('\n')[0]}`);
-    }
-  }
-  throw new Error(`no Chrome or Edge found:\n${errors.join('\n')}`);
+function launchBrowser(mode) {
+  return launchAny({ headless: mode.headless, args: mode.args });
 }
 
-async function shoot(browser, port, scenario) {
+async function shoot(browser, port, scenario, track) {
+  const name = track ? `${scenario}-${track}` : scenario;
   const page = await browser.newPage({ viewport: VIEWPORT });
   const consoleErrors = [];
   page.on('console', (msg) => {
@@ -101,27 +94,28 @@ async function shoot(browser, port, scenario) {
     if (res.status() >= 400) consoleErrors.push(`HTTP ${res.status()} ${res.url()}`);
   });
   try {
-    await page.goto(`http://localhost:${port}/?scenario=${encodeURIComponent(scenario)}&seed=${SEED}`);
+    const trackParam = track ? `&track=${encodeURIComponent(track)}` : '';
+    await page.goto(`http://localhost:${port}/?scenario=${encodeURIComponent(scenario)}&seed=${SEED}${trackParam}`);
     await page.waitForFunction(() => window.__game && (window.__game.ready || window.__game.error !== null), null, {
       timeout: READY_TIMEOUT_MS,
     });
     const error = await page.evaluate(() => window.__game.error);
-    const file = path.join(OUT_DIR, `${scenario}.png`);
+    const file = path.join(OUT_DIR, `${name}.png`);
     await page.screenshot({ path: file });
     const stats = await page.evaluate(() => window.__game.stats());
-    return { scenario, ok: error === null, error, file, stats, consoleErrors };
+    return { scenario: name, ok: error === null, error, file, stats, consoleErrors };
   } catch (err) {
-    return { scenario, ok: false, error: String(err).split('\n')[0], file: null, stats: null, consoleErrors };
+    return { scenario: name, ok: false, error: String(err).split('\n')[0], file: null, stats: null, consoleErrors };
   } finally {
     await page.close();
   }
 }
 
 async function main() {
-  const { scenarios, gl } = parseArgs(process.argv.slice(2));
+  const { scenarios, gl, track } = parseArgs(process.argv.slice(2));
   const mode = GL_MODES[gl];
   if (scenarios.length === 0 || !mode) {
-    console.log(`usage: npm run shots -- <scenario ...> [--gl ${Object.keys(GL_MODES).join('|')}]`);
+    console.log(`usage: npm run shots -- <scenario ...> [--track <id>] [--gl ${Object.keys(GL_MODES).join('|')}]`);
     process.exitCode = 2;
     return;
   }
@@ -136,7 +130,7 @@ async function main() {
     browser = launched.browser;
 
     const results = [];
-    for (const scenario of scenarios) results.push(await shoot(browser, port, scenario));
+    for (const scenario of scenarios) results.push(await shoot(browser, port, scenario, track));
 
     const report = {
       browser: `${launched.channel} ${browser.version()}`,
