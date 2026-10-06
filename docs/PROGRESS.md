@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.8 Performance pass
-- Status: P7.7 done. `npm run verify` passes (432 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P7.9 Phase end
+- Status: P7.8 done. `npm run verify` passes (432 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track. Shots: juice 23 draws / 27k tris (software GL in the cloud).
 
 ## Half-done
@@ -17,6 +17,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - P5 duo mechanics (re-test after P5.6a–c): duo race, chain drifts into nitro without
   overheating, swap lane once from lap 2. Ask: drifting understandable/fun? heat (nitro only)
   better? any stutter left (`npm run jitter`)? feels fast now?
+- P7 looks, sound, real FPS: on a normal work laptop race The Office with F3 open, on Medium. Reply:
+  FPS (min and typical), favorite and least favorite car, anything ugly or confusing on the track,
+  too loud/quiet sounds (volume sliders: speaker button top right).
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
 
@@ -40,9 +43,6 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Public network; firewall rule D030 opens 2567 + 5173. See docs/LAN.md.
 
 ## Known issues
-- Load test (server + 17 clients in one process): average tick 0.40 ms, but rare GC pauses make 1–2
-  ticks per race overrun (max seen 24 ms). Measure the standalone server under `npm run bots` in
-  the P7 performance pass.
 - In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
   playtests; it never exists with `npm start`.
 - A client could call `create('race')` and make a second room. Lock this down when the
@@ -115,6 +115,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   over the boardroom table, Server Closet shortcut, swap lane, 166 props), carpet ground, Office =
   default track, `shots --track`. Bot drift fixes (release on straights, no drift into S-bends or
   shortcuts). D091.
+- 2026-10-06 (cloud): P7.8 Performance — Office shots: Low ≤ 50 draws / 31k tris, High ≤ 68 / 72k
+  (budget 100/150k and 200/400k). Standalone server, 8 bot cars × 3 laps: tick avg 0.40 ms, max 5 ms,
+  0 overruns (the old GC spikes came from sharing a process with 17 clients). Shots `--quality`. D096.
 - 2026-10-06 (cloud): P7.7 Procedural audio — engine voice per car (cars.json `engine`), brake skid,
   wall/bump/landing thuds, countdown beeps, lobby/results music loop, volume channels + top-right speaker
   sliders. LOCAL: listen to it on the laptop (no speakers in the cloud). D095.
