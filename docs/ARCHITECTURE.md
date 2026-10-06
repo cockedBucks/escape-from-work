@@ -325,7 +325,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | cockpit too narrow / wide, mouse look too fast / slow | `camera.cockpitFov`, `camera.mouseSensitivity` |
 | can turn your head too far / not far enough, head snaps back | `camera.headYawLimit`, `camera.headPitchLimit`, `camera.headRecenterRate` |
 | cockpit too shaky / too stiff on bumps (motion sickness!) | `camera.headBob` (0 = off), `camera.headBobStiffness` |
-| a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08) |
+| a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08); `lapSpread` = balance test limit (±3%) |
 | drifting hard to start (P5) | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
 | drift too slidey / too grippy / turns too little | `car.driftGrip`, `drift.turnRate`, `drift.steerBase`, `drift.steerRange`, `drift.carve` |
 | drift ends too easily / never ends | `drift.releaseSteer`, `drift.exitSpeedRatio` |

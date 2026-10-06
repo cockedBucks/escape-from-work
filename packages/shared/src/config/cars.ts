@@ -44,6 +44,8 @@ export const CarsSchema = z
   .strictObject({
     /** Balance limit: every stat of every car must sit inside this range (GAME_DESIGN §8). */
     statRange: z.strictObject({ min: z.number().positive(), max: z.number().positive() }),
+    /** Balance test: every car's bot race time within this share of the roster median (0.03 = ±3%). */
+    lapSpread: z.number().positive().max(0.5),
     cars: z.array(CarDefSchema).min(1),
   })
   .superRefine((data, ctx) => {
