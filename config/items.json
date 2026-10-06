@@ -16,7 +16,7 @@
     "replyAll": { "speed": 42, "lifeSeconds": 6, "bounces": 3, "radius": 1.4, "spinSeconds": 1.2, "spawnAhead": 2.6, "armSeconds": 0.5 },
     "firewall": { "seconds": 8 },
     "coffeeSpill": { "seconds": 20, "radius": 2.6, "spinSeconds": 0.9, "dropBack": 3, "ownerGraceSeconds": 1.5 },
-    "ctrlZ": { "seconds": 3 },
+    "ctrlZ": { "seconds": 3, "sampleSeconds": 0.1 },
     "blueScreen": { "seconds": 2 },
     "lagSpike": { "seconds": 4, "delaySeconds": 0.8 },
     "controlSwap": { "seconds": 5 },

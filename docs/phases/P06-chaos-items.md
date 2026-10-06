@@ -17,7 +17,7 @@ rubber-banding that keeps races close, and a host toggle to turn chaos off.
   ordering). Uses the `/add-item` skill steps from here on.
 - [x] **P6.2 Projectile and defensive items.** Reply-All (bouncing projectile, Q aims back,
   spin-out on hit), Firewall, Coffee Spill. Tests.
-- [ ] **P6.3 Ctrl+Z.** 3-second per-car history ring buffer on the server, rewind and effect
+- [x] **P6.3 Ctrl+Z.** 3-second per-car history ring buffer on the server, rewind and effect
   clearing. Tests.
 - [ ] **P6.4 Screen and control items.** Blue Screen (overlay on both target clients), Lag Spike
   (server input delay queue), Control Swap (role mapping swap), Forced Update (stop + mash

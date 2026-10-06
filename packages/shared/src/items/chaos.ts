@@ -3,6 +3,7 @@ import type { Track } from '../track/build';
 import { Rng } from '../util/rng';
 import type { CarState, SimEvent, World } from '../sim/types';
 import type { Puddle } from './coffeeSpill';
+import type { CarHistory } from './ctrlZ';
 import type { Envelope } from './replyAll';
 import { bucketOf, racePlaces, rollItem } from './roll';
 
@@ -26,6 +27,8 @@ export interface ChaosState {
   /** Flying Reply-All envelopes and Coffee Spill puddles. */
   envelopes: Envelope[];
   puddles: Puddle[];
+  /** Ctrl+Z: each car's recent poses, by car id (derived, not hashed). */
+  history: Record<string, CarHistory>;
 }
 
 /** Item boxes for a track: each `itemRow` zone puts `count` boxes evenly across the road. */
@@ -45,7 +48,7 @@ export function buildBoxes(track: Track): ItemBox[] {
 
 /** Turn chaos mode on for a world (boxes from its track). */
 export function createChaos(track: Track, cfg: ItemsConfig, seed: number): ChaosState {
-  return { cfg, boxes: buildBoxes(track), rng: seed >>> 0, envelopes: [], puddles: [] };
+  return { cfg, boxes: buildBoxes(track), rng: seed >>> 0, envelopes: [], puddles: [], history: {} };
 }
 
 const canPickUp = (car: CarState): boolean => car.respawnAtTick < 0;

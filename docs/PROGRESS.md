@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
-- Next task: P6.3 Ctrl+Z
+- Next task: P6.4 Screen and control items (Blue Screen, Lag Spike, Control Swap, Forced Update)
 - Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
   Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
 
@@ -80,6 +80,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Reply-All envelope (bounces off road edges ×3, spin-out, arm time), Firewall (absorbs one hit),
   Coffee Spill (puddle, spins each car once); spin-out = no control, twirl, slow down (not
   predicted). Item registry in `items/index.ts`. D078.
+
+- 2026-10-06: P6.3 Ctrl+Z — every car's pose + heat sampled every 0.1 s (fixed slots, in the sim,
+  not hashed); using it jumps back 3 s (or to the oldest pose), clears spin/stall, ghosts the car
+  briefly; usable even while spinning. D079.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

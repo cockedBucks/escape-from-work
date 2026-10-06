@@ -17,6 +17,15 @@ export function hitCar(car: CarState, item: string, by: string, events: SimEvent
   events.push({ type: 'itemHit', car: car.id, item, by, blocked: false });
 }
 
+/**
+ * Ctrl+Z: end every bad effect on the car (spin-out, a stalled engine; more items add theirs).
+ * The heat itself goes back with the rest of the car (see `rewindCar`).
+ */
+export function clearBadEffects(car: CarState): void {
+  car.spinTicks = 0;
+  car.stallUntilTick = -1;
+}
+
 /** Start a spin-out of `seconds` (a car already spinning keeps its current one). */
 export function spinOut(car: CarState, seconds: number, dt: number): void {
   if (car.spinTicks === 0) car.spinTicks = Math.round(seconds / dt);

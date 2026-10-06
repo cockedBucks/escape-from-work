@@ -3,6 +3,7 @@ import type { Tuning } from '../config/tuning';
 import type { CarInput, CarState, SimEvent, World } from '../sim/types';
 import type { ChaosState } from './chaos';
 import { dropCoffee } from './coffeeSpill';
+import { rewindCar } from './ctrlZ';
 import { fireReplyAll } from './replyAll';
 
 /** What an item's `use` gets: the world, chaos state, the user's car and its input this tick. */
@@ -30,7 +31,7 @@ export const ITEMS: Readonly<Record<ItemId, ItemDef>> = {
   replyAll: { id: 'replyAll', use: (u) => fireReplyAll(u.chaos, u.car, u.input.aimBack ?? false, u.cfg.sim.dt, u.now) },
   firewall: { id: 'firewall', use: (u) => void (u.car.shieldTicks = Math.round(u.chaos.cfg.items.firewall.seconds / u.cfg.sim.dt)) },
   coffeeSpill: { id: 'coffeeSpill', use: (u) => dropCoffee(u.chaos, u.car, u.cfg.sim.dt, u.now) },
-  ctrlZ: later('ctrlZ'),
+  ctrlZ: { id: 'ctrlZ', use: (u) => rewindCar(u.chaos, u.car, u.cfg, u.now) },
   blueScreen: later('blueScreen'),
   lagSpike: later('lagSpike'),
   controlSwap: later('controlSwap'),
@@ -44,7 +45,8 @@ export const ITEMS: Readonly<Record<ItemId, ItemDef>> = {
 export function useItems(world: World, chaos: ChaosState, inputs: Readonly<Record<string, CarInput | undefined>>, cfg: Tuning, now: number, events: SimEvent[]): void {
   for (const car of world.cars) {
     const input = inputs[car.id];
-    if (!input?.fire || car.item === '' || car.respawnAtTick >= 0 || car.spinTicks > 0) continue;
+    // Spinning out you can't use items, except Ctrl+Z, which undoes the spin.
+    if (!input?.fire || car.item === '' || car.respawnAtTick >= 0 || (car.spinTicks > 0 && car.item !== 'ctrlZ')) continue;
     const def = ITEMS[car.item as ItemId];
     const item = car.item;
     car.item = '';

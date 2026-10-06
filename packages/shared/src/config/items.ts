@@ -48,7 +48,8 @@ export const ItemsSchema = z.strictObject({
       /** The car that dropped it can't slip on it for this long (s). */
       ownerGraceSeconds: nonNeg(),
     }),
-    ctrlZ: z.strictObject({ seconds: pos() }),
+    /** Rewind this far back (s); poses are remembered every `sampleSeconds`. */
+    ctrlZ: z.strictObject({ seconds: pos(), sampleSeconds: pos() }),
     blueScreen: z.strictObject({ seconds: pos() }),
     lagSpike: z.strictObject({ seconds: pos(), delaySeconds: pos() }),
     controlSwap: z.strictObject({ seconds: pos() }),

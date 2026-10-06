@@ -9,6 +9,7 @@ import { stepHeat } from './heat';
 import { stepNitro } from './nitro';
 import { stepBoxes } from '../items/chaos';
 import { stepPuddles } from '../items/coffeeSpill';
+import { recordHistory } from '../items/ctrlZ';
 import { useItems } from '../items/index';
 import { stepEnvelopes } from '../items/replyAll';
 import { TAU, dot, forward, wrapAngle } from '../util/math';
@@ -34,6 +35,7 @@ export function step(world: World, inputs: InputsByCar, cfg: Tuning): SimEvent[]
     stepEnvelopes(world, world.chaos, cfg, now, events);
     stepPuddles(world, world.chaos, cfg, now, events);
     stepBoxes(world, world.chaos, cfg.sim.dt, now, events);
+    recordHistory(world, world.chaos, cfg, now);
   }
   world.tick = now;
   return events;
