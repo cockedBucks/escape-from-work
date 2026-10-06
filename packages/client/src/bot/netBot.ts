@@ -5,6 +5,7 @@ import { Client, type EndpointSettings, type Room } from '@colyseus/sdk';
 import {
   MSG,
   ROOM_NAME,
+  botItem,
   botPedals,
   botSteer,
   carIdForSlot,
@@ -25,7 +26,10 @@ interface BotStateView {
     forEach(cb: (p: { slot: number; seat: string }, id: string) => void): void;
     get(id: string): { slot: number; seat: string } | undefined;
   };
-  cars?: { get(id: string): (CarViewLike & { progress: number }) | undefined };
+  cars?: {
+    get(id: string): (CarViewLike & { progress: number }) | undefined;
+    forEach(cb: (car: CarViewLike & { progress: number }, id: string) => void): void;
+  };
 }
 
 export interface BotCarOptions {
@@ -130,8 +134,22 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
 
   // Each client plays the seat it has right now: the swap lane trades Pilot and Engineer,
   // and the server ignores controls a seat may not use.
-  const halfFor = (seat: string | undefined, car: CarState, memory: BotMemory): Omit<InputMessage, 'seq'> =>
-    seat === 'engineer' ? botPedals(car, track, tuning, memory) : { steer: botSteer(car, track, tuning, tuning.bot.skill) };
+  // Items: the Engineer fires, the Pilot holds Q when the shot should go backward (both halves
+  // see the same cars, so they agree).
+  const halfFor = (seat: string | undefined, car: CarState, memory: BotMemory, others: readonly CarState[]): Omit<InputMessage, 'seq'> => {
+    const item = botItem(car, others, tuning, tuning.bot.skill);
+    return seat === 'engineer'
+      ? { ...botPedals(car, track, tuning, memory), fire: item.fire }
+      : { steer: botSteer(car, track, tuning, tuning.bot.skill), aimBack: item.aimBack };
+  };
+  /** The other cars, rebuilt from synced state (positions are all the item aim needs). */
+  const othersIn = (s: BotStateView): CarState[] => {
+    const out: CarState[] = [];
+    s.cars?.forEach((v, id) => {
+      if (id !== carId) out.push(carStateFromView(id, v, track, stats));
+    });
+    return out;
+  };
 
   // Pilot half (until a swap): steer toward the look-ahead point on every state update.
   let pilotSeq = 0;
@@ -142,7 +160,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     if (!view) return;
     const car = carStateFromView(carId, view, track, stats, pilotHint);
     pilotHint = car.segment;
-    pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(s.players?.get(pilot.sessionId)?.seat, car, pilotMemory) });
+    pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s)) });
   });
 
   // Engineer half: gas/brake for the next corners, respawn when stuck; also counts laps.
@@ -160,7 +178,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     engHint = car.segment;
     // Engineer half (until a swap): pedals, heat, drift taps, nitro.
     const seat = s.players?.get(engineer.sessionId)?.seat;
-    engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(seat === 'pilot' ? 'pilot' : 'engineer', car, memory) });
+    engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s)) });
     if (lastProgress > WRAP && view.progress < 1 - WRAP) {
       wraps++;
       const now = performance.now();

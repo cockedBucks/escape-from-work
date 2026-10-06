@@ -1,6 +1,7 @@
 import { Room, type Client } from '@colyseus/core';
 import {
   BotsSchema,
+  ChaosSchema,
   MSG,
   NAME_MAX_LENGTH,
   ReadySchema,
@@ -141,6 +142,15 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       const problem = this.sim.setBots(client.sessionId, msg.data.on);
       if (problem) return this.refuse(client, problem);
       this.state.bots = this.sim.botsEnabled;
+    });
+
+    this.onMessage(MSG.hostChaos, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = ChaosSchema.safeParse(message);
+      if (!msg.success) return;
+      const problem = this.sim.hostSetChaos(client.sessionId, msg.data.on);
+      if (problem) return this.refuse(client, problem);
+      this.state.chaos = this.sim.chaos;
     });
 
     this.onMessage(MSG.hostStart, (client) => {

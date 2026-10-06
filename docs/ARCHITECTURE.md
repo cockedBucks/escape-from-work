@@ -340,6 +340,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | server/network bots too good / too plain | `bot.skill` (0 plain, 1 drifts, 2 drifts + nitro) |
 | skilled bots drift too much / too little / crash in drifts | `bot.driftMinCurvature`, `bot.driftLookAhead`, `bot.driftHoldAhead` |
 | skilled bots waste nitro / overheat with it | `bot.nitroMaxHeat` |
+| bots waste items / never fire them | `bot.itemAimCone`, `bot.itemAimRange`, `bot.itemDropRange` |
 | teamwork pays too much / too little (balance test fails) | `bot.balanceGain` [min, max] share of race time; tune drift/nitro, not the test |
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |
 | own car shimmers / snaps after bumps | `net.predictCorrectionRate` (lower = softer corrections) |

@@ -19,6 +19,12 @@ export interface CarViewLike {
   steer: number;
   drift: number;
   nitro: number;
+  /** Held item and the item effects (what a bot needs to decide on using it). */
+  item: string;
+  spinLeft: number;
+  updateLeft: number;
+  swapLeft: number;
+  lagLeft: number;
 }
 
 /**
@@ -40,6 +46,11 @@ export function carStateFromView(id: string, view: CarViewLike, track: Track, st
   car.steer = view.steer;
   car.driftDir = view.drift;
   car.nitro = view.nitro;
+  car.item = view.item;
+  car.spinTicks = view.spinLeft > 0 ? 1 : 0;
+  car.updateTicks = view.updateLeft > 0 ? 1 : 0;
+  car.controlSwapTicks = view.swapLeft > 0 ? 1 : 0;
+  car.lagTicks = view.lagLeft > 0 ? 1 : 0;
   const loc = locateOnTrack(track, { x: view.x, z: view.z }, hintSegment);
   car.segment = loc.segment;
   car.progress = lapProgress(track, loc.progress);

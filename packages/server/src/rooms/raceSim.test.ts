@@ -595,3 +595,19 @@ describe('RaceSim firing items', () => {
     expect(car(sim, 'car0').item).toBe('firewall');
   });
 });
+
+describe('RaceSim chaos toggle', () => {
+  it('only the host switches chaos, and only between races', () => {
+    const sim = new RaceSim(track, cfg, stats, undefined, loadItemsFile());
+    sim.addPlayer('h');
+    sim.addPlayer('g');
+    sim.setSeat('h', 0, 'solo');
+    expect(sim.hostSetChaos('g', false)).toMatch(/only the host/);
+    expect(sim.chaos).toBe(true);
+    expect(sim.hostSetChaos('h', false)).toBeNull();
+    expect(sim.chaos).toBe(false);
+    expect(sim.world.chaos).toBeUndefined();
+    expect(sim.hostSetChaos('h', true)).toBeNull();
+    expect(sim.world.chaos?.boxes.length).toBeGreaterThan(0);
+  });
+});

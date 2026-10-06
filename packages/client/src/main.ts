@@ -202,7 +202,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     const noop = (): void => {};
     const handlers: LobbyHandlers = {
       setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
-      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setFace: noop,
+      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setFace: noop,
     };
     const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
@@ -292,6 +292,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     setLaps: (laps) => room.send(MSG.hostLaps, { laps }),
     shuffle: () => room.send(MSG.hostShuffle, {}),
     setBots: (on) => room.send(MSG.hostBots, { on }),
+    setChaos: (on) => room.send(MSG.hostChaos, { on }),
   });
   room.onMessage(MSG.lobbyError, (e: LobbyError) => {
     join.show(true);
@@ -429,6 +430,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
       laps: state.laps,
       teams: [...state.teams],
       bots: state.bots,
+      chaos: state.chaos,
       botSlots: botSlotsOf(state),
       faces,
     });

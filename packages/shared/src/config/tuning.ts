@@ -120,6 +120,11 @@ const BotSchema = z.strictObject({
   driftSteerMargin: fraction(),
   /** Skill 2: burn nitro on a clear straight while the engine is below this heat (0–1). */
   nitroMaxHeat: z.number().min(0).max(1),
+  /** Items (skill 1+): Reply-All fires at a car within `itemAimCone` rad and `itemAimRange` m;
+   * Coffee Spill drops when a car is within `itemDropRange` m behind. */
+  itemAimCone: pos(),
+  itemAimRange: pos(),
+  itemDropRange: pos(),
   /** Balance test: a skill-2 bot must be this much faster than a plain one (share of race time, min–max). */
   balanceGain: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
 });

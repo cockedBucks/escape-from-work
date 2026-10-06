@@ -19,6 +19,12 @@ const base = (over: Partial<LobbyView> = {}): LobbyView => ({
 });
 
 describe('lobbyHtml', () => {
+  it('the host can switch chaos mode (on by default)', () => {
+    expect(lobbyHtml(base(), limits)).toContain('data-action="chaos" class="on"');
+    expect(lobbyHtml(base({ chaos: false }), limits)).toContain('💥 Chaos: off');
+    expect(lobbyHtml(base({ myId: 'b' }), limits)).not.toContain('data-action="chaos"');
+  });
+
   it('shows a how-to-play card per role with its keys, yours highlighted', () => {
     const html = lobbyHtml(base(), limits);
     for (const role of ['pilot', 'engineer', 'solo']) expect(html).toContain(`data-role="${role}"`);

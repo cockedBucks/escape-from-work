@@ -333,6 +333,14 @@ export class RaceSim {
     return null;
   }
 
+  /** Host: chaos mode on/off (between races). */
+  hostSetChaos(by: string, on: boolean): string | null {
+    if (by !== this.flow.host) return 'only the host can change chaos mode';
+    if (!seatChangesAllowed(this.flow.phase)) return 'not during a race';
+    this.setChaos(on);
+    return null;
+  }
+
   /** Host: bots fill empty cars on/off. */
   setBots(by: string, on: boolean): string | null {
     if (by !== this.flow.host) return 'only the host can change bots';
@@ -505,7 +513,7 @@ export class RaceSim {
     for (const slot of this.botSlots) {
       const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
       const memory = this.botMemory.get(slot);
-      if (car && memory) inputs[car.id] = live ? botInput(car, this.world.track, this.cfg, memory) : NO_INPUT;
+      if (car && memory) inputs[car.id] = live ? botInput(car, this.world.track, this.cfg, memory, this.world.cars) : NO_INPUT;
     }
     for (const p of this.players.values()) {
       p.respawnPending = false;

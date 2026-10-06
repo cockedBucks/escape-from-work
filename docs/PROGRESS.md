@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
-- Next task: P6.6 Chaos toggle + bots
+- Next task: P6.7 Phase end (chaos gate deferred)
 - Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
   Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
 
@@ -17,6 +17,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - P5 duo mechanics (re-test after P5.6a–c): duo race, chain drifts into nitro without
   overheating, swap lane once from lap 2. Ask: drifting understandable/fun? heat (nitro only)
   better? any stutter left (`npm run jitter`)? feels fast now?
+- P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
+  unclear ones? anything too strong? (weights/durations in config/items.json)
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
@@ -94,6 +96,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   draw calls, synced via `boxesUp` + `shots` map, envelopes extrapolated), SVG item icons in the
   HUD, toasts (got / hit by / blocked) for both players of a car, item sounds, `items` scenario
   (18 draw calls). D081.
+
+- 2026-10-06: P6.6 chaos toggle (host lobby button, `host:chaos`, between races) + bot items
+  (skill ≥ 1: Firewall/targeted at once, Ctrl+Z in trouble, Reply-All at a car in its sights
+  ahead or behind, Coffee Spill with a car close behind; network bots split fire/aim). Chaos bot
+  race test (4 skilled bots, 2 laps) and the load test pass. D082.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

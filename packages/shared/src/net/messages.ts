@@ -32,6 +32,8 @@ export const MSG = {
   hostShuffle: 'host:shuffle',
   /** client (host) → server: `{ on }` bots fill empty cars. */
   hostBots: 'host:bots',
+  /** client (host) → server: `{ on }` chaos mode (item boxes and items). */
+  hostChaos: 'host:chaos',
   /** client (host) → server: start the race / rematch. */
   hostStart: 'host:start',
   /** client (host) → server: `{ laps }` for the next race. */
@@ -128,6 +130,8 @@ export const ReadySchema = z.strictObject({ ready: z.boolean() });
 
 /** `host:bots` (client → server). */
 export const BotsSchema = z.strictObject({ on: z.boolean() });
+/** `host:chaos` body: chaos mode on/off. */
+export const ChaosSchema = z.strictObject({ on: z.boolean() });
 
 /** `head` (client → server, ~20/s in the cockpit): where your head points, relative to the car. */
 export const HeadSchema = z.strictObject({

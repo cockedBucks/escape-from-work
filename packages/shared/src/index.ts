@@ -46,6 +46,7 @@ export type { Envelope } from './items/replyAll';
 export type { Puddle } from './items/coffeeSpill';
 export { botSteer, lookAheadPoint } from './bot/pilot';
 export { botPedals, cornerAhead, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
+export { botItem } from './bot/items';
 export { botInput } from './bot/driver';
 export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';
 export {
@@ -54,6 +55,7 @@ export {
   NAME_MAX_LENGTH,
   SetNameSchema,
   BotsSchema,
+  ChaosSchema,
   HeadSchema,
   parseHead,
   ReadySchema,

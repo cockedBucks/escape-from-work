@@ -24,8 +24,8 @@ rubber-banding that keeps races close, and a host toggle to turn chaos off.
   progress). Tests.
 - [x] **P6.5 Item presentation.** Effects, hit reactions, HUD and dashboard icon, procedural
   sounds, "you got hit by X" toast for both players. Scenario `items`. `/shots items`.
-- [ ] **P6.6 Chaos toggle + bots.** Host toggle; bot engineer half uses items sensibly.
-- [ ] **HUMAN GATE — chaos race.**
+- [x] **P6.6 Chaos toggle + bots.** Host toggle; bot engineer half uses items sensibly.
+- [~] **HUMAN GATE — chaos race.** (deferred to the end of all phases, D075)
   1. Race with chaos on, 3+ cars (bots allowed).
   2. Reply: which items are the most fun, which are annoying or unclear, is anything too strong?
      Use `/feedback` for weights and durations.

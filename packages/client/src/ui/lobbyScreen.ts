@@ -26,6 +26,8 @@ export interface LobbyView {
   laps: number;
   teams: string[];
   bots: boolean;
+  /** Chaos mode (items); absent = on. */
+  chaos?: boolean;
   /** Car slots currently driven by server bots. */
   botSlots: number[];
   /** Faces available on the host (from /faces/faces.json); empty = placeholder only. */
@@ -43,6 +45,7 @@ export interface LobbyHandlers {
   setLaps(laps: number): void;
   shuffle(): void;
   setBots(on: boolean): void;
+  setChaos(on: boolean): void;
 }
 
 export interface LobbyLimits {
@@ -76,6 +79,7 @@ function saveName(name: string): void {
 export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
   const me = v.players.find((p) => p.id === v.myId);
   const iAmHost = v.host === v.myId;
+  const chaos = v.chaos ?? true;
   const html: string[] = [];
   const faces = v.faces ?? [];
   if (faces.length > 0) {
@@ -132,6 +136,7 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
       <button data-action="laps-up" ${v.laps >= limits.maxLaps ? 'disabled' : ''}>+</button></span>
       <button data-action="shuffle">🔀 Shuffle</button>
       <button data-action="bots" class="${v.bots ? 'on' : ''}">🤖 Bots: ${v.bots ? 'on' : 'off'}</button>
+      <button data-action="chaos" class="${chaos ? 'on' : ''}" title="Item boxes and items">💥 Chaos: ${chaos ? 'on' : 'off'}</button>
       <button class="big start" data-action="start">${v.phase === 'results' ? 'REMATCH' : 'START RACE'}</button>
     </div>`);
   } else {
@@ -240,6 +245,7 @@ export class LobbyScreen {
       case 'start': return this.handlers.start();
       case 'shuffle': return this.handlers.shuffle();
       case 'bots': return this.handlers.setBots(!v.bots);
+      case 'chaos': return this.handlers.setChaos(!(v.chaos ?? true));
       case 'laps-down': return this.handlers.setLaps(v.laps - 1);
       case 'laps-up': return this.handlers.setLaps(v.laps + 1);
       default:

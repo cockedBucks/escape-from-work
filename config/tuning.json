@@ -54,6 +54,9 @@
     "driftHoldAhead": 6,
     "driftSteerMargin": 0.05,
     "nitroMaxHeat": 0.45,
+    "itemAimCone": 0.15,
+    "itemAimRange": 70,
+    "itemDropRange": 25,
     "balanceGain": [0.02, 0.12]
   },
   "drift": {
