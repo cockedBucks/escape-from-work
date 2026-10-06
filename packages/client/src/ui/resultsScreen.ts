@@ -1,5 +1,6 @@
 // Results (P3.6): positions, race time, best lap; Rematch and Lobby for the host.
 // Awards and league points join in P9.
+import { awardLine, DUCK_AWARD, pointsFor, type LeagueTuning, type RaceRecord } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
 import { ordinal } from './raceHud';
 import { raceTime } from './scoreboard';
@@ -22,6 +23,9 @@ export interface ResultsView {
   myId: string;
   host: string;
   hostName: string;
+  /** The race's league record (points and awards), once the server sent it. */
+  record?: RaceRecord | null;
+  league?: LeagueTuning;
 }
 
 export interface ResultsHandlers {
@@ -56,6 +60,25 @@ export function podiumHtml(v: ResultsView): string {
   return `<div class="podium">${step(2)}${step(1)}${step(3)}</div>`;
 }
 
+/** The awards of the race: icon, title, who and why (up to 3 plus the duck). Pure, tested. */
+export function awardsHtml(record: RaceRecord, league: LeagueTuning, teams: readonly string[]): string {
+  const items = record.awards.map((a) => {
+    const car = record.cars.find((c) => c.slot === a.slot);
+    if (!car) return '';
+    const rule = a.id === DUCK_AWARD ? null : league.awards.find((r) => r.id === a.id);
+    if (a.id !== DUCK_AWARD && !rule) return '';
+    const title = rule ? rule.title : league.duck.title;
+    const icon = rule ? rule.icon : league.duck.icon;
+    const line = rule ? awardLine(rule, car.counts) : league.duck.line;
+    const team = escapeHtml(teams[car.slot] ?? car.team);
+    const who = car.bot ? '🤖 Bot' : escapeHtml(car.players.map((p) => p.name).join(' & '));
+    return `<li class="award${a.id === DUCK_AWARD ? ' duck' : ''}" style="--team:${hex(TEAM_COLORS[car.slot % TEAM_COLORS.length]!)}">
+      <span class="award-icon">${escapeHtml(icon)}</span><b>${escapeHtml(title)}</b><span class="award-who">${team} · ${who}</span><small>${escapeHtml(line)}</small></li>`;
+  });
+  const list = items.filter(Boolean).join('');
+  return list ? `<ul class="awards">${list}</ul>` : '';
+}
+
 /** The results panel HTML (pure, tested). */
 export function resultsHtml(v: ResultsView): string {
   const cars = [...v.cars].sort((a, b) => (a.place || 99) - (b.place || 99) || a.slot - b.slot);
@@ -69,17 +92,22 @@ export function resultsHtml(v: ResultsView): string {
     const time = c.finished ? raceTime(c.finishMs) : 'DNF';
     const best = c.bestLapMs > 0 ? raceTime(c.bestLapMs) : '—';
     const isFastest = c.bestLapMs > 0 && c.bestLapMs === fastest;
+    const recCar = v.record?.cars.find((r) => r.slot === c.slot);
+    const points = recCar && v.league ? pointsFor(recCar, v.league) : null;
+    const pointsCell = v.record && v.league ? `<td class="r-points">${points ? `+${points}` : c.bot ? '' : '0'}</td>` : '';
     return `<tr class="${c.place === 1 ? 'winner' : ''}" style="--team:${hex(TEAM_COLORS[c.slot % TEAM_COLORS.length]!)}">
       <td class="r-place">${c.place > 0 ? ordinal(c.place) : ''}</td>
       <td class="r-team">${escapeHtml(v.teams[c.slot] ?? `Team ${c.slot + 1}`)}<small>${who}</small></td>
       <td class="r-time">${time}</td>
-      <td class="r-best${isFastest ? ' fastest' : ''}">${best}${isFastest ? ' ⚡' : ''}</td></tr>`;
+      <td class="r-best${isFastest ? ' fastest' : ''}">${best}${isFastest ? ' ⚡' : ''}</td>${pointsCell}</tr>`;
   });
   const actions =
     v.myId === v.host
       ? '<button class="big start" data-action="rematch">REMATCH</button><button class="big" data-action="lobby">Back to lobby</button>'
       : `<p class="waiting">Waiting for <strong>${escapeHtml(v.hostName)}</strong>: rematch or lobby</p>`;
-  return `${podiumHtml(v)}<table><thead><tr><th></th><th>Team</th><th>Time</th><th>Best lap</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+  const pointsHead = v.record && v.league ? '<th>Points</th>' : '';
+  const awards = v.record && v.league ? awardsHtml(v.record, v.league, v.teams) : '';
+  return `${podiumHtml(v)}<table><thead><tr><th></th><th>Team</th><th>Time</th><th>Best lap</th>${pointsHead}</tr></thead><tbody>${rows.join('')}</tbody></table>${awards}
     <div class="lobby-actions">${actions}</div>`;
 }
 

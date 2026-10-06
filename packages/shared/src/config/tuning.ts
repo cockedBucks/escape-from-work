@@ -352,6 +352,8 @@ export const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
 const AwardRuleSchema = z.strictObject({
   id: z.string().regex(/^[a-zA-Z]+$/),
   title: z.string().min(1),
+  /** A trophy emoji shown with the title. */
+  icon: z.string().min(1).max(8),
   /** Shown under the title; `{n}` = the number. */
   line: z.string().min(1),
   stat: z.enum(AWARD_STATS),
@@ -372,7 +374,7 @@ const LeagueTuningSchema = z.strictObject({
   maxAwards: z.number().int().min(0),
   awards: z.array(AwardRuleSchema),
   /** The Rubber Duck of Shame, always for last place. */
-  duck: z.strictObject({ title: z.string().min(1), line: z.string().min(1) }),
+  duck: z.strictObject({ title: z.string().min(1), icon: z.string().min(1).max(8), line: z.string().min(1) }),
 });
 
 export const TuningSchema = z.strictObject({

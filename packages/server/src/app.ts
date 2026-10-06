@@ -3,10 +3,11 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { Server, matchMaker } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
-import { ROOM_NAME } from '@escape/shared';
+import { leagueTables, ROOM_NAME } from '@escape/shared';
 import { watchConfig } from './dev/configWatcher';
 import { FACES_DIR } from './faces';
-import { setLeague } from './league/league';
+import { league, setLeague } from './league/league';
+import { localIso } from './league/record';
 import { LeagueStore } from './league/store';
 import { listMenuImages, MENU_DIR } from './menuImages';
 import { installTuningRoutes } from './dev/tuningRoutes';
@@ -69,6 +70,12 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
       // A short 404/403, never Express's default error page (it shows local paths in dev).
       app.use('/faces', (_req, res) => {
         res.status(404).type('text').send('no such face');
+      });
+      // League tables for the League screen (P9.4), computed from the history on each request.
+      app.get('/league/tables.json', (_req, res) => {
+        const store = league();
+        res.set('Cache-Control', 'no-store');
+        res.json(store ? { enabled: true, ...leagueTables(store.data, live.tuning.league, localIso(new Date())) } : { enabled: false });
       });
       // Main menu slideshow (P8.1): the list is read on every request, so new images just appear.
       app.get('/menu/menu.json', (_req, res) => {

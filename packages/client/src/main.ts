@@ -4,7 +4,7 @@ import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
@@ -12,6 +12,7 @@ import { EngineSound, squealing } from './audio/engine';
 import { COUNTDOWN_SOUNDS, DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer, IMPACT_SOUNDS, impactLevel, ITEM_SOUNDS } from './audio/horn';
 import { MusicLoop } from './audio/music';
 import { showMainMenu } from './menu';
+import { FAKE_RECORD, FAKE_TABLES } from './scenarioLeague';
 import { loadSettings, saveSettings } from './settings';
 import { SettingsScreen } from './ui/settingsScreen';
 import { HINT_TEXT, Onboarding, RoleCard } from './ui/onboarding';
@@ -263,6 +264,8 @@ async function showResultsScenario(hooks: GameHooks, tuning: Tuning): Promise<vo
       myId: 'me',
       host: 'me',
       hostName: 'You',
+      record: FAKE_RECORD,
+      league: tuning.league,
     });
   });
 }
@@ -312,8 +315,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   // Sim events (bumps, jumps, …): for now they shake the cockpit head; sounds and effects in P7.
   let onEvents: (events: SimEvent[]) => void = () => {};
   room.onMessage(MSG.events, (events: SimEvent[]) => onEvents(events));
-  // The league record of the race that just ended (points and awards: the results screen, P9.4).
-  room.onMessage(MSG.raceRecord, () => {});
+  // The league record of the race that just ended: points and awards on the results screen.
+  room.onMessage(MSG.raceRecord, (record: RaceRecord) => {
+    lastRecord = record;
+  });
   // Faces on the host PC (none = everyone gets the drawn placeholder).
   // Loaded before the lobby is drawn, so the face picker does not appear late and push the
   // seat buttons down under the player's mouse.
@@ -407,6 +412,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let carModels: string[] = [];
   /** The car you drive (stats and engine voice are set when it changes). */
   let myCarDef: CarDef | null = null;
+  /** The record of the race that just ended (null until it arrives; cleared for the next race). */
+  let lastRecord: RaceRecord | null = null;
   /** Cars seen finished this race (confetti once each; joining during results throws none). */
   const finishedCars = new Set<string>();
   const carDefOf = (carId: string): CarDef => {
@@ -483,7 +490,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       });
     });
     board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase));
+    if (state.phase === 'countdown') lastRecord = null;
     resultsScreen.update(state.phase === 'results', {
+      record: lastRecord,
+      league: latestTuning.league,
       cars: boardCars,
       players,
       teams: teamNames,
@@ -733,11 +743,14 @@ async function startGame(hooks: GameHooks, tuning: Tuning): Promise<void> {
   await showRace(hooks, tuning, horns);
 }
 
-/** The `menu` scenario: the main menu for screenshots (PLAY does nothing). */
-async function showMenuScenario(hooks: GameHooks, tuning: Tuning): Promise<void> {
+/** The `menu` and `league` scenarios: the main menu (and the League screen) for screenshots. */
+async function showMenuScenario(hooks: GameHooks, tuning: Tuning, withLeague: boolean): Promise<void> {
   const horns = new HornPlayer();
   await new Promise<void>((shown) => {
-    void showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning).preset, roster: loadCars().cars, horns, onShown: shown });
+    void showMainMenu({
+      tuning, quality: pickQuality(window.location.search, tuning).preset, roster: loadCars().cars, horns, onShown: shown,
+      ...(withLeague ? { leagueTables: { enabled: true as const, ...FAKE_TABLES } } : {}),
+    });
   });
   setStatus('');
   await markReady(hooks);
@@ -751,8 +764,8 @@ if (hooks.error !== null) {
   const run =
     hooks.scenario === 'hello'
       ? showHello(hooks, tuning)
-      : hooks.scenario === 'menu'
-        ? showMenuScenario(hooks, tuning)
+      : hooks.scenario === 'menu' || hooks.scenario === 'league'
+        ? showMenuScenario(hooks, tuning, hooks.scenario === 'league')
       : hooks.scenario === 'lobby'
         ? showLobbyScenario(hooks, tuning)
         : hooks.scenario === 'results'

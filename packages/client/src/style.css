@@ -1676,3 +1676,133 @@ body {
   background: #fff;
   font-size: 1.05rem;
 }
+
+/* Results: points and awards (P9.4). */
+.results .r-points {
+  font-weight: 700;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+
+.awards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.45rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.award {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.4rem;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  border: var(--edge);
+  border-left: 0.45rem solid var(--team);
+  border-radius: 0.7rem;
+  background: #fff;
+  box-shadow: var(--pop);
+  animation: panel-in 0.4s var(--ease-pop) backwards;
+}
+
+.award:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.award:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.award:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+.award-icon {
+  grid-row: span 3;
+  font-size: 1.4rem;
+}
+
+.award b {
+  line-height: 1.1;
+}
+
+.award-who {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.award small {
+  color: var(--road);
+}
+
+.award.duck {
+  background: #fff8d6;
+}
+
+/* League screen (P9.4). */
+.modal-box.league {
+  width: min(42rem, 94vw);
+}
+
+.league-title {
+  margin: 0 0 0.6rem;
+  color: var(--red);
+  transform: rotate(-1.5deg);
+}
+
+.league-body {
+  margin-top: 0.8rem;
+}
+
+.league-note,
+.league-body .empty {
+  margin: 0 0 0.5rem;
+  color: var(--road);
+  font-weight: 600;
+}
+
+.league-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.league-table th {
+  text-align: left;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  color: var(--road);
+  padding: 0 0.5rem 0.25rem;
+}
+
+.league-table td {
+  padding: 0.3rem 0.5rem;
+  border-top: 2px solid rgba(30, 34, 48, 0.1);
+}
+
+.league-table .l-rank {
+  width: 2.2rem;
+  font-size: 1.15rem;
+}
+
+.league-table .l-name {
+  font-weight: 700;
+}
+
+.league-table .l-pts {
+  font-weight: 700;
+  color: var(--teal);
+}
+
+/* Rematch / Lobby always in reach, even when 8 cars and the awards need scrolling. */
+.results .lobby-actions {
+  position: sticky;
+  bottom: -1rem;
+  margin: 0.6rem -1.3rem -1rem;
+  padding: 0.6rem 1.3rem 0.8rem;
+  background: var(--sand);
+  border-top: 2px solid rgba(30, 34, 48, 0.1);
+}

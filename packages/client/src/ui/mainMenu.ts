@@ -32,6 +32,7 @@ export interface MainMenuHandlers {
   onHonk(): void;
   onSettings(): void;
   onKeys(): void;
+  onLeague(): void;
 }
 
 export class MainMenu {
@@ -84,7 +85,11 @@ export class MainMenu {
       b.addEventListener('click', onClick);
       return b;
     };
-    small.append(smallButton('settings', '⚙ Settings', () => handlers.onSettings()), smallButton('keys', '⌨ Keys', () => handlers.onKeys()));
+    small.append(
+      smallButton('league', '🏆 League', () => handlers.onLeague()),
+      smallButton('settings', '⚙ Settings', () => handlers.onSettings()),
+      smallButton('keys', '⌨ Keys', () => handlers.onKeys()),
+    );
     const car = document.createElement('p');
     car.className = 'menu-car';
     car.append('On the turntable: ', this.carName);

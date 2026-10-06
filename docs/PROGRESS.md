@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P9 — League and awards (`docs/phases/P09-league.md`)
-- Next task: P9.4 League UI
-- Status: P9.3 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P9.5 Phase end
+- Status: P9.4 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -22,6 +22,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   too loud/quiet sounds (volume sliders: speaker button top right).
 - P8 first-time players: find 2 coworkers who never saw the game, give them only the URL, watch,
   do not help. Reply: where they got stuck, what made them laugh, what they asked.
+- P9 a league week: play normally for a few days, look at the League screen (menu → 🏆 League).
+  Reply: anything unfair, missing or not funny enough? Which awards should change?
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
 
@@ -115,6 +117,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06 (cloud): P9.3 Awards — counters from sim events, award rules in config (6 awards,
   max 3) + the Rubber Duck of Shame; the record with awards is broadcast at race end. D105.
+
+- 2026-10-06 (cloud): P9.4 League UI — results show points and awards; League screen in the menu
+  (week, all time, duos, lap records) from /league/tables.json; `results`/`league` scenarios. D106.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

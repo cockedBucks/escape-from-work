@@ -11,6 +11,7 @@ export type AwardStat = (typeof AWARD_STATS)[number];
 export interface AwardRule {
   id: string;
   title: string;
+  icon: string;
   /** Short line under the title ("bounced off 9 walls"); `{n}` = the number. */
   line: string;
   stat: AwardStat;

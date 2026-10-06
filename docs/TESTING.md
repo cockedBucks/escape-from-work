@@ -72,6 +72,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |
 | `track-overview` | top-down camera over the whole track, cars on the start line |
 | `shortcut` | fixed camera over the fork where the track's first shortcut leaves the main road, no cars (P7.5) |
+| `league` | the main menu with the League screen open on made-up tables (this week) (P9.4) |
 | `menu` | main menu: turntable showroom (first roster car), PLAY, HONK, loading message; the slideshow shows when `assets/menu/` has images (P8.1) |
 | `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview |
 | `garage` | all roster cars side by side in team colors |
@@ -80,7 +81,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `items` | frozen moment with several item effects active |
 | `garage` | showroom: one car per slot (car0–car7, cycling through config/cars.json) parked in two rows at the start line, fixed camera in front (P7.1) |
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |
-| `results` | results screen with made-up times (awards and points join in P9) |
+| `results` | results screen with made-up times, the podium, points and awards (P9.4) |
 | `menu` | main menu |
 
 Any scenario also takes `&quality=low|medium|high` (default `quality.default`).

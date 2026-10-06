@@ -3,7 +3,7 @@ import { awardLine, countTick, DUCK_AWARD, newCounts, pickAwards, type AwardRule
 import { NO_COUNTS, type CarCounts, type RaceCar } from './schema';
 
 const rule = (over: Partial<AwardRule>): AwardRule => ({
-  id: 'wallHugger', title: 'Wall Hugger', line: 'bounced off {n} walls', stat: 'wallHits', pick: 'most', limit: 3, finishedOnly: false, ...over,
+  id: 'wallHugger', title: 'Wall Hugger', icon: '🧱', line: 'bounced off {n} walls', stat: 'wallHits', pick: 'most', limit: 3, finishedOnly: false, ...over,
 });
 
 const car = (slot: number, place: number, counts: Partial<CarCounts>, over: Partial<RaceCar> = {}): RaceCar => ({

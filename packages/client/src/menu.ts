@@ -6,6 +6,8 @@ import { MusicLoop } from './audio/music';
 import { MainMenu } from './ui/mainMenu';
 import { VolumePanel } from './ui/volumePanel';
 import { SettingsScreen } from './ui/settingsScreen';
+import { LeagueScreen, type LeagueResponse } from './ui/leagueScreen';
+import { trackName } from './content';
 import { loadCameraMode, saveCameraMode } from './input/cameraPref';
 import { loadSettings, saveSettings } from './settings';
 import { Showroom } from './render/showroom';
@@ -17,6 +19,8 @@ export interface MenuOptions {
   horns: HornPlayer;
   /** Called once the first frame is drawn (screenshot hooks). */
   onShown?: () => void;
+  /** `league` scenario: open the League screen at once with these tables. */
+  leagueTables?: LeagueResponse;
 }
 
 /** Company images for the slideshow (an empty list when there are none or no server). */
@@ -49,6 +53,8 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
       onVolumes: (v) => opts.horns.setVolumes(v),
       onCamera: (mode) => saveCameraMode(mode),
     });
+    const carName = (id: string): string => opts.roster.find((d) => d.id === id)?.name ?? id;
+    const leagueScreen = new LeagueScreen(document.body, carName, trackName);
     const volume = new VolumePanel(document.body, () => opts.horns.volumes, (v) => opts.horns.setVolumes(v), () => settingsScreen.open('settings'));
     let frame = 0;
     let done = false;
@@ -60,11 +66,13 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
         music.dispose();
         volume.dispose();
         settingsScreen.dispose();
+        leagueScreen.dispose();
         menu.dispose();
         showroom.dispose();
         stageEl.remove();
         resolve();
       },
+      onLeague: () => void leagueScreen.open(),
       onSettings: () => settingsScreen.open('settings'),
       onKeys: () => settingsScreen.open('keys'),
       onHonk: () => {
@@ -73,6 +81,7 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
       },
     });
     void fetchMenuImages().then((urls) => menu.setImages(urls));
+    if (opts.leagueTables) void leagueScreen.open(opts.leagueTables);
     // Music starts once the browser allows sound (first click or key); retried each frame.
     let first = true;
     const loop = (now: number): void => {

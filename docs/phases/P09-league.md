@@ -19,9 +19,9 @@ Rubber Duck of Shame, stored safely on the host PC.
   `league.weekStartsOn` (default Sunday). Tests including week boundaries.
 - [x] **P9.3 Awards.** Counters from sim events (wall hits, brake time, drift levels, item hits,
   honks). Award rules in config. Rubber Duck of Shame for last place every race. Tests.
-- [ ] **P9.4 League UI.** Results show points and awards; League screen in the menu (this week,
+- [x] **P9.4 League UI.** Results show points and awards; League screen in the menu (this week,
   all time, records, best duos). Update scenario `results`; add `league` scenario.
-- [ ] **HUMAN GATE — a league week.**
+- [~] **HUMAN GATE — a league week.** (deferred)
   1. Play normally for a few days. Look at the League screen.
   2. Reply: anything unfair, missing or not funny enough? Which awards should change?
 - [ ] **P9.5 Phase end.** Reviewer, fixes, `git tag p9-done`, report.

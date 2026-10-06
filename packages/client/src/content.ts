@@ -32,6 +32,13 @@ export function trackIds(): string[] {
     .sort();
 }
 
+/** A track's display name ("office" → "The Office"); the id itself if unknown. */
+export function trackName(id: string): string {
+  const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));
+  const name = (entry?.[1] as { name?: unknown } | undefined)?.name;
+  return typeof name === 'string' ? name : id;
+}
+
 /** Validate and build a bundled track. Throws for an unknown id. */
 export function loadTrack(id: string, tuning: Tuning): Track {
   const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));
