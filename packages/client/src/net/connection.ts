@@ -122,6 +122,11 @@ export function usableSession(saved: SavedSession | null, now: number, reconnect
   return now - saved.leftAt < reconnectSeconds * 1000 ? saved.token : null;
 }
 
+/** Did this browser leave a seat a moment ago (reload, closed tab)? Then skip the menu and rejoin. */
+export function hasSavedSeat(tuning: Tuning): boolean {
+  return usableSession(readSession(), Date.now(), tuning.net.reconnectSeconds) !== null;
+}
+
 function readSession(): SavedSession | null {
   try {
     return JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? 'null') as SavedSession | null;

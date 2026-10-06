@@ -11,7 +11,7 @@ join and play without anyone explaining.
 
 ## Tasks
 
-- [ ] **P8.1 Main menu.** Car turntable (showroom cam), wobbly buttons, big HONK button, rotating
+- [x] **P8.1 Main menu.** Car turntable (showroom cam), wobbly buttons, big HONK button, rotating
   fake IT loading messages, slideshow of images in `assets/menu/` (manifest built like faces).
   Scenario `menu`.
 - [ ] **P8.2 Settings.** Quality preset, master/engine/sfx volume, default camera, show FPS,

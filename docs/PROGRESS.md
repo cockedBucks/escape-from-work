@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P8 — Menu and UX (`docs/phases/P08-menu-ux.md`)
-- Next task: P8.1 Main menu
-- Status: P7 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P8.2 Settings
+- Status: P8.1 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -97,6 +97,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   head kicks, confetti, honk bubble) + cockpit eye fix; procedural audio + volume sliders; perf within
   budget (standalone tick max 5 ms). Two parallel P7.5s merged (D093). Gate deferred. Review fixes
   D097. Decisions D085–D097. Tag `p7-done` was made in the cloud on commit "P7.9" (re-tag locally).
+
+- 2026-10-06 (cloud): P8.1 Main menu — turntable showroom, wobbly PLAY, HONK, fake IT loading
+  messages, company-image slideshow (`/menu/menu.json` lists assets/menu/ live), menu music; reload
+  with a held seat skips it. `menu` scenario. D098.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

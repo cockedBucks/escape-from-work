@@ -9,11 +9,12 @@ import { countdownCue } from './audio/cues';
 import { EngineSound, squealing } from './audio/engine';
 import { COUNTDOWN_SOUNDS, DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer, IMPACT_SOUNDS, impactLevel, ITEM_SOUNDS } from './audio/horn';
 import { MusicLoop } from './audio/music';
+import { showMainMenu } from './menu';
 import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
-import { ServerCarSource, joinOrReconnect, joinRace } from './net/connection';
+import { ServerCarSource, hasSavedSeat, joinOrReconnect, joinRace } from './net/connection';
 import { HeadSender } from './net/heads';
 import { InputDelayMeter } from './net/latency';
 import { OwnCarPredictor } from './net/predictor';
@@ -272,7 +273,7 @@ const fakePlayers: LobbyPlayer[] = [
 ];
 
 /** The real thing: join the server's race, pick a seat, drive. */
-async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
+async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Promise<void> {
   const container = el('game');
   container.hidden = false;
   setStatus('Connecting…');
@@ -561,7 +562,6 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     if (room.state.phase !== 'countdown' && room.state.phase !== 'racing') mouseLook.release();
   };
   room.onStateChange(applyView);
-  const horns = new HornPlayer();
   const engine = new EngineSound(() => horns.context, () => horns.bus('engine'));
   const music = new MusicLoop(() => horns.context, () => horns.bus('music'));
   const volumePanel = new VolumePanel(document.body, horns.volumes, (v) => horns.setVolumes(v));
@@ -678,6 +678,30 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   void markReady(hooks);
 }
 
+/**
+ * The real game: the main menu first, then the race room. A player who left a seat a moment
+ * ago (reload, closed tab) goes straight back in; `?play` skips the menu too.
+ */
+async function startGame(hooks: GameHooks, tuning: Tuning): Promise<void> {
+  const horns = new HornPlayer();
+  const skip = hasSavedSeat(tuning) || new URLSearchParams(window.location.search).has('play');
+  if (!skip) {
+    setStatus('');
+    await showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning).preset, roster: loadCars().cars, horns });
+  }
+  await showRace(hooks, tuning, horns);
+}
+
+/** The `menu` scenario: the main menu for screenshots (PLAY does nothing). */
+async function showMenuScenario(hooks: GameHooks, tuning: Tuning): Promise<void> {
+  const horns = new HornPlayer();
+  await new Promise<void>((shown) => {
+    void showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning).preset, roster: loadCars().cars, horns, onShown: shown });
+  });
+  setStatus('');
+  await markReady(hooks);
+}
+
 const hooks = installHooks();
 if (hooks.error !== null) {
   setStatus(hooks.error, true);
@@ -686,13 +710,15 @@ if (hooks.error !== null) {
   const run =
     hooks.scenario === 'hello'
       ? showHello(hooks, tuning)
+      : hooks.scenario === 'menu'
+        ? showMenuScenario(hooks, tuning)
       : hooks.scenario === 'lobby'
         ? showLobbyScenario(hooks, tuning)
         : hooks.scenario === 'results'
           ? showResultsScenario(hooks, tuning)
         : isRaceScenario(hooks.scenario)
         ? showScenario(hooks, tuning, hooks.scenario)
-        : showRace(hooks, tuning);
+        : startGame(hooks, tuning);
   run.catch((err: unknown) => {
     console.error(err);
     const msg = String(err instanceof Error ? err.message : err);

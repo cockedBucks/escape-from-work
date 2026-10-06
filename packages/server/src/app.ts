@@ -6,6 +6,7 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { ROOM_NAME } from '@escape/shared';
 import { watchConfig } from './dev/configWatcher';
 import { FACES_DIR } from './faces';
+import { listMenuImages, MENU_DIR } from './menuImages';
 import { installTuningRoutes } from './dev/tuningRoutes';
 import { LiveConfig, setLiveConfig } from './liveConfig';
 import { RaceRoom } from './rooms/RaceRoom';
@@ -63,6 +64,14 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
       // A short 404/403, never Express's default error page (it shows local paths in dev).
       app.use('/faces', (_req, res) => {
         res.status(404).type('text').send('no such face');
+      });
+      // Main menu slideshow (P8.1): the list is read on every request, so new images just appear.
+      app.get('/menu/menu.json', (_req, res) => {
+        res.json({ images: listMenuImages() });
+      });
+      app.use('/menu', express.static(MENU_DIR, { index: false }));
+      app.use('/menu', (_req, res) => {
+        res.status(404).type('text').send('no such image');
       });
       if (dev) installTuningRoutes(app, live);
       const dir = opts.clientDir;

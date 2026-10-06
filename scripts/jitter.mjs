@@ -24,6 +24,8 @@ try {
   ({ browser } = await launchBrowser());
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await page.goto(`http://localhost:${PORT}/`);
+  // Main menu first (P8.1): PLAY joins the lobby.
+  await page.click('button[data-action="play"]', { delay: 50, timeout: 20000, force: true }); // it wobbles
   await page.waitForSelector('button.seat[data-slot="0"][data-seat="solo"]', { timeout: 20000 });
   await page.click('button.seat[data-slot="0"][data-seat="solo"]', { delay: 50 });
   await sleep(500);

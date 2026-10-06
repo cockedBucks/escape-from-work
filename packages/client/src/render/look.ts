@@ -283,6 +283,27 @@ export const JUICE = {
   confettiColors: [0xff5a5f, 0xffd23f, 0x3bceac, 0x5b8cff, 0xc77dff, 0xffffff],
 } as const;
 
+/** Main menu showroom (P8.1): a car spinning on a turntable, swapped every few seconds. */
+export const SHOWROOM = {
+  /** Turntable disc radius and thickness (m), spin (rad/s), seconds per car. */
+  tableRadius: 3.6,
+  tableHeight: 0.18,
+  spin: 0.6,
+  carSeconds: 4,
+  /** Camera: distance and height from the car, where it looks, and how far left the car sits
+   * on screen (m; the menu buttons are on the left). */
+  camDistance: 7.2,
+  camHeight: 2.6,
+  lookHeight: 0.7,
+  lookLeft: 1.4,
+  /** A new car drops onto the table: landing speed for the squash (m/s). */
+  dropImpact: 9,
+  tableColor: 0xe9c46a,
+  tableRim: 0x1e2230,
+  /** Office carpet around the table (m). */
+  floorRadius: 120,
+} as const;
+
 /** Chaos items in the world (ART_STYLE: chunky, bright, readable from the chase cam). */
 export const ITEM_LOOK = {
   /** Mystery Packet boxes: size (m), hover height, spin (rad/s), bob height (m) and rate (rad/s). */
