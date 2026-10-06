@@ -1,8 +1,8 @@
-import { angleDiff, buildBoxes, type Track, type Tuning } from '@escape/shared';
+import { angleDiff, buildBoxes, type CarLook, type Track, type Tuning } from '@escape/shared';
 import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
-import { BoxCar, type SeatContent } from './render/carMesh';
+import { CarMesh, lookKeyOf, type SeatContent } from './render/carMesh';
 import type * as THREE from 'three';
 import { DashboardScreen } from './render/dashboard';
 import { Bubbles } from './ui/bubbles';
@@ -27,7 +27,7 @@ export interface CarSource {
   sample(now: number, out: Map<string, CarSnap>): void;
 }
 
-export type View = 'chase' | 'cockpit' | 'overview';
+export type View = 'chase' | 'cockpit' | 'overview' | 'fixed';
 
 export interface GameOptions {
   container: HTMLElement;
@@ -38,6 +38,10 @@ export interface GameOptions {
   view: View;
   /** Car the chase cam follows (null = first car). */
   focus: () => string | null;
+  /** `view: 'fixed'`: where the camera stands and what it looks at (the garage showroom). */
+  fixedCamera?: { from: readonly [number, number, number]; at: readonly [number, number, number] };
+  /** How each car looks (cars.json `look`); absent = a plain hatch. */
+  lookOf?: (carId: string) => CarLook;
   /** Chaos items to draw (boxes, envelopes, puddles); null or absent = none. */
   items?: () => ItemsView | null;
   /** Race info for the cockpit dashboard (speed comes from the car itself). */
@@ -67,11 +71,18 @@ export interface CarSeats {
 }
 
 /** Team color: by car slot for server cars ("car3" → slot 3), else by arrival order (scenario bots). */
-function teamColor(id: string, index: number): number {
+/** Team slot of a car id ("car3" → 3); scenario cars use their order instead. */
+function slotOf(id: string, index: number): number {
   const slot = /^car(\d+)$/.exec(id);
-  const i = slot ? Number(slot[1]) : index;
-  return TEAM_COLORS[i % TEAM_COLORS.length] ?? TEAM_COLORS[0]!;
+  return slot ? Number(slot[1]) : index;
 }
+
+function teamColor(slot: number): number {
+  return TEAM_COLORS[slot % TEAM_COLORS.length] ?? TEAM_COLORS[0]!;
+}
+
+/** Look for a car the game was not told about. */
+const DEFAULT_LOOK: CarLook = { body: 'hatch', wheelScale: 1, parts: [] };
 
 const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
 const SIDES = ['left', 'right'] as const;
@@ -108,7 +119,7 @@ export class Game {
   /** Car currently showing its dashboard (your car in cockpit view). */
   private dashCar: string | null = null;
   private readonly overlay: DebugOverlay;
-  private readonly cars = new Map<string, BoxCar>();
+  private readonly cars = new Map<string, CarMesh>();
   private readonly snaps = new Map<string, CarSnap>();
   private frame = 0;
   private lastTime = -1;
@@ -133,6 +144,10 @@ export class Game {
       // From high above, fog would hide the whole track.
       this.stage.scene.fog = null;
       placeOverview(this.stage.camera, this.trackMeshes.bounds);
+    } else if (opts.view === 'fixed' && opts.fixedCamera) {
+      const { from, at } = opts.fixedCamera;
+      this.stage.camera.position.set(from[0], from[1], from[2]);
+      this.stage.camera.lookAt(at[0], at[1], at[2]);
     }
   }
 
@@ -323,7 +338,7 @@ export class Game {
   }
 
   /** Bobbleheads / duck for one car, wobbling with its acceleration. */
-  private updateSeats(id: string, mesh: BoxCar, s: CarSnap, dt: number): void {
+  private updateSeats(id: string, mesh: CarMesh, s: CarSnap, dt: number): void {
     let m = this.motion.get(id);
     if (!m) {
       m = { speed: s.speed, yaw: s.yaw };
@@ -363,8 +378,16 @@ export class Game {
     }
     for (const [id, s] of this.snaps) {
       let mesh = this.cars.get(id);
+      const look = this.opts.lookOf?.(id) ?? DEFAULT_LOOK;
+      if (mesh && mesh.lookKey !== lookKeyOf(look)) {
+        // The team picked another car: build the new one.
+        mesh.dispose();
+        this.cars.delete(id);
+        mesh = undefined;
+      }
       if (!mesh) {
-        mesh = new BoxCar(teamColor(id, this.cars.size));
+        const slot = slotOf(id, this.cars.size);
+        mesh = new CarMesh(look, teamColor(slot), slot + 1);
         this.cars.set(id, mesh);
         this.stage.scene.add(mesh.root);
       }

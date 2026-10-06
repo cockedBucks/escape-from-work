@@ -64,11 +64,13 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `drift` | same frozen race in chase view, car 1 mid-drift with orange (level 2) sparks at the rear wheels (P5.2) |
 | `nitro` | same frozen race in chase view, car 1 burning nitro: big flames out the back (P5.3) |
 | `items` | chaos on in the frozen race at 2.2 s: Mystery Packet boxes, a Reply-All envelope ahead of car 1, a coffee puddle, car 1's Firewall bubble, and the Forced Update overlay at 40% (P6.5) |
+| `garage` | showroom: one car per slot (car0–car7, cycling through config/cars.json) parked in two rows at the start line, fixed camera in front (P7.1) |
 | `track-overview` | top-down camera over the whole track, cars on the start line |
 | `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview |
 | `garage` | all roster cars side by side in team colors |
 | `lobby` | lobby with fake players in 4 teams |
 | `items` | frozen moment with several item effects active |
+| `garage` | showroom: one car per slot (car0–car7, cycling through config/cars.json) parked in two rows at the start line, fixed camera in front (P7.1) |
 | `results` | results screen with made-up times (awards and points join in P9) |
 | `menu` | main menu |
 

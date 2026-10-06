@@ -14,6 +14,21 @@ const StatsSchema = z.strictObject({
 export const HORNS = ['toot', 'duck', 'truck', 'clown', 'bike', 'kazoo'] as const;
 export type Horn = (typeof HORNS)[number];
 
+/** Car kit body presets (ART_STYLE §4); the client has their proportions. */
+export const BODY_PRESETS = ['hatch', 'sedan', 'pickup', 'van', 'mini', 'round', 'muscle'] as const;
+export type BodyPreset = (typeof BODY_PRESETS)[number];
+
+/** Car kit parts: each car's signature feature(s) (ART_STYLE car roster). */
+export const CAR_PARTS = ['spoiler', 'roofSign', 'speakers', 'hoodScoop', 'roofBox', 'windupKey', 'dish', 'ladder'] as const;
+export type CarPart = (typeof CAR_PARTS)[number];
+
+/** How a car looks: body preset, wheel size (1 = normal; ART_STYLE wants them big) and parts. */
+const LookSchema = z.strictObject({
+  body: z.enum(BODY_PRESETS),
+  wheelScale: z.number().min(0.6).max(1.8),
+  parts: z.array(z.enum(CAR_PARTS)),
+});
+
 const CarDefSchema = z.strictObject({
   /** Stable id used in code, saves and the league (lowercase, digits, dashes). */
   id: z.string().regex(/^[a-z0-9-]+$/, 'use lowercase letters, digits and dashes'),
@@ -22,6 +37,7 @@ const CarDefSchema = z.strictObject({
   stats: StatsSchema,
   /** Horn preset (GAME_DESIGN §8: each car has its own goofy horn). */
   horn: z.enum(HORNS),
+  look: LookSchema,
 });
 
 export const CarsSchema = z
@@ -55,6 +71,7 @@ export const CarsSchema = z
 
 export type CarsConfig = z.infer<typeof CarsSchema>;
 export type CarDef = CarsConfig['cars'][number];
+export type CarLook = CarDef['look'];
 
 /** Validate the contents of `config/cars.json`. Throws `ConfigError` listing every problem. */
 export function parseCars(raw: unknown, source = 'config/cars.json'): CarsConfig {

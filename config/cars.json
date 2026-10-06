@@ -5,7 +5,8 @@
       "id": "boxcar",
       "name": "Box Car",
       "stats": { "speed": 1, "grip": 1, "weight": 1 },
-      "horn": "toot"
+      "horn": "toot",
+      "look": { "body": "hatch", "wheelScale": 1, "parts": [] }
     }
   ]
 }

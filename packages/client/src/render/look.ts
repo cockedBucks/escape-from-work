@@ -279,3 +279,58 @@ export const ITEM_LOOK = {
   shieldColor: 0x2a9d8f,
   shieldOpacity: 0.35,
 } as const;
+
+/** Car kit body presets (ART_STYLE §4): proportions in meters. `cabinZ` = cabin center from
+ * the car center (+ = forward); heads sit in the cabin, poking through its roof. */
+export const CAR_BODIES = {
+  hatch: { length: 3.6, width: 1.9, body: 0.6, ride: 0.35, cabinLength: 1.8, cabinHeight: 0.6, cabinZ: -0.35, wheelBase: 1.2 },
+  sedan: { length: 4.1, width: 1.9, body: 0.55, ride: 0.35, cabinLength: 2.0, cabinHeight: 0.6, cabinZ: -0.2, wheelBase: 1.4 },
+  pickup: { length: 4.4, width: 1.95, body: 0.6, ride: 0.45, cabinLength: 1.5, cabinHeight: 0.65, cabinZ: 0.5, wheelBase: 1.45 },
+  van: { length: 4.0, width: 2.0, body: 0.7, ride: 0.35, cabinLength: 3.0, cabinHeight: 0.8, cabinZ: -0.3, wheelBase: 1.35 },
+  mini: { length: 2.8, width: 1.7, body: 0.55, ride: 0.4, cabinLength: 1.6, cabinHeight: 0.65, cabinZ: -0.2, wheelBase: 0.95 },
+  round: { length: 3.4, width: 1.85, body: 0.6, ride: 0.35, cabinLength: 1.8, cabinHeight: 0.7, cabinZ: -0.2, wheelBase: 1.15 },
+  muscle: { length: 4.5, width: 2.0, body: 0.5, ride: 0.32, cabinLength: 1.5, cabinHeight: 0.52, cabinZ: -0.85, wheelBase: 1.55 },
+} as const;
+
+/** Car kit look rules: shared sizes and the trim/part colors (team paint comes from the slot). */
+export const CAR_KIT = {
+  wheelRadius: 0.48,
+  wheelWidth: 0.42,
+  wheelSegments: 14,
+  /** Low-poly round shapes (the "round" body, dish, key). */
+  roundSegments: 10,
+  /** Heads poke this share of their radius above the cabin roof. */
+  headAboveRoof: 0.85,
+  /** Roof slab thickness (team color) on top of the glass cabin. */
+  roofThickness: 0.08,
+  trim: 0x1e2230,
+  glass: 0xbfe3f2,
+  metal: 0xd9dde3,
+  light: 0xfff6d6,
+  tail: 0xe63946,
+  signYellow: 0xffb703,
+  /** Roof number decal: size (m) and the atlas (8 numbers in a row, px per number). */
+  numberSize: 0.75,
+  numberPx: 64,
+  /** Blob shadow radius as a share of the car's length (or width, if wider). */
+  shadowShare: 0.45,
+} as const;
+
+/** Car kit trim and part dimensions (m; shares are of the car's width or cabin length). */
+export const CAR_PARTS_LOOK = {
+  bumper: { height: 0.2, depth: 0.18, lift: 0.12, widthShare: 1.02 },
+  headlight: { width: 0.36, height: 0.14, sideShare: 0.62, heightShare: 0.62 },
+  taillight: { width: 0.3, height: 0.12, sideShare: 0.66 },
+  lightDepth: 0.06,
+  /** Heads sit this share of the cabin length forward of its center; roof parts this share behind its back. */
+  seatForward: 0.15,
+  roofPartBack: 0.22,
+  spoiler: { heightOverRoof: 1.35, back: 0.3, post: 0.1, postSideShare: 0.55, wingWidthShare: 1.08, wingThick: 0.08, wingDepth: 0.5 },
+  roofSign: { widthShare: 0.62, height: 0.5, depth: 0.55, stripe: 0.1 },
+  roofBox: { widthShare: 0.8, height: 0.5, lengthShare: 0.5 },
+  dish: { post: 0.05, postHeight: 0.4, radius: 0.55, rim: 0.15, thick: 0.12, tilt: -0.6, sideShare: 0.4 },
+  ladder: { rail: 0.06, gap: 0.18, rungWidth: 0.42, rungs: 6, sideShare: -0.45, lengthShare: 0.9 },
+  speakers: { width: 0.7, height: 0.9, depth: 0.6, cone: 0.22, sideShare: 0.45, behindCabin: 0.55 },
+  hoodScoop: { widthShare: 0.36, height: 0.24, length: 0.8 },
+  windupKey: { shaft: 0.06, shaftLength: 0.5, wingWidth: 0.42, wingHeight: 0.28, wingThick: 0.06, heightShare: 0.8 },
+} as const;

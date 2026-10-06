@@ -18,7 +18,7 @@ import type { ItemsView } from './render/itemProps';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, garage: 0, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 
@@ -118,5 +118,36 @@ export function frozenItems(world: World): ItemsView | null {
       ...chaos.puddles.map((p) => ({ kind: 'coffee', x: p.x, z: p.z, vx: 0, vz: 0 })),
     ],
     shotsTime: 0,
+  };
+}
+
+/** Garage: cars parked in two rows at the start line (spacing m) and where the camera stands. */
+const GARAGE = { cars: 8, sideGap: 5, rowGap: 7, camAhead: 15, camSide: -4, camHeight: 4.5, lookHeight: 1 };
+
+/**
+ * The `garage` showroom: one car per slot (car0…car7, so team colors and numbers differ)
+ * standing still in two rows at the start line, and a fixed camera in front of them.
+ */
+export function garageWorld(track: Track): { world: World; camera: { from: [number, number, number]; at: [number, number, number] } } {
+  const gate = track.gates[0]!;
+  const f = { x: Math.sin(gate.yaw), z: Math.cos(gate.yaw) };
+  const r = { x: f.z, z: -f.x }; // the driver's right
+  const cols = Math.ceil(GARAGE.cars / 2);
+  const cars = Array.from({ length: GARAGE.cars }, (_, i) => {
+    const c = createCar(`car${i}`, { speed: 1, grip: 1, weight: 1 }, track);
+    const side = ((i % cols) - (cols - 1) / 2) * GARAGE.sideGap;
+    const back = -Math.floor(i / cols) * GARAGE.rowGap;
+    c.x = gate.pos.x + r.x * side + f.x * back;
+    c.z = gate.pos.z + r.z * side + f.z * back;
+    c.yaw = gate.yaw;
+    return c;
+  });
+  const mid = { x: gate.pos.x - f.x * (GARAGE.rowGap / 2), z: gate.pos.z - f.z * (GARAGE.rowGap / 2) };
+  return {
+    world: createWorld(track, cars),
+    camera: {
+      from: [mid.x + f.x * GARAGE.camAhead + r.x * GARAGE.camSide, GARAGE.camHeight, mid.z + f.z * GARAGE.camAhead + r.z * GARAGE.camSide],
+      at: [mid.x, GARAGE.lookHeight, mid.z],
+    },
   };
 }
