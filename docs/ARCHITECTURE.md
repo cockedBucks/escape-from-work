@@ -383,6 +383,10 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 ## 8. Persistence
 
 - League: `data/league.json` with a `version` field, written atomically (temp file + rename).
+  It holds the race history (`LeagueSchema` in `packages/shared/src/league/schema.ts`: per race the
+  time, track, cars with team, roster car, players and seats, place, times, award counters and the
+  awards); every table is computed from it. A file that fails validation is renamed to
+  `league.corrupt-<time>.json` and the league starts empty (`packages/server/src/league/store.ts`).
   No database server and no native modules, so it installs on Windows without build tools.
 - Player name and settings: browser `localStorage` (wrapped in try/catch).
 

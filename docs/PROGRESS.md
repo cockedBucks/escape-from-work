@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P9 — League and awards (`docs/phases/P09-league.md`)
-- Next task: P9.1 League store
-- Status: P8 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P9.2 Scoring
+- Status: P9.1 done. `npm run verify` passes (457 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -105,6 +105,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   onboarding (role card, "?", swap/item hints), UI polish (one button/panel style, podium with faces,
   fits 1366×768). Gate deferred. Review fixes D102. Decisions D098–D102. Tag `p8-done` made in the
   cloud on commit "P8.6" (re-tag locally).
+
+- 2026-10-06 (cloud): P9.1 League store — race-history schema (shared), atomic JSON store with
+  corrupt-file backup (server), tests. D103.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
