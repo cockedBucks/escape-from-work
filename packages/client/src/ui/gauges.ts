@@ -1,5 +1,7 @@
 // Gauges shared by the cockpit dashboard (canvas) and the chase-cam HUD (DOM): speed, lap,
 // place, and slots for heat, nitro and the item (filled in by P5 and P6).
+import { itemIcon } from './itemIcons';
+import { itemName } from './items';
 
 export interface GaugeValues {
   /** Ground speed (m/s). */
@@ -14,7 +16,7 @@ export interface GaugeValues {
   stalled: boolean;
   /** 0–1, null until nitro exists (P5). */
   nitro: number | null;
-  /** Item name, null until items exist (P6). */
+  /** The held item id, or null for an empty slot. */
   item: string | null;
 }
 
@@ -33,7 +35,7 @@ export function gaugeText(v: GaugeValues): { speed: string; lap: string; place: 
     heatLabel: v.stalled ? 'STALL!' : 'HEAT',
     heat: bar(v.heat),
     nitro: bar(v.nitro),
-    item: v.item ?? '—',
+    item: v.item ? itemName(v.item) : '—',
   };
 }
 
@@ -59,7 +61,7 @@ export class GaugePanel {
       `<div class="g-speed"><strong>${t.speed}</strong> km/h</div>` +
       `<div class="g-bar${v.stalled ? ' stalled' : ''}"><span>${t.heatLabel}</span><i style="width:${Math.round(t.heat * 100)}%"></i></div>` +
       `<div class="g-bar nitro"><span>NITRO</span><i style="width:${Math.round(t.nitro * 100)}%"></i></div>` +
-      `<div class="g-item">ITEM <b>${t.item}</b></div>`;
+      `<div class="g-item">ITEM ${v.item ? itemIcon(v.item) : ''}<b>${t.item}</b></div>`;
   }
 
   dispose(): void {

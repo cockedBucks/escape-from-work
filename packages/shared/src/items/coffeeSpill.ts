@@ -5,6 +5,7 @@ import { canBeHit, hitCar, spinOut } from './effects';
 
 /** A Coffee Spill puddle on the road. */
 export interface Puddle {
+  id: number;
   owner: string;
   x: number;
   z: number;
@@ -19,6 +20,7 @@ export interface Puddle {
 export function dropCoffee(chaos: ChaosState, car: CarState, dt: number, now: number): void {
   const c = chaos.cfg.items.coffeeSpill;
   chaos.puddles.push({
+    id: chaos.nextId++,
     owner: car.id,
     x: car.x - Math.sin(car.yaw) * c.dropBack,
     z: car.z - Math.cos(car.yaw) * c.dropBack,

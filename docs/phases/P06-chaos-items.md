@@ -22,7 +22,7 @@ rubber-banding that keeps races close, and a host toggle to turn chaos off.
 - [x] **P6.4 Screen and control items.** Blue Screen (overlay on both target clients), Lag Spike
   (server input delay queue), Control Swap (role mapping swap), Forced Update (stop + mash
   progress). Tests.
-- [ ] **P6.5 Item presentation.** Effects, hit reactions, HUD and dashboard icon, procedural
+- [x] **P6.5 Item presentation.** Effects, hit reactions, HUD and dashboard icon, procedural
   sounds, "you got hit by X" toast for both players. Scenario `items`. `/shots items`.
 - [ ] **P6.6 Chaos toggle + bots.** Host toggle; bot engineer half uses items sensibly.
 - [ ] **HUMAN GATE — chaos race.**

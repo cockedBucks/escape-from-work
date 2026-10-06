@@ -18,6 +18,8 @@ export interface CarSnap {
   boosting: boolean;
   /** Burning nitro (big flames). */
   nitroOn: boolean;
+  /** Firewall up (bubble). */
+  shielded: boolean;
 }
 
 interface Snapshot {
@@ -94,6 +96,7 @@ export class SnapshotBuffer {
       o.driftLevel = cb.driftLevel;
       o.boosting = cb.boosting;
       o.nitroOn = cb.nitroOn;
+      o.shielded = cb.shielded;
     }
   }
 

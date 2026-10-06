@@ -32,6 +32,8 @@ export interface ChaosState {
   history: Record<string, CarHistory>;
   /** Lag Spike: each car's recent driving inputs, by car id (derived, not hashed). */
   inputLog: Record<string, InputLog>;
+  /** Next id for an envelope or puddle (stable keys for clients). */
+  nextId: number;
 }
 
 /** Item boxes for a track: each `itemRow` zone puts `count` boxes evenly across the road. */
@@ -51,7 +53,7 @@ export function buildBoxes(track: Track): ItemBox[] {
 
 /** Turn chaos mode on for a world (boxes from its track). */
 export function createChaos(track: Track, cfg: ItemsConfig, seed: number): ChaosState {
-  return { cfg, boxes: buildBoxes(track), rng: seed >>> 0, envelopes: [], puddles: [], history: {}, inputLog: {} };
+  return { cfg, boxes: buildBoxes(track), rng: seed >>> 0, envelopes: [], puddles: [], history: {}, inputLog: {}, nextId: 1 };
 }
 
 const canPickUp = (car: CarState): boolean => car.respawnAtTick < 0;

@@ -6,7 +6,7 @@ import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, mayUse, type Ca
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { EngineSound } from './audio/engine';
-import { DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer } from './audio/horn';
+import { DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer, ITEM_SOUNDS } from './audio/horn';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
@@ -18,12 +18,16 @@ import { seatSideFor } from './render/cockpitCam';
 import { setFaceFraming } from './render/faceTexture';
 import type { FaceFraming } from './render/facePlacement';
 import { pickQuality } from './render/renderer';
-import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
+import { frozenBotRace, frozenItems, frozenSource, isRaceScenario, type RaceScenario } from './scenarios';
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
+import type { ItemsView, ShotSnap } from './render/itemProps';
 import { ItemEffectsOverlay } from './ui/itemEffects';
+import { escapeHtml } from './ui/html';
+import { itemIcon } from './ui/itemIcons';
 import { itemName } from './ui/items';
+import { Toasts } from './ui/toasts';
 import { swappedRole } from './ui/roleKeys';
 import { SwapFlash } from './ui/swapFlash';
 import { RaceHud, hudText } from './ui/raceHud';
@@ -146,7 +150,9 @@ async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
 async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScenario, overlay?: () => void): Promise<void> {
   const trackId = new URLSearchParams(window.location.search).get('track') ?? DEFAULT_TRACK;
   const track = loadTrack(trackId, tuning);
-  const world = frozenBotRace(track, tuning, scenario);
+  const itemsCfg = loadItems();
+  const world = frozenBotRace(track, tuning, scenario, itemsCfg);
+  const itemsView = frozenItems(world);
   const previewFace = new URLSearchParams(window.location.search).get('face') ?? '';
   if (previewFace !== '') await fetchFaces(); // its framing
   const container = el('game');
@@ -157,6 +163,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     track,
     quality: pickQuality(window.location.search, tuning).preset,
     source: frozenSource(world),
+    items: () => itemsView,
     view: scenario === 'track-overview' ? 'overview' : scenario === 'cockpit' ? 'cockpit' : 'chase',
     focus: () => 'bot1',
     seatSide: () => 'left',
@@ -175,6 +182,11 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   });
   // Cockpit shot: turn your head right toward your teammate's bobblehead.
   if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
+  if (scenario === 'items') {
+    // The Forced Update overlay, 40% done, as both players of a hit car would see it.
+    const max = itemsCfg.items.forcedUpdate.maxSeconds;
+    new ItemEffectsOverlay(container).set({ blueLeft: 0, lagLeft: 0, swapLeft: 0, updateLeft: max * 0.6 }, max);
+  }
   if (scenario === 'stall' || scenario === 'drift' || scenario === 'nitro') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
   game.renderFrame(performance.now(), true);
   game.start();
@@ -288,6 +300,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const badge = new RoleBadge(container);
   const swapFlash = new SwapFlash(container);
   const effects = new ItemEffectsOverlay(container);
+  const toasts = new Toasts(container);
   const itemsCfg = loadItems();
   const hud = new RaceHud(container);
   const gaugePanel = new GaugePanel(container);
@@ -337,6 +350,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     },
   };
   let serverGas = false;
+  const itemsView: ItemsView = { boxesUp: '', shots: [], shotsTime: 0 };
   room.onStateChange((state) => {
     const now = performance.now();
     source.push(now, state);
@@ -358,6 +372,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     mySeat = me?.seat ?? '';
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     serverGas = myCar?.inGas ?? false;
+    // Item boxes, envelopes and puddles for the 3D view.
+    itemsView.boxesUp = state.boxesUp;
+    itemsView.shots = [];
+    state.shots.forEach((s) => (itemsView.shots as ShotSnap[]).push({ kind: s.kind, x: s.x, z: s.z, vx: s.vx, vz: s.vz }));
+    itemsView.shotsTime = now;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
     endRace.hidden = !(state.host === room.sessionId && (state.phase === 'countdown' || state.phase === 'racing'));
@@ -399,7 +418,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     gauges.heat = myCar ? myCar.heat : null;
     gauges.stalled = myCar ? myCar.stallLeft > 0 : false;
     gauges.nitro = myCar ? myCar.nitro : null;
-    gauges.item = myCar && myCar.item !== '' ? itemName(myCar.item) : null;
+    gauges.item = myCar && myCar.item !== '' ? myCar.item : null;
     // Item hits show on both players' screens of the car.
     effects.set(myCar ?? null, itemsCfg.items.forcedUpdate.maxSeconds);
     join.update({
@@ -428,6 +447,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     seatSide: () => seatSideFor(mySeat),
     mouseLocked: () => mouseLook.locked,
     gauges: () => gauges,
+    items: () => itemsView,
     onFrame: (now) => {
       // Chase-cam gauges for your car (the cockpit has its dashboard screen instead).
       gauges.speed = focusPose.speed;
@@ -490,6 +510,27 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         }
         continue;
       }
+      if (e.type === 'itemBox') {
+        if (e.car === myCarId && e.item) {
+          toasts.show(`${itemIcon(e.item)} You got <b>${itemName(e.item)}</b>!`, 'good');
+          horns.playSound(ITEM_SOUNDS.pickup, 0);
+        }
+        continue;
+      }
+      if (e.type === 'itemUse') {
+        horns.playSound(ITEM_SOUNDS.use, heardFrom(e.car));
+        continue;
+      }
+      if (e.type === 'itemHit') {
+        const what = `${itemIcon(e.item)} <b>${itemName(e.item)}</b>`;
+        const from = escapeHtml(teamNames[Number(e.by.slice('car'.length))] ?? e.by);
+        const whom = escapeHtml(teamNames[Number(e.car.slice('car'.length))] ?? e.car);
+        // Both players of the hit car see it (and the car that fired it).
+        if (e.car === myCarId) toasts.show(e.blocked ? `Your Firewall blocked ${what}!` : `Hit by ${what} from ${from}!`, e.blocked ? 'good' : 'bad');
+        else if (e.by === myCarId) toasts.show(e.blocked ? `${whom}'s Firewall blocked your ${what}` : `Your ${what} got ${whom}!`, e.blocked ? 'info' : 'good');
+        horns.playSound(e.blocked ? ITEM_SOUNDS.blocked : ITEM_SOUNDS.hit, heardFrom(e.car));
+        continue;
+      }
       if (e.type === 'boost' || e.type === 'nitro') {
         horns.playSound(DRIFT_SOUNDS[e.type], heardFrom(e.car));
         continue;
@@ -529,6 +570,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     horns.dispose();
     swapFlash.dispose();
     effects.dispose();
+    toasts.dispose();
     mouseLook.dispose();
     endRace.remove();
     board.dispose();

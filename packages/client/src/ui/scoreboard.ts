@@ -1,6 +1,7 @@
 // Scoreboard (P3.5): hold Tab. Place, team, players, lap and gap to the leader.
 import type { RacePhase } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
+import { escapeHtml } from './html';
 
 export interface BoardCar {
   slot: number;
@@ -64,10 +65,6 @@ export function boardRows(cars: BoardCar[], players: BoardPlayer[], teams: reado
       gap,
     };
   });
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] ?? ch);
 }
 
 /** Hold Tab to see it. Updates only while visible, and only when the rows change. */

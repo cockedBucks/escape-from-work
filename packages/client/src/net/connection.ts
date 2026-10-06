@@ -81,6 +81,9 @@ export interface RaceStateView {
   laps: number;
   teams: ArrayLike<string> & Iterable<string>;
   bots: boolean;
+  chaos: boolean;
+  boxesUp: string;
+  shots: { forEach(cb: (s: { kind: string; x: number; z: number; vx: number; vz: number }, id: string) => void): void };
 }
 
 export interface PageLocation {
@@ -184,7 +187,8 @@ export class ServerCarSource implements CarSource {
     const cars = new Map<string, CarSnap>();
     state.cars.forEach((c, id) => {
       cars.set(id, { x: c.x, y: c.y, z: c.z, yaw: c.yaw, speed: c.speed, steer: c.steer, respawning: c.respawning, ghost: c.ghost, stalled: c.stallLeft > 0,
-        drift: c.drift, driftLevel: c.driftLevel, boosting: c.boostLeft > 0, nitroOn: c.nitroOn });
+        drift: c.drift, driftLevel: c.driftLevel, boosting: c.boostLeft > 0, nitroOn: c.nitroOn,
+        shielded: c.shieldLeft > 0 });
     });
     this.lastArrival = now;
     this.lastTime = this.timeline.timeOf(state.tick, now);

@@ -50,6 +50,14 @@ export const DRIFT_SOUNDS = {
   nitro: { voices: [{ type: 'sawtooth', from: 90, to: 260 }, { type: 'square', from: 45, to: 130 }], duration: 0.6, vibrato: 20, vibratoRate: 40, gain: 0.16 },
 } as const satisfies { levels: readonly HornPreset[]; boost: HornPreset; swap: HornPreset; nitro: HornPreset };
 
+/** Items: a rising "bling" on pickup (your car), a whoosh when used, a boing on a hit, a ding when a Firewall blocks. */
+export const ITEM_SOUNDS = {
+  pickup: { voices: [{ type: 'triangle', from: 660, to: 1320 }], duration: 0.18, vibrato: 0, vibratoRate: 0, gain: 0.16 },
+  use: { voices: [{ type: 'sawtooth', from: 900, to: 300 }], duration: 0.22, vibrato: 0, vibratoRate: 0, gain: 0.1 },
+  hit: { voices: [{ type: 'square', from: 300, to: 90 }], duration: 0.45, vibrato: 18, vibratoRate: 14, gain: 0.18 },
+  blocked: { voices: [{ type: 'sine', from: 1200, to: 1200 }, { type: 'sine', from: 1800, to: 1800 }], duration: 0.25, vibrato: 0, vibratoRate: 0, gain: 0.14 },
+} as const satisfies Record<string, HornPreset>;
+
 /** Distance (m) at which a horn is at half volume. */
 const HALF_VOLUME_DISTANCE = 40;
 

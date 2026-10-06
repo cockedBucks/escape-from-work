@@ -35,6 +35,7 @@ export function hashWorld(world: World): string {
   // Chaos mode only (a world without it hashes exactly as before).
   if (world.chaos) {
     num(world.chaos.rng);
+    num(world.chaos.nextId);
     for (const b of world.chaos.boxes) {
       num(b.x);
       num(b.z);

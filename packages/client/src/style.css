@@ -977,3 +977,45 @@ body {
   pointer-events: none;
   animation: stall-blink 0.5s steps(2, jump-none) infinite;
 }
+
+/* Toasts: short item messages near the top ("You got Coffee Spill!"). */
+.toasts {
+  position: absolute;
+  left: 50%;
+  top: 7.5rem;
+  z-index: 16;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.6rem;
+  background: rgba(30, 34, 48, 0.88);
+  color: #fff;
+  font-size: 1.05rem;
+  animation: swap-pop 0.25s ease-out;
+}
+
+.toast.good {
+  border-left: 0.35rem solid #06d6a0;
+}
+
+.toast.bad {
+  border-left: 0.35rem solid #e63946;
+}
+
+.toast.info {
+  border-left: 0.35rem solid #ffb703;
+}
+
+.item-icon {
+  vertical-align: middle;
+}

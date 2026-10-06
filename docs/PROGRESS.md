@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
-- Next task: P6.5 Item presentation (effects, hit reactions, HUD icons, sounds, toasts, `items` scenario)
+- Next task: P6.6 Chaos toggle + bots
 - Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
   Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
 
@@ -89,6 +89,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   (car ahead: inputs 0.8 s late), Control Swap (leader: steering ↔ pedals), Forced Update (random
   car ahead from the top 3: stopped, mash any key); all Firewall-blockable, all cleared by Ctrl+Z;
   effect timers synced; no prediction while they last. D080.
+
+- 2026-10-06: P6.5 item presentation — boxes/envelopes/puddles/Firewall bubbles (4 instanced
+  draw calls, synced via `boxesUp` + `shots` map, envelopes extrapolated), SVG item icons in the
+  HUD, toasts (got / hit by / blocked) for both players of a car, item sounds, `items` scenario
+  (18 draw calls). D081.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

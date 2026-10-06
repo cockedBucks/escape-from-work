@@ -1,4 +1,4 @@
-import { angleDiff, type Track, type Tuning } from '@escape/shared';
+import { angleDiff, buildBoxes, type Track, type Tuning } from '@escape/shared';
 import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
@@ -10,6 +10,7 @@ import { RearMirror } from './render/mirror';
 import { FaceMaterials } from './render/faceTexture';
 import { Smoke } from './render/smoke';
 import { Sparks } from './render/sparks';
+import { ItemProps, type ItemsView } from './render/itemProps';
 import { SpeedLines, speedLineStrength } from './ui/speedLines';
 import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
@@ -37,6 +38,8 @@ export interface GameOptions {
   view: View;
   /** Car the chase cam follows (null = first car). */
   focus: () => string | null;
+  /** Chaos items to draw (boxes, envelopes, puddles); null or absent = none. */
+  items?: () => ItemsView | null;
   /** Race info for the cockpit dashboard (speed comes from the car itself). */
   gauges?: () => Omit<GaugeValues, 'speed'>;
   /** Who sits in each car (for bobbleheads); null/undefined = empty seats. */
@@ -97,6 +100,7 @@ export class Game {
   private readonly smoke: Smoke;
   private readonly sparks: Sparks;
   private readonly speedLines: SpeedLines;
+  private readonly itemProps: ItemProps;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -122,6 +126,8 @@ export class Game {
     this.sparks = new Sparks(opts.quality.particles);
     this.stage.scene.add(this.sparks.mesh);
     this.speedLines = new SpeedLines(opts.container);
+    this.itemProps = new ItemProps(buildBoxes(opts.track));
+    this.stage.scene.add(this.itemProps.group);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
@@ -220,6 +226,7 @@ export class Game {
     this.heads.sweep();
     this.smoke.update(now, dt, this.snaps);
     this.sparks.update(now, dt, this.snaps);
+    this.itemProps.update(now, this.opts.items?.() ?? null, this.snaps);
 
     const view = this.opts.view;
     if (view === 'chase' || view === 'cockpit') {
@@ -377,6 +384,7 @@ export class Game {
     this.smoke.dispose();
     this.sparks.dispose();
     this.speedLines.dispose();
+    this.itemProps.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();
     this.trackMeshes.dispose();

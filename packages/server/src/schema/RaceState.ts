@@ -99,6 +99,20 @@ export const CarView = schema(
 );
 export type CarView = SchemaType<typeof CarView>;
 
+/** A flying Reply-All envelope ('mail') or a Coffee Spill puddle ('coffee'). */
+export const ShotView = schema(
+  {
+    kind: t.string().default(''),
+    x: t.float32().default(0),
+    z: t.float32().default(0),
+    /** Velocity (m/s): clients move envelopes between patches. */
+    vx: t.float32().default(0),
+    vz: t.float32().default(0),
+  },
+  'ShotView',
+);
+export type ShotView = SchemaType<typeof ShotView>;
+
 export const RaceState = schema(
   {
     /** Connected players by Colyseus sessionId. */
@@ -117,6 +131,12 @@ export const RaceState = schema(
     teams: t.array('string'),
     /** Host switch: bots fill empty cars. */
     bots: t.boolean().default(false),
+    /** Host switch: chaos mode (item boxes and items). */
+    chaos: t.boolean().default(true),
+    /** Item boxes in track order: '1' = there, '0' = broken (respawning). Empty = chaos off. */
+    boxesUp: t.string().default(''),
+    /** Envelopes and puddles by id ('m12', 'c13'). */
+    shots: t.map(ShotView),
     /** Sim tick of the state being sent (clients use it to order snapshots). */
     tick: t.uint32().default(0),
     /** Server cost of one sim tick (ms, smoothed), for the F3 overlay. */

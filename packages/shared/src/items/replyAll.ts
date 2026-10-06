@@ -6,6 +6,7 @@ import { canBeHit, hitCar, spinOut } from './effects';
 
 /** A flying Reply-All envelope. */
 export interface Envelope {
+  id: number;
   owner: string;
   x: number;
   z: number;
@@ -26,6 +27,7 @@ export function fireReplyAll(chaos: ChaosState, car: CarState, aimBack: boolean,
   const fx = Math.sin(car.yaw) * dir;
   const fz = Math.cos(car.yaw) * dir;
   chaos.envelopes.push({
+    id: chaos.nextId++,
     owner: car.id,
     x: car.x + fx * c.spawnAhead,
     z: car.z + fz * c.spawnAhead,

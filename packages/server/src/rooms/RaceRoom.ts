@@ -19,7 +19,7 @@ import {
 import { faceExists } from '../faces';
 import { liveConfig, type ConfigChange } from '../liveConfig';
 import { TokenBucket } from '../net/rateLimit';
-import { CarView, PlayerState, RaceState } from '../schema/RaceState';
+import { CarView, PlayerState, RaceState, ShotView } from '../schema/RaceState';
 import { RaceSim } from './raceSim';
 
 /** Weight of the newest tick in the smoothed tick cost shown by the F3 overlay. */
@@ -329,6 +329,34 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     }
   }
 
+  /** Item boxes (up/down) and flying envelopes / puddles. */
+  private syncChaos(world: World): void {
+    const chaos = world.chaos;
+    this.state.chaos = this.sim.chaos;
+    let up = '';
+    if (chaos) for (const b of chaos.boxes) up += b.respawnAtTick > world.tick ? '0' : '1';
+    this.state.boxesUp = up;
+    const live = new Set<string>();
+    const put = (key: string, kind: string, x: number, z: number, vx: number, vz: number): void => {
+      live.add(key);
+      let v = this.state.shots.get(key);
+      if (!v) {
+        v = new ShotView();
+        v.kind = kind;
+        this.state.shots.set(key, v);
+      }
+      v.x = x;
+      v.z = z;
+      v.vx = vx;
+      v.vz = vz;
+    };
+    if (chaos) {
+      for (const e of chaos.envelopes) put(`m${e.id}`, 'mail', e.x, e.z, e.vx, e.vz);
+      for (const p of chaos.puddles) put(`c${p.id}`, 'coffee', p.x, p.z, 0, 0);
+    }
+    for (const key of [...this.state.shots.keys()]) if (!live.has(key)) this.state.shots.delete(key);
+  }
+
   /** Copy the sim's cars into the synced state (Colyseus sends only what changed). */
   private syncCars(world: World): void {
     this.state.tick = world.tick;
@@ -337,6 +365,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     this.state.phaseTick = flow.phaseTick;
     this.state.host = flow.host ?? '';
     this.state.laps = flow.laps;
+    this.syncChaos(world);
     // Input echo: sent with the same patch as the motion it caused.
     this.state.players.forEach((view, id) => {
       view.ackSeq = this.sim.ackSeq(id);

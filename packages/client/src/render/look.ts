@@ -244,3 +244,38 @@ export const SPARKS = {
   nitroFlameScale: 1.8,
   gravity: 14,
 } as const;
+
+/** Chaos items in the world (ART_STYLE: chunky, bright, readable from the chase cam). */
+export const ITEM_LOOK = {
+  /** Mystery Packet boxes: size (m), hover height, spin (rad/s), bob height (m) and rate (rad/s). */
+  boxSize: 1.1,
+  boxHeight: 1.0,
+  boxSpin: 1.6,
+  boxBob: 0.15,
+  boxBobRate: 2.4,
+  boxColor: '#ffb703',
+  boxEdge: '#1e2230',
+  boxTextureSize: 128,
+  /** Reply-All envelope (m), flying height. */
+  mailWidth: 0.9,
+  mailHeight: 0.12,
+  mailLength: 0.6,
+  mailColor: 0xffffff,
+  mailFlyHeight: 0.8,
+  /** Envelopes keep flying this long past the last patch (ms). */
+  maxExtrapolateMs: 120,
+  /** Coffee puddle: radius (m, matches items.coffeeSpill.radius roughly), lift, color. */
+  puddleRadius: 2.4,
+  puddleLift: 0.04,
+  puddleSegments: 12,
+  coffeeColor: 0x6f4e37,
+  /** Pools: envelopes/puddles of each kind, Firewall bubbles. */
+  maxShots: 24,
+  maxShields: 8,
+  /** Firewall bubble around a car. */
+  shieldRadius: 2.3,
+  shieldHeight: 0.9,
+  shieldSpin: 0.8,
+  shieldColor: 0x2a9d8f,
+  shieldOpacity: 0.35,
+} as const;

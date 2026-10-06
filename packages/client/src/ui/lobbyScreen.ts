@@ -4,6 +4,7 @@
 import { NAME_MAX_LENGTH, TEAM_NAME_MAX_LENGTH, type RacePhase, type Seat } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
 import { HOW_TO_CARDS, TEAM_TIP } from './roleKeys';
+import { escapeHtml } from './html';
 
 export interface LobbyPlayer {
   id: string;
@@ -53,10 +54,6 @@ export interface LobbyLimits {
 const NAME_KEY = 'efw.name';
 
 const hex = (c: number): string => `#${c.toString(16).padStart(6, '0')}`;
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] ?? ch);
-}
 
 /** Remembered name from last time (localStorage may be blocked: then nothing). */
 export function savedName(): string | null {

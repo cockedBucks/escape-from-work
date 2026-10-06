@@ -3,6 +3,7 @@
 import { TEAM_COLORS } from '../render/look';
 import { ordinal } from './raceHud';
 import { raceTime } from './scoreboard';
+import { escapeHtml } from './html';
 
 export interface ResultCar {
   slot: number;
@@ -29,10 +30,6 @@ export interface ResultsHandlers {
 }
 
 const hex = (c: number): string => `#${c.toString(16).padStart(6, '0')}`;
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] ?? ch);
-}
 
 /** The results panel HTML (pure, tested). */
 export function resultsHtml(v: ResultsView): string {
