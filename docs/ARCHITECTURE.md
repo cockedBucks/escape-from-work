@@ -323,7 +323,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | drift too slidey / too grippy / turns too little | `car.driftGrip`, `drift.turnRate`, `drift.steerBase`, `drift.steerRange`, `drift.carve` |
 | drift ends too easily / never ends | `drift.releaseSteer`, `drift.exitSpeedRatio` |
 | spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
-| overheating too fast / never (P5) | `heat.risePerSec`, `heat.hotSpeedFraction` (heats only above this share of top speed), `heat.coolPerSec`, `heat.nitroRisePerSec` (extra heat while burning nitro) |
+| overheating too fast / never (P5) | `heat.nitroRisePerSec` (the main source), `heat.coolOnGasPerSec`, `heat.coolPerSec`; optional gas heat: `heat.risePerSec` (0 = off), `heat.hotSpeedFraction` |
+| drift ends too easily on a quick key tap | `drift.releaseMs` (how long steering must stay straight), `drift.brakeTapMaxMs` |
 | nitro too weak / too strong / runs out too fast | `nitro.accel`, `nitro.topSpeed`, `nitro.burnPerSec` |
 | swap lane never worth it / always worth it | `car.swapLaneSpeed` (top-speed share inside the lane), zone `minLap`, `from`/`to` (track file) |
 | solo players too strong / too weak vs duos | `solo.speedMultiplier` (1 = no handicap) |

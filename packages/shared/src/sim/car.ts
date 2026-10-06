@@ -53,6 +53,7 @@ export function createCar(id: string, stats: CarStats, track: Track, gateIndex =
     driftDir: 0,
     driftCharge: 0,
     driftLevel: 0,
+    straightTicks: 0,
     brakeTicks: 0,
     boostTicks: 0,
     nitro: 0,

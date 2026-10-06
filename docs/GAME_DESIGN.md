@@ -79,20 +79,23 @@ Arcade, not simulation. Fast acceleration, strong grip, small slides, big forgiv
 (visual only). Starting values live in `config/tuning.json`; the human tunes them.
 
 ### Engine heat (Engineer's main decision)
-- Heat rises while the gas is held near full at speed, faster during nitro.
-- Heat falls when off the gas or braking, and inside the swap lane it resets to 0.
+- Heat comes from **overusing nitro**: about +40%/s while burning, so burning a full meter in
+  one go overheats the engine. Burn it in bursts.
+- Heat falls whenever nitro is off: slowly while driving (about −12%/s), faster off the gas or
+  braking (about −35%/s). Inside the swap lane it resets to 0.
 - At 100%: the engine **stalls** for about 2 s (smoke, sad engine sound), then restarts at
   about 60% heat.
-- Starting values: +25%/s at full gas above 70% top speed, nitro adds about +30%/s,
-  cooling about −35%/s off the gas.
+- (First duo playtest, 2026-10-06: heat from plain full gas was "not fun" and was removed;
+  `heat.risePerSec` can switch it back on.)
 
 ### Tandem drift (needs both players)
 - Entry: the Engineer **taps** brake (short press) while the Pilot holds steering hard
   (≥ 70%) above 40% of top speed.
 - While drifting the car slides wider and charges a **mini-turbo** in three levels, shown by
   spark colors: blue → orange → pink.
-- Release: when the Pilot straightens out and the Engineer is on the gas, the car gets a
-  short boost (longer for higher levels), and nitro charges.
+- Release: when the Pilot straightens out (for a quarter second, so a quick key tap does not
+  end it) and the Engineer is on the gas, the car gets a short boost (longer for higher
+  levels), and nitro charges.
 - Solo players can do it alone, but it is harder with one hand set.
 
 ### Nitro (Engineer)

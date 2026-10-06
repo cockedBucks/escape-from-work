@@ -62,6 +62,8 @@ export interface CarState {
   /** Seconds charged in this drift, and the level reached (0–3: none, blue, orange, pink). */
   driftCharge: number;
   driftLevel: number;
+  /** Ticks the steering has been (nearly) straight during this drift: it ends after `drift.releaseMs`. */
+  straightTicks: number;
   /** Ticks the brake has been held in a row (0 = not held): tells a tap from braking. */
   brakeTicks: number;
   /** Ticks of drift boost left (0 = none). */

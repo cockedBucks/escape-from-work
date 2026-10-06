@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import realTuning from '../../../../config/tuning.json';
-import { parseTuning } from '../config/tuning';
+import { parseTuning, type Tuning } from '../config/tuning';
 import { isStalled, stepHeat } from './heat';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent } from './types';
 
@@ -12,28 +12,43 @@ const FAST = top * (h.hotSpeedFraction + 0.1);
 const SLOW = top * (h.hotSpeedFraction - 0.2);
 const GAS: CarInput = { ...NO_INPUT, gas: true };
 
-const car = (heat = 0): CarState => ({ id: 'a', stats: { speed: 1, grip: 1, weight: 1 }, heat, stallUntilTick: -1 }) as CarState;
+const car = (heat = 0, nitroOn = false): CarState =>
+  ({ id: 'a', stats: { speed: 1, grip: 1, weight: 1 }, heat, stallUntilTick: -1, nitroOn }) as CarState;
+/** The optional "full gas at speed heats too" rule switched on (it is 0 by default). */
+const gasHeats: Tuning = { ...cfg, heat: { ...h, risePerSec: 0.25 } };
 
 /** Run `seconds` of ticks from tick 1; returns the events and the input of the last tick. */
-function run(c: CarState, input: CarInput, speed: number, seconds: number, start = 1) {
+function run(c: CarState, input: CarInput, speed: number, seconds: number, start = 1, tuning: Tuning = cfg) {
   const events: SimEvent[] = [];
   let used: CarInput = input;
   const n = Math.round(seconds / dt);
-  for (let t = start; t < start + n; t++) used = stepHeat(c, input, speed, cfg, t, events);
+  for (let t = start; t < start + n; t++) used = stepHeat(c, input, speed, tuning, t, events);
   return { events, used, end: start + n };
 }
 
 describe('engine heat', () => {
-  it('rises at full gas above the hot speed, at risePerSec', () => {
-    const c = car();
-    run(c, GAS, FAST, 1);
-    expect(c.heat).toBeCloseTo(h.risePerSec, 2);
+  it('nitro heats the engine at nitroRisePerSec; normal driving does not', () => {
+    const burning = car(0, true);
+    run(burning, GAS, FAST, 1);
+    expect(burning.heat).toBeCloseTo(h.nitroRisePerSec, 2);
+    const driving = car(0);
+    run(driving, GAS, FAST, 1);
+    expect(driving.heat).toBe(0);
   });
 
-  it('holds with gas at low speed, cools off the gas or braking', () => {
+  it('with risePerSec switched on, full gas above the hot speed heats too (and below it cools)', () => {
+    const c = car();
+    run(c, GAS, FAST, 1, 1, gasHeats);
+    expect(c.heat).toBeCloseTo(0.25, 2);
+    run(c, GAS, SLOW, 1, 1, gasHeats);
+    expect(c.heat).toBeCloseTo(0.25 - h.coolOnGasPerSec, 2);
+  });
+
+  it('cools slowly while driving on the gas, faster off the gas or braking', () => {
     const c = car(0.5);
-    run(c, GAS, SLOW, 1);
-    expect(c.heat).toBeCloseTo(0.5, 6);
+    run(c, GAS, FAST, 1);
+    expect(c.heat).toBeCloseTo(0.5 - h.coolOnGasPerSec, 2);
+    c.heat = 0.5;
     run(c, NO_INPUT, FAST, 0.5);
     expect(c.heat).toBeCloseTo(0.5 - h.coolPerSec * 0.5, 2);
     const braking = car(0.5);
@@ -48,8 +63,9 @@ describe('engine heat', () => {
   });
 
   it('stalls at full heat: no gas for stallSeconds, then restarts at restartHeat', () => {
-    const c = car(0.99);
+    const c = car(0.99, true);
     const first = run(c, GAS, FAST, 0.1);
+    c.nitroOn = false;
     expect(first.events).toEqual([{ type: 'stall', car: 'a' }]);
     expect(first.used.gas).toBe(false);
     expect(isStalled(c, first.end)).toBe(true);

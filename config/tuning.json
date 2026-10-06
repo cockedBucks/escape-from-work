@@ -58,9 +58,10 @@
   "drift": {
     "minSteer": 0.7,
     "minSpeedRatio": 0.4,
-    "brakeTapMaxMs": 300,
+    "brakeTapMaxMs": 800,
     "exitSpeedRatio": 0.25,
     "releaseSteer": 0.25,
+    "releaseMs": 250,
     "steerBase": 0.55,
     "steerRange": 0.45,
     "turnRate": 1.25,
@@ -73,11 +74,12 @@
   },
   "heat": {
     "hotSpeedFraction": 0.7,
-    "risePerSec": 0.25,
+    "risePerSec": 0,
     "coolPerSec": 0.35,
+    "coolOnGasPerSec": 0.12,
     "stallSeconds": 2,
     "restartHeat": 0.6,
-    "nitroRisePerSec": 0.3
+    "nitroRisePerSec": 0.4
   },
   "solo": {
     "speedMultiplier": 1

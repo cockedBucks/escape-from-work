@@ -20,13 +20,14 @@ function endDrift(car: CarState, reward: boolean, cfg: Tuning, events: SimEvent[
   car.driftDir = 0;
   car.driftCharge = 0;
   car.driftLevel = 0;
+  car.straightTicks = 0;
 }
 
 /**
  * Tandem drift for one tick (GAME_DESIGN §5), before driving. Starts on a brake press while
- * steering hard at speed; charges levels while held; ends when the steering straightens
- * (boost + nitro if on the gas), when the brake is held too long (it was braking), or when
- * too slow. The brake tap that starts a drift does not slow the car. `vF` = forward speed.
+ * steering hard at speed; charges levels while held; ends when the steering has been
+ * straight for `drift.releaseMs` (so a quick key tap does not end it; boost + nitro if on the
+ * gas), when the brake is held too long (it was braking), or when too slow. The brake tap that starts a drift does not slow the car. `vF` = forward speed.
  * Returns the input to drive with.
  */
 export function stepDrift(car: CarState, input: CarInput, vF: number, cfg: Tuning, events: SimEvent[]): CarInput {
@@ -49,8 +50,13 @@ export function stepDrift(car: CarState, input: CarInput, vF: number, cfg: Tunin
     endDrift(car, false, cfg, events);
     return input;
   } else if (Math.abs(input.steer) < d.releaseSteer) {
-    endDrift(car, input.gas, cfg, events);
-    return input;
+    car.straightTicks++;
+    if (car.straightTicks >= Math.round(d.releaseMs / 1000 / dt)) {
+      endDrift(car, input.gas, cfg, events);
+      return input;
+    }
+  } else {
+    car.straightTicks = 0;
   }
 
   car.driftCharge += dt;

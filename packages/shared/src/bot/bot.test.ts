@@ -80,9 +80,8 @@ describe('bot engineer', () => {
 
 describe('golden: bot laps on the Test Loop', () => {
   // GOLDEN: change these windows only for an intended feel change, and say so in the commit.
-  // Measured at P5.1 (engine heat: the bot lifts at bot.heatLiftAt): lap 1 37.15 s, flying 36.87 s.
-  // P5.4 (swap lane on the last straight; it cools the engine from lap 2): 37.27 / 36.82 / 36.38 s.
-  // (P2.8 without heat: 35.57 s / 34.60 s.)
+  // Measured at P5.6a: lap 1 35.57 s, flying 34.60 s (only nitro heats the engine now and plain
+  // bots never burn nitro, so this matches P2.8 again; P5.1–P5.5 with gas heat: ~37 s).
   const race = runBotRace(track, cfg, { cars: 1, laps: 3, maxSeconds: 300 });
 
   it('finishes 3 laps without respawning', () => {
@@ -92,11 +91,11 @@ describe('golden: bot laps on the Test Loop', () => {
 
   it('lap times stay inside the golden window', () => {
     const [first, ...flying] = race.cars[0]!.lapTimes;
-    expect(first).toBeGreaterThan(35.4);
-    expect(first).toBeLessThan(39.0);
+    expect(first).toBeGreaterThan(33.8);
+    expect(first).toBeLessThan(37.4);
     for (const lap of flying) {
-      expect(lap).toBeGreaterThan(35.2);
-      expect(lap).toBeLessThan(38.7);
+      expect(lap).toBeGreaterThan(32.9);
+      expect(lap).toBeLessThan(36.4);
     }
   });
 });
@@ -119,7 +118,7 @@ describe('golden: replay determinism', () => {
     // GOLDEN: any change to physics, bot or Test Loop changes this. Update it only when the
     // change is intended, and say so in the commit message.
     const race = runBotRace(track, cfg, { cars: 2, laps: 1, maxSeconds: 120 });
-    expect(race.hash).toBe('2c20169a');
+    expect(race.hash).toBe('78e573ae');
   });
 
   it('hash notices a tiny difference', () => {

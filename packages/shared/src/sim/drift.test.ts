@@ -41,6 +41,8 @@ function run(c: CarState, input: CarInput, n: number): SimEvent[] {
 }
 
 const STEER_R: CarInput = { ...NO_INPUT, steer: 1 };
+/** Ticks the steering must stay straight before a drift lets go. */
+const RELEASE = secs(d.releaseMs / 1000);
 const TAP: CarInput = { ...STEER_R, brake: true };
 
 /** Start a drift to the right: brake tapped (2 ticks) while steering hard. */
@@ -90,7 +92,7 @@ describe('tandem drift', () => {
     startDrift(c);
     const levels = run(c, { ...STEER_R, gas: true }, secs(d.levelSeconds[2] + 0.1)).filter((e) => e.type === 'driftLevel');
     expect(levels.map((e) => (e as { level: number }).level)).toEqual([1, 2, 3]);
-    const release = run(c, { ...NO_INPUT, gas: true }, 1);
+    const release = run(c, { ...NO_INPUT, gas: true }, RELEASE);
     expect(release).toContainEqual({ type: 'boost', car: 'a', level: 3 });
     expect(c.driftDir).toBe(0);
     expect(c.nitro).toBeCloseTo(d.nitroPerLevel[2], 6);
@@ -104,11 +106,23 @@ describe('tandem drift', () => {
     const c = fastCar();
     startDrift(c);
     run(c, STEER_R, secs(d.levelSeconds[0] + 0.1));
-    expect(run(c, NO_INPUT, 1).some((e) => e.type === 'boost')).toBe(false);
+    expect(run(c, NO_INPUT, RELEASE).some((e) => e.type === 'boost')).toBe(false);
     expect(c.nitro).toBe(0);
     const quick = fastCar();
     startDrift(quick);
-    expect(run(quick, { ...NO_INPUT, gas: true }, 1).some((e) => e.type === 'boost')).toBe(false);
+    expect(run(quick, { ...NO_INPUT, gas: true }, RELEASE).some((e) => e.type === 'boost')).toBe(false);
+  });
+
+  it('a quick tap off the steering key does not end the drift; holding straight does', () => {
+    const c = fastCar();
+    startDrift(c);
+    run(c, { ...NO_INPUT, gas: true }, RELEASE - 2);
+    expect(c.driftDir).toBe(1);
+    run(c, { ...STEER_R, gas: true }, 5); // back on the key: the grace starts over
+    run(c, { ...NO_INPUT, gas: true }, RELEASE - 2);
+    expect(c.driftDir).toBe(1);
+    run(c, { ...NO_INPUT, gas: true }, 2);
+    expect(c.driftDir).toBe(0);
   });
 
   it('ends with no reward when the car gets too slow', () => {
@@ -137,7 +151,7 @@ describe('tandem drift', () => {
     c.nitro = 0.95;
     startDrift(c);
     run(c, { ...STEER_R, gas: true }, secs(d.levelSeconds[2] + 0.1));
-    run(c, { ...NO_INPUT, gas: true }, 1);
+    run(c, { ...NO_INPUT, gas: true }, RELEASE);
     expect(c.nitro).toBe(1);
   });
 });

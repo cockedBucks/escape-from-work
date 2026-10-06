@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: HUMAN GATE — duo mechanics (then P5.7 phase end)
+- Next task: P5.6b Gate fixes: stutter (then P5.6c sense of speed, then re-test the gate)
 - Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
   `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
@@ -108,3 +108,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-05 P4 gate "cockpit fun": `npm run faces` rejected Arabic file names (fixed, D064, with
   the lost face-picker styles and an empty-lobby backdrop); then "all good, but the faces are not at
   the same height" → per-photo eyes/chin framing (D065).
+- 2026-10-06 P5 gate "duo mechanics" (first try): "drift does not stay for long so there is not a
+  lot of fun"; heat "is shit, maybe make engine heat when over use of nitro"; swap lane: "yes keep";
+  driving: car stutters/jitters when moving, "feels like a box moving, no sense of speed or fun".
+  → P5.6a–c added before re-testing the gate.

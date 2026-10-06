@@ -24,6 +24,12 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
   (with a skill level). Balance test: skilled vs plain bot team lap-time gain inside the
   configured range. Update golden windows if needed (and say why).
 - [x] **P5.6 How-to-play cards.** One short card per role in the lobby, with the keys.
+- [x] **P5.6a Gate fixes: drift + heat.** From the first duo test (2026-10-06): drifts end too
+  soon (release grace, longer brake hold), heat only from nitro overuse (normal driving cools).
+- [ ] **P5.6b Gate fixes: stutter.** Measure the drawn own-car motion per frame in a real
+  browser; find and fix jumps (prediction corrections, timeline, camera).
+- [ ] **P5.6c Gate fixes: sense of speed.** Engine hum (pitch follows speed), tire squeal while
+  drifting, speed FOV, speed lines, roadside markers so speed is visible.
 - [ ] **HUMAN GATE — duo mechanics.**
   1. Race as a duo. Try to chain drifts into nitro without overheating. Use the swap lane once.
   2. Reply: is drifting understandable? Does heat create good tension or just annoy?

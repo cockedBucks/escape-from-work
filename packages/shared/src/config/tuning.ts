@@ -135,8 +135,9 @@ const DriftSchema = z.strictObject({
   brakeTapMaxMs: z.number().int().positive(),
   /** The drift ends with no reward below this share of top speed. */
   exitSpeedRatio: fraction(),
-  /** Steering under this (0–1) releases the drift: boost if on the gas. */
+  /** Steering under this (0–1) for `releaseMs` releases the drift: boost if on the gas then. */
   releaseSteer: fraction(),
+  releaseMs: z.number().int().nonnegative(),
   /** Turn while drifting = base + range × steer into the drift (−1..1): steer out to go wide. */
   steerBase: fraction(),
   steerRange: fraction(),
@@ -161,8 +162,10 @@ const HeatSchema = z.strictObject({
   hotSpeedFraction: z.number().min(0).max(1),
   /** Heat gained per second at full gas and speed (0.25 = +25%/s). */
   risePerSec: nonNeg(),
-  /** Heat lost per second off the gas or braking. */
+  /** Heat lost per second off the gas or braking... */
   coolPerSec: nonNeg(),
+  /** ...and while driving on the gas with nothing heating the engine. */
+  coolOnGasPerSec: nonNeg(),
   /** At full heat the engine stalls (no gas) for this long (s)... */
   stallSeconds: nonNeg(),
   /** ...then restarts at this heat (0–1). */
