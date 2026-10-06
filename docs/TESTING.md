@@ -11,6 +11,7 @@ The human should only need to test **feel and fun**. Everything else is checked 
 | Golden | bot lap-time windows per track and car; replay determinism hash | `npm test` |
 | Integration | server room + real Colyseus clients in-process: join, roles, merge, disconnect, full race | `npm test` |
 | Load | 8 cars × 2 bot clients race 3 laps through the real server; checks every car finishes, average tick < 25% of the 16.7 ms slot, overruns ≤ 0.1% of ticks; prints avg/max | `npm run test:load` (~2 min, not in verify) |
+| Soak | 8 cars × 2 bot clients (a child process) race back to back for 10 min against the server in the soak process (chaos on, 2 laps); after each race: heap after a forced GC, tick avg/max/overruns, connected clients. Fails on heap growth > 8 MB (race 2 → last), > 0.1% overruns, a race that does not finish, or a lost client. Writes `artifacts/soak.json` | `npm run soak -- [--minutes 10] [--cars 8] [--laps 2] [--chaos on\|off]` (P10.5, not in verify) |
 | Bot race | real WebSocket bot clients against a running server (split pilot/engineer bots); `tests/bot-clients.test.ts` runs 2 cars × 2 clients for one real-time lap (~40 s) in every verify | `npm run bots` |
 | Visual | Playwright screenshots + render stats per scenario | `npm run shots` |
 | Human | feel, fun, real-laptop FPS, real LAN | HUMAN GATEs in the phase files |

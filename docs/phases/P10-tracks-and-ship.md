@@ -23,7 +23,7 @@ and a final stability pass.
 - [x] **P10.4 Office deployment.** `start-server.bat` and `start-server.sh` (install if needed,
   build, start, print URLs). `docs/LAN.md` final: daily start, firewall, troubleshooting,
   updating the game with git, backing up `data/league.json`.
-- [ ] **P10.5 Soak test.** Script: 16 bot clients, 10 minutes of back-to-back races; record memory
+- [x] **P10.5 Soak test.** Script: 16 bot clients, 10 minutes of back-to-back races; record memory
   and tick time; fix leaks.
 - [ ] **P10.6 Final pass.** All scenarios through `/shots`, all golden tests, README refreshed,
   known issues listed.
