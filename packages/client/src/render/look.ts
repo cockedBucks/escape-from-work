@@ -102,8 +102,10 @@ export const COCKPIT = {
   seatOffset: 0.42,
   /** Seats sit this far behind the car center. */
   seatBack: 0.45,
-  /** Eye height above the top of the body (inside the cabin). */
+  /** Eye height above the top of the body (inside the cabin) — the box car's; kit cars move the
+   * eye to their head (`eyeAboveHead` m above its center) and the dash with it (`CarMesh.cockpitLift`). */
   eyeAboveBody: 0.38,
+  eyeAboveHead: 0.08,
   dashDepth: 0.22,
   dashHeight: 0.1,
   /** Dashboard front edge, ahead of the car center (the windshield line). */
@@ -211,7 +213,7 @@ export const SMOKE = {
 
 /** Drift dust and sparks, boost flames (ART_STYLE §6): bright unlit chips, one instanced draw call. */
 export const SPARKS = {
-  maxParticles: 192,
+  maxParticles: 320,
   /** A drifting car throws particles from each rear wheel this often (ms); boosting cars flame as often. */
   driftEveryMs: 20,
   boostEveryMs: 30,
@@ -245,6 +247,38 @@ export const SPARKS = {
   /** Nitro flames are this much bigger and longer than a drift boost's. */
   nitroFlameScale: 1.8,
   gravity: 14,
+} as const;
+
+/** Juice (ART_STYLE §6): landing squash, hit shake, head kicks on bumps, finish confetti. */
+export const JUICE = {
+  /** Landing squash: body height lost per m/s of landing speed (capped), spring (1/s, damping ratio), and how much wider it gets. */
+  squashPerImpact: 0.035,
+  squashMax: 0.3,
+  squashStiffness: 16,
+  squashDamping: 0.32,
+  squashWiden: 0.5,
+  /** Springs and shakes this small count as stopped; springs step at most this much at a time (s). */
+  restEpsilon: 0.002,
+  maxStep: 1 / 120,
+  /** Chase-cam shake: meters per m/s of impact (capped), fade (1/s), wobble rates (rad/s). */
+  shakePerImpact: 0.02,
+  shakeMax: 0.4,
+  shakeDecay: 8,
+  shakeFreqA: 41,
+  shakeFreqB: 33,
+  /** Bobbleheads: tilt speed kick (rad/s) per m/s of a hit or landing, capped. */
+  headKickPerImpact: 0.4,
+  headKickMax: 7,
+  /** Finish confetti: pieces per burst (your own finish: × `confettiMine`), launch speeds (m/s), life (s), fall (m/s²), size (m), start height (m). */
+  confettiPieces: 36,
+  confettiMine: 3,
+  confettiUp: 8,
+  confettiSpread: 5,
+  confettiLife: 2.4,
+  confettiFall: 7,
+  confettiSize: 0.2,
+  confettiHeight: 1.5,
+  confettiColors: [0xff5a5f, 0xffd23f, 0x3bceac, 0x5b8cff, 0xc77dff, 0xffffff],
 } as const;
 
 /** Chaos items in the world (ART_STYLE: chunky, bright, readable from the chase cam). */

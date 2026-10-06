@@ -707,27 +707,49 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  padding: 0.2rem 0.7rem;
+}
+
+.bubble-text {
+  position: relative;
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  border: 0.15rem solid var(--ui-dark);
   border-radius: 1rem;
   background: #fff;
   color: var(--ui-dark);
   font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   box-shadow: 0 0.2rem 0 var(--ui-dark);
   white-space: nowrap;
+  transform: rotate(var(--tilt, 0deg));
 }
 
-.bubble.pop {
-  animation: bubble-pop 0.3s ease-out;
+/* The speech tail, pointing down at the car. */
+.bubble-text::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -0.55rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  background: #fff;
+  border-right: 0.15rem solid var(--ui-dark);
+  border-bottom: 0.15rem solid var(--ui-dark);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.bubble-text.pop {
+  animation: bubble-pop 0.35s cubic-bezier(0.3, 1.8, 0.5, 1);
 }
 
 @keyframes bubble-pop {
   from {
-    font-size: 0.6rem;
+    transform: rotate(var(--tilt, 0deg)) scale(0.3);
     opacity: 0.3;
   }
   to {
-    font-size: 1.3rem;
+    transform: rotate(var(--tilt, 0deg)) scale(1);
     opacity: 1;
   }
 }

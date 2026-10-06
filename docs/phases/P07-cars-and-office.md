@@ -28,7 +28,7 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   (branch spline), props. Use `/add-track`. `npm run track:check -- office`.
   Add the 40–55 s lap-target check to `track:check` (human chose a `dev` flag that exempts
   the Test Loop; D091).
-- [ ] **P7.6 Juice.** Dust, spark levels, nitro flames, stall smoke, landing squash, hit shake,
+- [x] **P7.6 Juice.** Dust, spark levels, nitro flames, stall smoke, landing squash, hit shake,
   finish confetti, head wobble, honk bubble polish.
 - [ ] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,
   bumps, landings, item sounds, countdown beeps, a light menu loop. Volume settings.

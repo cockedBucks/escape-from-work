@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Bobblehead, makeDuck } from './bobblehead';
-import type { SeatSide } from './cockpitCam';
+import type { CockpitLift, SeatSide } from './cockpitCam';
 import type { CarLook } from '@escape/shared';
 import { buildCarShape, type CarShape } from './carKit';
+import { headKick, Squash } from './juice';
 import { BOX_CAR, CAR_KIT, COCKPIT, DUCK, HEAD, MIRROR, PALETTE, TEAM_COLORS } from './look';
 
 /** A string that changes when a car's look does. */
@@ -179,6 +180,9 @@ export class CarMesh {
   private readonly wheels: THREE.Mesh[] = [];
   private readonly frontWheels: THREE.Mesh[] = [];
   private spin = 0;
+  private readonly squash = new Squash();
+  /** Your eye in this car (your own head's place) vs the box car's eye; the dash moves with it. */
+  readonly cockpitLift: CockpitLift;
   /** Dashboard block, only for your own car while you sit in the cockpit cam. */
   private dash: THREE.Mesh | null = null;
   /** What sits in the left and right seat. */
@@ -193,6 +197,10 @@ export class CarMesh {
     this.lookKey = lookKeyOf(look);
     this.shape = buildCarShape(look, teamColor);
     const s = this.shape;
+    this.cockpitLift = {
+      y: s.headY + COCKPIT.eyeAboveHead - (BOX_CAR.ride + BOX_CAR.bodyHeight + COCKPIT.eyeAboveBody),
+      z: s.seatZ + COCKPIT.seatBack,
+    };
     this.bodyMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
     this.body = new THREE.Mesh(s.body, this.bodyMat);
     this.body.castShadow = true;
@@ -229,6 +237,9 @@ export class CarMesh {
     this.root.position.set(x, 0, z);
     this.root.rotation.y = yaw;
     this.body.position.y = y;
+    // Landing squash and stretch (the body is built standing on y = 0, so it squashes onto its wheels).
+    this.squash.step(dt);
+    this.body.scale.set(this.squash.scaleXZ, this.squash.scaleY, this.squash.scaleXZ);
     this.spin += (speed * dt) / r;
     for (const w of this.wheels) {
       w.rotation.x = this.spin;
@@ -272,6 +283,14 @@ export class CarMesh {
     }
   }
 
+  /** A hit or landing at `impact` m/s: heads bob; a landing also squashes the body. */
+  jolt(impact: number, landing: boolean): void {
+    if (landing) this.squash.land(impact);
+    for (const seat of [this.seats.left, this.seats.right]) {
+      if (seat?.kind === 'head') seat.head.kick(headKick(impact));
+    }
+  }
+
   /** Show the inside (dashboard) when you look from this car's seat. */
   setCockpit(on: boolean): void {
     if (on && !this.dash) {
@@ -282,7 +301,7 @@ export class CarMesh {
       this.dash.removeFromParent();
       this.dash = null;
     }
-    if (this.dash) this.dash.position.y = this.body.position.y;
+    if (this.dash) this.dash.position.set(0, this.body.position.y + this.cockpitLift.y, this.cockpitLift.z);
   }
 
   dispose(): void {

@@ -16,6 +16,12 @@ export class Wobble {
   private vp = 0;
   private vr = 0;
 
+  /** A bump: set both axes swinging (rad/s; the sign alternates so heads do not all nod the same way). */
+  kick(speed: number): void {
+    this.vp -= speed;
+    this.vr += this.vr >= 0 ? speed * 0.6 : -speed * 0.6;
+  }
+
   step(forwardAccel: number, sideAccel: number, dt: number): void {
     const k = HEAD.wobbleStiffness;
     const damp = HEAD.wobbleDamping;
@@ -36,6 +42,11 @@ export class Bobblehead {
   constructor(material: THREE.Material) {
     this.mesh = new THREE.Mesh(sphere(), material);
     this.mesh.rotation.order = 'YXZ';
+  }
+
+  /** A hit or landing jolts the head (rad/s of tilt speed). */
+  kick(speed: number): void {
+    this.wobble.kick(speed);
   }
 
   setMaterial(material: THREE.Material): void {

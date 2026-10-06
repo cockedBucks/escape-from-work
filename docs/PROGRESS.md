@@ -5,10 +5,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.6 Juice
-- Status: P7.5 done. `npm run verify` passes (421 tests + bot race, best lap 35.52 s).
-  The Office is the default race track (`track:check -- office` OK: plain bots 42–43 s, skilled 39 s).
-  Shots: track-overview-office 50 draw calls, chase-office 22 (software GL in the cloud).
+- Next task: P7.7 Procedural audio
+- Status: P7.6 done. `npm run verify` passes (432 tests + bot race, best lap 35.52 s); `npm run test:load`
+  passes. The Office is the default track. Shots: juice 23 draws / 27k tris (software GL in the cloud).
 
 ## Half-done
 - (nothing)
@@ -116,6 +115,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   over the boardroom table, Server Closet shortcut, swap lane, 166 props), carpet ground, Office =
   default track, `shots --track`. Bot drift fixes (release on straights, no drift into S-bends or
   shortcuts). D091.
+- 2026-10-06 (cloud): P7.6 Juice — landing squash & stretch (spring per car), chase-cam hit shake,
+  bobblehead kicks on hits/landings (every car), finish confetti (same particle pool), HONK bubble
+  polish (tilt, springy pop, tail, float + fade), `juice` scenario. Fixed: cockpit eye now sits at your
+  own head (kit cars' heads poke out of the roof; the roof hid your teammate since P7.1); dash, screen
+  and mirror move with it. D094.
 - 2026-10-06 (cloud, 2nd session): two sessions had built P7.5 in parallel; kept `cloud-work`'s, added
   the general wall fix, ground polygon offset and the `shortcut` scenario from the other. D093.
 

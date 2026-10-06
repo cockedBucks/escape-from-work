@@ -99,6 +99,8 @@ function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: strin
 
 /** Where you look in the `cockpit` scenario: right (negative yaw) and a bit up, at your teammate. */
 const SCENARIO_LOOK = { yaw: -1.15, pitch: 0.25 };
+/** `juice` scenario: landing speed (m/s) for the squash, and how long the confetti has flown (s). */
+const SCENARIO_JUICE = { landing: 9, confettiSeconds: 0.45 };
 /** `stall`/`drift` scenarios: smoke/sparks already flying this long when the picture is taken (s). */
 const SCENARIO_SMOKE_SECONDS = 1;
 
@@ -200,6 +202,14 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     new ItemEffectsOverlay(container).set({ blueLeft: 0, lagLeft: 0, swapLeft: 0, updateLeft: max * 0.6 }, max);
   }
   if (scenario === 'stall' || scenario === 'drift' || scenario === 'nitro') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
+  if (scenario === 'juice') {
+    // You just finished (confetti) after a jump (squash) and honk.
+    game.renderFrame(performance.now(), true); // builds the car meshes
+    game.jolt('bot1', SCENARIO_JUICE.landing, true);
+    game.confetti('bot1', true);
+    game.say('bot1', 'HONK!');
+    game.warmEffects(SCENARIO_JUICE.confettiSeconds, performance.now());
+  }
   game.renderFrame(performance.now(), true);
   game.start();
   setStatus('');
@@ -372,6 +382,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const roster = loadCars().cars;
   const rosterNames = roster.map((d) => ({ id: d.id, name: d.name }));
   let carModels: string[] = [];
+  /** Cars seen finished this race (confetti once each; joining during results throws none). */
+  const finishedCars = new Set<string>();
   const carDefOf = (carId: string): CarDef => {
     const slot = Number(carId.slice('car'.length));
     return roster.find((d) => d.id === carModels[slot]) ?? roster[0]!;
@@ -426,6 +438,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     seatsByCar = carSeatsFrom(state, room.sessionId);
     const boardCars: BoardCar[] = [];
     state.cars.forEach((c, id) => {
+      if (!c.finished) finishedCars.delete(id);
+      else if (!finishedCars.has(id)) {
+        finishedCars.add(id);
+        if (state.phase === 'racing') game.confetti(id, id === myCarId);
+      }
       boardCars.push({
         slot: Number(id.slice('car'.length)), place: c.place, lapsDone: c.lapsDone, finished: c.finished,
         dnf: c.dnf, gapMs: c.gapMs, finishMs: c.finishMs, bestLapMs: c.bestLapMs, bot: c.bot,
@@ -580,6 +597,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         horns.playSound(DRIFT_SOUNDS[e.type], heardFrom(e.car));
         continue;
       }
+      if (e.type === 'wallHit') game.jolt(e.car, e.speed, false);
+      else if (e.type === 'carHit') {
+        game.jolt(e.car, e.speed, false);
+        game.jolt(e.other, e.speed, false);
+      } else if (e.type === 'land') game.jolt(e.car, e.impact, true);
       const hitsMe = e.car === myCarId || (e.type === 'carHit' && e.other === myCarId);
       if (!hitsMe) continue;
       if (e.type === 'wallHit' || e.type === 'carHit') game.bump(e.speed);

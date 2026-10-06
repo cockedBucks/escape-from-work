@@ -1,6 +1,8 @@
 import { angleDiff, buildBoxes, type CarLook, type Track, type Tuning } from '@escape/shared';
 import type { CarSnap } from './net/snapshots';
 import { ChaseCam, placeOverview } from './render/cameras';
+import { Shake } from './render/juice';
+import { JUICE } from './render/look';
 import { CockpitCam, type SeatSide } from './render/cockpitCam';
 import { CarMesh, lookKeyOf, type SeatContent } from './render/carMesh';
 import type * as THREE from 'three';
@@ -96,6 +98,8 @@ export class Game {
   private readonly stage: Stage;
   private readonly trackMeshes: TrackMeshes;
   private readonly chase: ChaseCam;
+  /** Chase-cam shake after your car is hit. */
+  private readonly shake = new Shake();
   private readonly cockpit: CockpitCam;
   private readonly faces = new FaceMaterials();
   // Reused every frame (no per-frame allocations).
@@ -214,9 +218,21 @@ export class Game {
     return this.stage.camera.position;
   }
 
-  /** Something jolted your car (wall, landing, bump): shake the cockpit head a little. */
+  /** Something jolted your car (wall, landing, bump): shake the cockpit head or the chase cam a little. */
   bump(strength: number): void {
     this.cockpit.bump(strength, this.opts.tuning.camera);
+    this.shake.hit(strength);
+  }
+
+  /** Any car hit something or landed at `impact` m/s: its heads bob, a landing squashes it. */
+  jolt(carId: string, impact: number, landing: boolean): void {
+    this.cars.get(carId)?.jolt(impact, landing);
+  }
+
+  /** A car crossed the finish line: confetti over it (lots more when it is yours). */
+  confetti(carId: string, mine: boolean): void {
+    const p = this.snaps.get(carId);
+    if (p) this.sparks.confetti(p.x, p.y, p.z, JUICE.confettiPieces * (mine ? JUICE.confettiMine : 1));
   }
 
   start(): void {
@@ -253,17 +269,23 @@ export class Game {
       this.setBackdrop(car === undefined);
       if (car && view === 'cockpit') {
         const locked = this.opts.mouseLocked?.() ?? false;
-        this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked);
+        this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked, this.cars.get(id!)?.cockpitLift);
       } else if (car) {
         this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera, car.speed / this.opts.tuning.car.topSpeed);
+        this.shake.step(dt);
+        if (this.shake.amp > 0) {
+          this.stage.camera.translateX(this.shake.x);
+          this.stage.camera.translateY(this.shake.y);
+        }
       }
       this.showDash(view === 'cockpit' && id !== null ? id : null);
+      const lift = id === null ? undefined : this.cars.get(id)?.cockpitLift;
       if (view === 'cockpit' && car && this.mirror) {
-        this.mirror.mesh.position.y = car.y;
-        this.mirror.render(this.stage.renderer, this.stage.scene, car.x, car.y, car.z, car.yaw);
+        this.mirror.mesh.position.set(0, car.y + (lift?.y ?? 0), lift?.z ?? 0);
+        this.mirror.render(this.stage.renderer, this.stage.scene, car.x, car.y, car.z, car.yaw, lift?.y ?? 0);
       }
       if (view === 'cockpit' && car && this.dashScreen) {
-        this.dashScreen.mesh.position.y = car.y;
+        this.dashScreen.mesh.position.set(0, car.y + (lift?.y ?? 0), lift?.z ?? 0);
         Object.assign(this.dashValues, this.opts.gauges?.() ?? NO_GAUGES);
         this.dashValues.speed = car.speed;
         this.dashScreen.update(now, this.dashValues);

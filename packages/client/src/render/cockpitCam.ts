@@ -3,6 +3,13 @@ import { clamp, type Tuning } from '@escape/shared';
 import { followAlpha } from './cameras';
 import { BOX_CAR, COCKPIT } from './look';
 
+/** Where a car's cockpit eye sits relative to the box car's: up (y) and forward (z), meters. */
+export interface CockpitLift {
+  y: number;
+  z: number;
+}
+export const NO_LIFT: CockpitLift = { y: 0, z: 0 };
+
 export type SeatSide = 'left' | 'right';
 
 /** Pilot (and solo) sit on the left, the Engineer on the right (ART_STYLE §4). */
@@ -35,7 +42,8 @@ export class CockpitCam {
     this.bobVel -= strength * cfg.headBob;
   }
 
-  update(cfg: Tuning['camera'], x: number, y: number, z: number, yaw: number, side: SeatSide, dt: number, mouseLocked: boolean): void {
+  /** `lift`: how far this car's eye sits above / ahead of the box car's (`CarMesh.cockpitLift`). */
+  update(cfg: Tuning['camera'], x: number, y: number, z: number, yaw: number, side: SeatSide, dt: number, mouseLocked: boolean, lift: CockpitLift = NO_LIFT): void {
     if (!mouseLocked) {
       // Mouse free: the head eases back to looking straight ahead.
       const a = followAlpha(cfg.headRecenterRate, dt);
@@ -53,10 +61,10 @@ export class CockpitCam {
     const fz = Math.cos(yaw);
     const lx = Math.cos(yaw); // car's left = (cos yaw, -sin yaw)
     const lz = -Math.sin(yaw);
-    const back = COCKPIT.seatBack;
+    const back = COCKPIT.seatBack - lift.z;
     this.eye.set(
       x + lx * lateral - fx * back,
-      y + BOX_CAR.ride + BOX_CAR.bodyHeight + COCKPIT.eyeAboveBody + this.bob,
+      y + BOX_CAR.ride + BOX_CAR.bodyHeight + COCKPIT.eyeAboveBody + lift.y + this.bob,
       z + lz * lateral - fz * back,
     );
     const lookYaw = yaw + this.headYaw;

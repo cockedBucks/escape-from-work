@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { CarSnap } from '../net/snapshots';
-import { SPARKS } from './look';
+import { JUICE, SPARKS } from './look';
 
 const N = SPARKS.maxParticles;
 const SIDES = [-1, 1] as const;
@@ -85,6 +85,17 @@ export class Sparks {
       const up = SPARKS.kickUp * (spark ? SPARKS.sparkKickMin + Math.random() : SPARKS.dustKick);
       this.emit(x, car.y + SPARKS.rearHeight, z, -fx * back + fz * sideways, up, -fz * back - fx * sideways,
         spark ? SPARKS.sparkSize : SPARKS.dustSize, spark ? SPARKS.sparkLife : SPARKS.dustLife, spark ? SPARKS.gravity : 0, color);
+    }
+  }
+
+  /** Finish confetti: `count` colored chips thrown up over (x, z), drifting down slowly. */
+  confetti(x: number, y: number, z: number, count: number): void {
+    const colors = JUICE.confettiColors;
+    for (let k = 0; k < count; k++) {
+      const a = Math.random() * Math.PI * 2;
+      const out = JUICE.confettiSpread * Math.random();
+      this.emit(x, y + JUICE.confettiHeight, z, Math.cos(a) * out, JUICE.confettiUp * (0.6 + Math.random() * 0.6), Math.sin(a) * out,
+        JUICE.confettiSize, JUICE.confettiLife * (0.7 + Math.random() * 0.5), JUICE.confettiFall, colors[k % colors.length]!);
     }
   }
 
