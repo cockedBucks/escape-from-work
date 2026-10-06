@@ -67,7 +67,7 @@ export const liveStats: GameStats = {
 };
 
 /** Drawn pose of the followed car; the game writes it every frame (no allocation). */
-export const focusPose = { set: false, x: 0, z: 0, yaw: 0, speed: 0, camX: 0, camZ: 0 };
+export const focusPose = { set: false, x: 0, z: 0, yaw: 0, speed: 0, camX: 0, camZ: 0, drift: 0, boosting: false };
 
 /** Weight of the newest frame in the smoothed frame time (exponential moving average). */
 const FPS_SMOOTHING = 0.1;

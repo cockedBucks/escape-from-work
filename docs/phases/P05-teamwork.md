@@ -28,7 +28,7 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
   soon (release grace, longer brake hold), heat only from nitro overuse (normal driving cools).
 - [x] **P5.6b Gate fixes: stutter.** Measure the drawn own-car motion per frame in a real
   browser; find and fix jumps (prediction corrections, timeline, camera).
-- [ ] **P5.6c Gate fixes: sense of speed.** Engine hum (pitch follows speed), tire squeal while
+- [x] **P5.6c Gate fixes: sense of speed.** Engine hum (pitch follows speed), tire squeal while
   drifting, speed FOV, speed lines, roadside markers so speed is visible.
 - [ ] **HUMAN GATE — duo mechanics.**
   1. Race as a duo. Try to chain drifts into nitro without overheating. Use the swap lane once.

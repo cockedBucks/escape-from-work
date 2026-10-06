@@ -59,6 +59,11 @@ export const hornVolume = (distance: number): number => 1 / (1 + Math.max(0, dis
 export class HornPlayer {
   private ctx: AudioContext | null = null;
 
+  /** The shared audio context (null until the first click or key press). */
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
+
   constructor() {
     window.addEventListener('pointerdown', this.unlock, { once: false });
     window.addEventListener('keydown', this.unlock, { once: false });

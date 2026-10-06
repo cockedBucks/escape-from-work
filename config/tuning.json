@@ -131,6 +131,8 @@
     "lookAhead": 5,
     "lookHeight": 1,
     "followRate": 8,
+    "speedFov": 14,
+    "speedFovFrom": 0.3,
     "cockpitFov": 80,
     "mouseSensitivity": 0.0025,
     "headYawLimit": 1.75,

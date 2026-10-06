@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.6c Gate fixes: sense of speed (then re-test the duo gate)
+- Next task: HUMAN GATE — duo mechanics (re-test after P5.6a–c), then P5.7 phase end
 - Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
   `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.
@@ -90,6 +90,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-05: P5.6 how-to cards — lobby row with one card per role (job + keys, yours
   highlighted) and the duo loop in one line; texts in `ui/roleKeys.ts`. Fits 1280×720.
+
+- 2026-10-06: P5.6a–c gate fixes — drifts survive key taps (`drift.releaseMs`), heat only from
+  nitro overuse (D072); own-car stutter fixed in the predictor + `npm run jitter` (D073); sense of
+  speed: engine hum + tire squeal, speed FOV, speed lines, dashed center line, roadside posts (D074).
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

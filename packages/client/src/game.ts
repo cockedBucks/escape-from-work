@@ -10,6 +10,7 @@ import { RearMirror } from './render/mirror';
 import { FaceMaterials } from './render/faceTexture';
 import { Smoke } from './render/smoke';
 import { Sparks } from './render/sparks';
+import { SpeedLines, speedLineStrength } from './ui/speedLines';
 import type { GaugeValues } from './ui/gauges';
 import { HeadSmoother } from './net/heads';
 import { TEAM_COLORS } from './render/look';
@@ -95,6 +96,7 @@ export class Game {
   /** Smoke over stalled engines; drift dust/sparks and boost flames. */
   private readonly smoke: Smoke;
   private readonly sparks: Sparks;
+  private readonly speedLines: SpeedLines;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -119,6 +121,7 @@ export class Game {
     this.stage.scene.add(this.smoke.mesh);
     this.sparks = new Sparks(opts.quality.particles);
     this.stage.scene.add(this.sparks.mesh);
+    this.speedLines = new SpeedLines(opts.container);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     if (opts.view === 'overview') {
       // From high above, fog would hide the whole track.
@@ -230,7 +233,7 @@ export class Game {
         const locked = this.opts.mouseLocked?.() ?? false;
         this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked);
       } else if (car) {
-        this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera);
+        this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera, car.speed / this.opts.tuning.car.topSpeed);
       }
       this.showDash(view === 'cockpit' && id !== null ? id : null);
       if (view === 'cockpit' && car && this.mirror) {
@@ -244,11 +247,14 @@ export class Game {
         this.dashScreen.update(now, this.dashValues);
       }
       focusPose.set = car !== undefined;
+      this.speedLines.update(car ? speedLineStrength(car.speed / this.opts.tuning.car.topSpeed, car.boosting || car.nitroOn) : 0);
       if (car) {
         focusPose.x = car.x;
         focusPose.z = car.z;
         focusPose.yaw = car.yaw;
         focusPose.speed = car.speed;
+        focusPose.drift = car.drift;
+        focusPose.boosting = car.boosting || car.nitroOn;
         focusPose.camX = this.stage.camera.position.x;
         focusPose.camZ = this.stage.camera.position.z;
       }
@@ -370,6 +376,7 @@ export class Game {
     this.faces.dispose();
     this.smoke.dispose();
     this.sparks.dispose();
+    this.speedLines.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();
     this.trackMeshes.dispose();

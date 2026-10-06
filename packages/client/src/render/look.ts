@@ -51,6 +51,15 @@ export const TRACK_LOOK = {
   /** Slick patch tint and opacity. */
   slickColor: 0x7fc8e8,
   slickOpacity: 0.65,
+  /** Dashed center line (sense of speed): dash and gap length (m), width (m). */
+  centerDash: 3,
+  centerGap: 5,
+  centerWidth: 0.25,
+  /** Roadside posts every `postSpacing` m on both edges, `postOut` m outside the road; red/white. */
+  postSpacing: 12,
+  postOut: 1.2,
+  postSize: 0.3,
+  postHeight: 1.3,
   /** Swap lane: purple/white stripes over its half of the road, this many samples per stripe. */
   swapColors: [0x9b5de5, 0xffffff],
   swapStripeSamples: 2,

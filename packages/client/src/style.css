@@ -882,3 +882,20 @@ body {
   text-align: center;
   opacity: 0.85;
 }
+
+/* Speed lines: streaks at the screen edges, fading in with speed (opacity set from code). */
+.speed-lines {
+  position: absolute;
+  inset: -25%;
+  opacity: 0;
+  pointer-events: none;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 3.4deg, rgba(255, 255, 255, 0.4) 3.4deg 3.9deg);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 38%, #000 72%);
+  mask-image: radial-gradient(ellipse at center, transparent 38%, #000 72%);
+  animation: speed-flicker 0.12s steps(2, jump-none) infinite;
+}
+
+@keyframes speed-flicker {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(1.7deg); }
+}

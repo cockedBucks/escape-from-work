@@ -2,9 +2,10 @@
 // race (join the server, drive with the keyboard). Menus and lobby come in later phases.
 import '@fontsource/fredoka/600.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, type CarInput, type Horn, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, inputsAllowed, mayUse, type CarInput, type Horn, type LobbyError, type RacePhase, type Role, type SimEvent, type Tuning } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadTrack, loadTuning } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
+import { EngineSound } from './audio/engine';
 import { DRIFT_SOUNDS, ENGINE_SOUNDS, HornPlayer } from './audio/horn';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
@@ -318,13 +319,20 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     sample(now, out) {
       source.sample(now, out);
       const mine = myCarId === null ? undefined : out.get(myCarId);
-      if (!mine) return;
+      if (!mine) {
+        engine.update(false, 0, false, false, false);
+        return;
+      }
       const lead = liveStats.inputDelayMs ?? liveStats.pingMs ?? 0;
       if (keyboard) keyboard.readInto(localInput);
       // While the server ignores controls (countdown), predicting would make the car creep.
       predictor.predict(now, localInput, inputsAllowed(phase) ? myRole : null, lead, latestTuning, mine);
+      // Your engine: your own gas key, or your partner's as the server last applied it.
+      const gas = (myRole !== null && mayUse(myRole, 'gas') && localInput.gas) || serverGas;
+      engine.update(true, mine.speed / latestTuning.car.topSpeed, gas, mine.drift !== 0, mine.boosting || mine.nitroOn);
     },
   };
+  let serverGas = false;
   room.onStateChange((state) => {
     const now = performance.now();
     source.push(now, state);
@@ -345,6 +353,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     myRole = me && me.role !== '' ? (me.role as Role) : null;
     mySeat = me?.seat ?? '';
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
+    serverGas = myCar?.inGas ?? false;
     if (myCar && myCarId !== null) predictor.onServer(myCarId, myCar, source.lastTime);
     badge.set(me?.role ?? '');
     endRace.hidden = !(state.host === room.sessionId && (state.phase === 'countdown' || state.phase === 'racing'));
@@ -439,6 +448,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   };
   room.onStateChange(applyView);
   const horns = new HornPlayer();
+  const engine = new EngineSound(() => horns.context);
   // Every car is cars[0] until a car roster exists (the server does the same), so one horn.
   const horn: Horn = loadCars().cars[0]?.horn ?? 'toot';
   /** How far a car is from the camera (m), for sound volume. */

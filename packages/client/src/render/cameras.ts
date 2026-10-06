@@ -2,6 +2,15 @@ import * as THREE from 'three';
 import type { Tuning } from '@escape/shared';
 import { OVERVIEW } from './look';
 
+/** Smallest field-of-view change (degrees) worth rebuilding the projection for. */
+const FOV_EPSILON = 0.05;
+
+/** Extra chase-cam field of view (degrees) at `speedShare` × top speed (more past top speed). */
+export function speedFovBoost(cfg: Tuning['camera'], speedShare: number): number {
+  const t = (speedShare - cfg.speedFovFrom) / (1 - cfg.speedFovFrom);
+  return cfg.speedFov * Math.min(Math.max(t, 0), 1.5);
+}
+
 /** Frame-rate independent smoothing factor for "catch up at `rate` per second". */
 export const followAlpha = (rate: number, dt: number): number => 1 - Math.exp(-rate * dt);
 
@@ -15,11 +24,15 @@ export class ChaseCam {
   private readonly wantPos = new THREE.Vector3();
   private readonly wantLook = new THREE.Vector3();
   private placed = false;
+  private fov = -1;
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
 
-  /** Follow a car at (x, y, z) facing `yaw`. `snap` jumps straight there (first frame, scenarios). */
-  update(cfg: Tuning['camera'], x: number, y: number, z: number, yaw: number, dt: number, snap = false): void {
+  /**
+   * Follow a car at (x, y, z) facing `yaw`. `snap` jumps straight there (first frame,
+   * scenarios). `speedShare` = speed ÷ top speed: the view widens as the car goes faster.
+   */
+  update(cfg: Tuning['camera'], x: number, y: number, z: number, yaw: number, dt: number, snap = false, speedShare = 0): void {
     const fx = Math.sin(yaw);
     const fz = Math.cos(yaw);
     this.wantPos.set(x - fx * cfg.chaseDistance, y + cfg.chaseHeight, z - fz * cfg.chaseDistance);
@@ -33,8 +46,10 @@ export class ChaseCam {
       this.pos.lerp(this.wantPos, a);
       this.look.lerp(this.wantLook, a);
     }
-    if (this.camera.fov !== cfg.fov) {
-      this.camera.fov = cfg.fov;
+    const want = cfg.fov + speedFovBoost(cfg, speedShare);
+    this.fov = snap || this.fov < 0 ? want : this.fov + (want - this.fov) * followAlpha(cfg.followRate, dt);
+    if (Math.abs(this.camera.fov - this.fov) > FOV_EPSILON) {
+      this.camera.fov = this.fov;
       this.camera.updateProjectionMatrix();
     }
     this.camera.position.copy(this.pos);

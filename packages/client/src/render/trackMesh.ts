@@ -94,6 +94,20 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     }
   }
 
+  // Dashed center line: the dashes rushing past are what make speed visible.
+  {
+    const period = L.centerDash + L.centerGap;
+    const y = L.decalLift;
+    const half = L.centerWidth / 2;
+    for (let i = 0; i < n; i++) {
+      const a = sample(i);
+      const b = sample(i + 1);
+      if (a.dist % period >= L.centerDash) continue;
+      upQuad(curbs, v3(a.pos, y, a.right, -half), v3(a.pos, y, a.right, half),
+        v3(b.pos, y, b.right, -half), v3(b.pos, y, b.right, half), white);
+    }
+  }
+
   // Start line across the road at gate 0.
   const gate = track.gates[0];
   if (gate) {
@@ -203,6 +217,31 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     add(slicks.build(), new THREE.MeshLambertMaterial({
       color: TRACK_LOOK.slickColor, transparent: true, opacity: TRACK_LOOK.slickOpacity, depthWrite: false, ...DECAL,
     }), 'slicks');
+  }
+
+  // Roadside posts (one instanced draw call), alternating red / white.
+  const postSpots: { x: number; z: number }[] = [];
+  for (let d = 0; d < track.length; d += L.postSpacing) {
+    const s = sample(Math.round(d / track.spacing));
+    for (const side of [-1, 1]) {
+      const off = side * (s.width / 2 + L.postOut);
+      postSpots.push({ x: s.pos.x + s.right.x * off, z: s.pos.z + s.right.z * off });
+    }
+  }
+  if (postSpots.length > 0) {
+    const postGeo = new THREE.BoxGeometry(L.postSize, L.postHeight, L.postSize);
+    postGeo.translate(0, L.postHeight / 2, 0);
+    const postMat = new THREE.MeshLambertMaterial();
+    const posts = new THREE.InstancedMesh(postGeo, postMat, postSpots.length);
+    const m = new THREE.Matrix4();
+    postSpots.forEach((p, i) => {
+      posts.setMatrixAt(i, m.makeTranslation(p.x, 0, p.z));
+      posts.setColorAt(i, Math.floor(i / 2) % 2 === 0 ? red : white);
+    });
+    posts.name = 'posts';
+    posts.castShadow = true;
+    group.add(posts);
+    disposables.push(postGeo, postMat, posts);
   }
 
   if (swaps.indices.length > 0) {

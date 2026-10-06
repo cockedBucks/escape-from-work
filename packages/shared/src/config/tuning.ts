@@ -233,6 +233,10 @@ const CameraSchema = z.strictObject({
   lookHeight: nonNeg(),
   /** How quickly the camera catches up with the car (1/s). Higher = stiffer, lower = floatier. */
   followRate: pos(),
+  /** Chase cam widens its view with speed (sense of speed): up to `speedFov` extra degrees at top
+   * speed, starting from `speedFovFrom` × top speed. Nitro/boost speed widens it a bit more. */
+  speedFov: nonNeg(),
+  speedFovFrom: fraction(),
   /** Cockpit cam: field of view (degrees). */
   cockpitFov: z.number().min(30).max(120),
   /** Mouse look: radians of head turn per pixel of mouse movement. */
