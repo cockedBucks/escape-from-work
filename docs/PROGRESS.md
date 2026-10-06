@@ -46,9 +46,19 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
   session (Linux container, Node 22, no GPU, no speakers, no LAN) on the session's branch, now
   `claude/keen-edison-iupozz` (it contains `cloud-work`, D093), pushed after each task (never `main`; D090).
-- **When back local:** `git fetch origin`, review `main..origin/claude/keen-edison-iupozz`
-  (diff + `npm run verify` on Windows + `npm run shots`), then merge it into `main` if OK
-  (the human approved this plan). Then remove this section.
+- **When back local (after P10.7 is done in the cloud)** — local Claude, walk the human through this:
+  1. `git status` must be clean on `main` (commit or stash local changes first).
+  2. `git fetch origin` then `git log --oneline main..origin/claude/keen-edison-iupozz` (what is new).
+  3. `git checkout -b cloud-review origin/claude/keen-edison-iupozz`, then `npm install`,
+     `npm run verify`, `npm run shots -- menu lobby chase`, and `npm start` for a quick look (Windows).
+  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P10)"`
+     (no rebase, no reset). If a conflict appears, stop and ask the human.
+  5. `npm run verify` again on `main`, then the HUMAN pushes `main` (`git push origin main`).
+  6. Tags (cloud tags were never pushed): `git tag p7-done <hash of "P7.9">`, the same for
+     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the final "P10.7" commit);
+     find hashes with `git log --oneline --grep "^P9.5"`. The human may `git push origin --tags`.
+  7. Delete the review branch (`git branch -d cloud-review`), remove this "Cloud session" section,
+     commit "docs: back local", then run the "Deferred human tests" with the human (LOCAL: lines too).
 - Works in the cloud: `verify`, `track:check`, `test:load`, `bots`, `shots` (Playwright Chromium,
   software WebGL: images are fine, the fps number is NOT real).
 - Cannot be done in the cloud (do on the Windows laptop): real FPS, listening to audio,
