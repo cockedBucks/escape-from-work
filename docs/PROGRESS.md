@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P6 — Chaos items (`docs/phases/P06-chaos-items.md`)
-- Next task: P6.1 Item system (Phase 6 — chaos items, `docs/phases/P06-chaos-items.md`)
+- Next task: P6.2 Projectile and defensive items (Reply-All, Firewall, Coffee Spill)
 - Status: P5 done, tagged `p5-done`. `npm run verify` passes (350 tests + bot race, best lap 35.52 s).
   Shots: cockpit 39 / chase 13 / overview 36 / stall / drift / nitro ~14 draw calls.
 
@@ -70,6 +70,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   option), bot skills + balance test (skilled 7% faster), how-to cards, stutter fix in prediction
   (`npm run jitter`), sense of speed (engine hum, squeal, speed FOV, speed lines, center dashes,
   posts). Duo gate deferred (D075). Review fixes D076. Decisions D067–D076.
+
+- 2026-10-06: P6.1 item system — `config/items.json` + schema (weights sum to 100), item boxes from
+  `itemRow` zones (Test Loop: two rows of 4), pickup → one-item slot rolled by position bucket
+  (sim ranks cars by lap + progress), seeded item RNG in `world.chaos` (absent = chaos off, hashes
+  unchanged), server `setChaos`, item name on the HUD. D077.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

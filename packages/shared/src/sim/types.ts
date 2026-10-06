@@ -1,3 +1,4 @@
+import type { ChaosState } from '../items/chaos';
 import type { Track } from '../track/build';
 
 /**
@@ -79,6 +80,8 @@ export interface CarState {
   swappedLap: number;
   /** One player drives alone (set by the server each tick): `solo.speedMultiplier` applies. */
   solo: boolean;
+  /** The held item (an `ItemId`), or '' for an empty slot. */
+  item: string;
   /** Earliest tick the horn may sound again (cooldown). Cosmetic: not part of the replay hash. */
   nextHonkTick: number;
   /** Tick when a fading respawn completes, or -1 when not respawning. */
@@ -102,6 +105,8 @@ export type SimEvent =
   | { type: 'boost'; car: string; level: number }
   | { type: 'nitro'; car: string }
   | { type: 'swap'; car: string }
+  /** A car broke item box `box`; `item` = what it got (null: its slot was full). */
+  | { type: 'itemBox'; car: string; box: number; item: string | null }
   | { type: 'restart'; car: string };
 
 export interface World {
@@ -110,4 +115,6 @@ export interface World {
   track: Track;
   /** Always sorted by id, so iteration order is deterministic. */
   cars: CarState[];
+  /** Chaos mode (item boxes, items); absent = chaos off. */
+  chaos?: ChaosState;
 }

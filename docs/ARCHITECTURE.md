@@ -329,6 +329,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | nitro too weak / too strong / runs out too fast | `nitro.accel`, `nitro.topSpeed`, `nitro.burnPerSec` |
 | swap lane never worth it / always worth it | `car.swapLaneSpeed` (top-speed share inside the lane), zone `minLap`, `from`/`to` (track file) |
 | solo players too strong / too weak vs duos | `solo.speedMultiplier` (1 = no handicap) |
+| item boxes hard to hit / come back too fast | `items.json` `boxes.radius`, `boxes.respawnSeconds`; rows = `itemRow` zones (track file) |
+| leaders get strong items / races not close | `items.json` `roll.front/mid/back` (each sums to 100) |
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
 | bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt`, `bot.driftHeatLiftAt` |
 | server/network bots too good / too plain | `bot.skill` (0 plain, 1 drifts, 2 drifts + nitro) |

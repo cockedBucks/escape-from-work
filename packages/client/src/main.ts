@@ -22,6 +22,7 @@ import { frozenBotRace, frozenSource, isRaceScenario, type RaceScenario } from '
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
+import { itemName } from './ui/items';
 import { swappedRole } from './ui/roleKeys';
 import { SwapFlash } from './ui/swapFlash';
 import { RaceHud, hudText } from './ui/raceHud';
@@ -389,12 +390,13 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
       });
     hud.set(hudNow);
-    // The item arrives in P6; the gauge already has its slot.
+    // The item you hold (P6.5 adds icons).
     gauges.lap = hudNow.lap;
     gauges.place = hudNow.place;
     gauges.heat = myCar ? myCar.heat : null;
     gauges.stalled = myCar ? myCar.stallLeft > 0 : false;
     gauges.nitro = myCar ? myCar.nitro : null;
+    gauges.item = myCar && myCar.item !== '' ? itemName(myCar.item) : null;
     join.update({
       players,
       myId: room.sessionId,

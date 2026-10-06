@@ -11,6 +11,8 @@ import {
   type TeamsConfig,
   type Track,
   type Tuning,
+  parseItems,
+  type ItemsConfig,
 } from '@escape/shared';
 
 /** Repository root (this file is packages/server/src/config.ts). */
@@ -35,6 +37,11 @@ export function loadTuningFile(file = path.join(REPO_ROOT, 'config', 'tuning.jso
 /** Read and validate `config/cars.json`. */
 export function loadCarsFile(file = path.join(REPO_ROOT, 'config', 'cars.json')): CarsConfig {
   return parseCars(readJson(file), rel(file));
+}
+
+/** Read and validate `config/items.json` (chaos items). */
+export function loadItemsFile(file = path.join(REPO_ROOT, 'config', 'items.json')): ItemsConfig {
+  return parseItems(readJson(file), rel(file));
 }
 
 /** Read and validate `config/teams.json` (default team names). */

@@ -1,0 +1,21 @@
+{
+  "boxes": {
+    "radius": 1.8,
+    "respawnSeconds": 3
+  },
+  "roll": {
+    "front": { "replyAll": 30, "firewall": 30, "coffeeSpill": 30, "ctrlZ": 10, "blueScreen": 0, "lagSpike": 0, "controlSwap": 0, "forcedUpdate": 0 },
+    "mid": { "replyAll": 30, "firewall": 15, "coffeeSpill": 20, "ctrlZ": 10, "blueScreen": 10, "lagSpike": 10, "controlSwap": 5, "forcedUpdate": 0 },
+    "back": { "replyAll": 15, "firewall": 5, "coffeeSpill": 5, "ctrlZ": 10, "blueScreen": 15, "lagSpike": 15, "controlSwap": 20, "forcedUpdate": 15 }
+  },
+  "items": {
+    "replyAll": { "speed": 42, "lifeSeconds": 6, "bounces": 3, "radius": 1.4, "spinSeconds": 1.2 },
+    "firewall": { "seconds": 8 },
+    "coffeeSpill": { "seconds": 20, "radius": 2.6, "spinSeconds": 0.9, "dropBack": 3 },
+    "ctrlZ": { "seconds": 3 },
+    "blueScreen": { "seconds": 2 },
+    "lagSpike": { "seconds": 4, "delaySeconds": 0.8 },
+    "controlSwap": { "seconds": 5 },
+    "forcedUpdate": { "maxSeconds": 2.5, "mashSeconds": 0.08 }
+  }
+}

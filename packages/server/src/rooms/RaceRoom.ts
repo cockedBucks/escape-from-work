@@ -52,7 +52,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     this.tuning = live.tuning;
     const firstCar = live.cars.cars[0];
     if (!firstCar) throw new Error('config/cars.json has no cars');
-    this.sim = new RaceSim(live.track, this.tuning, firstCar.stats, live.teams);
+    this.sim = new RaceSim(live.track, this.tuning, firstCar.stats, live.teams, live.items);
     for (const name of this.sim.teamNames) this.state.teams.push(name);
     // Two players per car plus some watchers (seats themselves are limited by the seat rules).
     this.maxClients = this.tuning.race.maxCars * 2 + this.tuning.race.maxSpectators;
@@ -390,6 +390,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.nitro = car.nitro;
       view.nitroOn = car.nitroOn;
       view.solo = car.solo;
+      view.item = car.item;
     }
   }
 }

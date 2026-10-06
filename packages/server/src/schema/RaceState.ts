@@ -84,6 +84,8 @@ export const CarView = schema(
     nitroOn: t.boolean().default(false),
     /** One player drives alone (the optional solo handicap applies). */
     solo: t.boolean().default(false),
+    /** The held item id ('' = empty slot). */
+    item: t.string().default(''),
   },
   'CarView',
 );

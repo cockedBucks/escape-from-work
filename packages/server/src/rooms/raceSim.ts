@@ -1,6 +1,8 @@
 import {
   NO_INPUT,
   Rng,
+  createChaos,
+  type ItemsConfig,
   applyEvents,
   botInput,
   newBotMemory,
@@ -98,6 +100,25 @@ export class RaceSim {
   private leaderId: string | undefined;
   /** Current place per car id (1 = leading), updated every racing tick. */
   private readonly places = new Map<string, number>();
+  /** Host switch: chaos mode (item boxes and items). Needs an items config. */
+  private chaosEnabled = true;
+
+  get chaos(): boolean {
+    return this.chaosEnabled && this.items !== undefined;
+  }
+
+  /** Switch chaos mode on or off (boxes come back fresh; held items are dropped when off). */
+  setChaos(on: boolean): void {
+    this.chaosEnabled = on;
+    if (!on) for (const car of this.world.cars) car.item = '';
+    this.resetChaos();
+  }
+
+  /** Fresh item boxes (race start, new track, chaos switched); no items config = chaos off. */
+  private resetChaos(): void {
+    this.world.chaos = this.items && this.chaosEnabled ? createChaos(this.world.track, this.items, this.world.tick + 11) : undefined;
+  }
+
   /** Host switch: bots drive empty cars up to `race.botFillCars` cars. */
   botsEnabled = false;
   /** Car slots driven by server bots, and each bot's memory. */
@@ -109,8 +130,10 @@ export class RaceSim {
     private cfg: Tuning,
     stats: CarStats,
     teams?: TeamsConfig,
+    private readonly items?: ItemsConfig,
   ) {
     this.world = createWorld(track, []);
+    this.resetChaos();
     this.stats = { ...stats };
     this.flow = newFlow(cfg.race);
     this.teamNames = Array.from({ length: cfg.race.maxCars }, (_, slot) =>
@@ -147,6 +170,7 @@ export class RaceSim {
     for (const car of this.world.cars) {
       Object.assign(car, createCarOnGrid(car.id, car.stats, track, slotOfCar(car.id), this.cfg.race));
     }
+    this.resetChaos();
   }
 
   /** Seat facts for every player, sorted by id (for state sync and rules). */
@@ -240,6 +264,7 @@ export class RaceSim {
     for (const car of this.world.cars) {
       Object.assign(car, createCarOnGrid(car.id, car.stats, this.world.track, order.indexOf(car.id), this.cfg.race));
     }
+    this.resetChaos();
     this.run = null;
     return null;
   }

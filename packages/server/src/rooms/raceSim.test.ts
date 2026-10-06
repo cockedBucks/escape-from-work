@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadCarsFile, loadTrackFile, loadTuningFile } from '../config';
+import { loadCarsFile, loadItemsFile, loadTrackFile, loadTuningFile } from '../config';
 import { botInput, gridSpot, newBotMemory } from '@escape/shared';
 import { RaceSim } from './raceSim';
 
@@ -529,5 +529,35 @@ describe('RaceSim swap lane and solo flag', () => {
     duo.setSeat('e', 0, 'engineer');
     duo.tick();
     expect(car(duo, 'car0').solo).toBe(false);
+  });
+});
+
+describe('RaceSim chaos items', () => {
+  const items = loadItemsFile();
+  const drive = (sim: RaceSim, seconds: number) => {
+    const n = Math.round(seconds / cfg.sim.dt);
+    for (let i = 0; i < n; i++) sim.tick();
+  };
+
+  it('with chaos on, a car driving down the start straight picks up an item from the first row', () => {
+    const sim = new RaceSim(track, cfg, stats, undefined, items);
+    sim.addPlayer('a');
+    sim.setSeat('a', 0, 'solo');
+    sim.handleInput('a', { seq: 1, gas: true });
+    drive(sim, 4);
+    expect(car(sim, 'car0').item).not.toBe('');
+  });
+
+  it('with chaos switched off (or no items config) there are no boxes and no items', () => {
+    const off = new RaceSim(track, cfg, stats, undefined, items);
+    off.setChaos(false);
+    expect(off.chaos).toBe(false);
+    expect(off.world.chaos).toBeUndefined();
+    off.addPlayer('a');
+    off.setSeat('a', 0, 'solo');
+    off.handleInput('a', { seq: 1, gas: true });
+    drive(off, 4);
+    expect(car(off, 'car0').item).toBe('');
+    expect(new RaceSim(track, cfg, stats).chaos).toBe(false);
   });
 });

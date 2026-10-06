@@ -7,6 +7,7 @@ import { drive } from './drive';
 import { resetDrift, stepDrift } from './drift';
 import { stepHeat } from './heat';
 import { stepNitro } from './nitro';
+import { stepBoxes } from '../items/chaos';
 import { dot, forward } from '../util/math';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { collideWalls } from './walls';
@@ -25,6 +26,7 @@ export function step(world: World, inputs: InputsByCar, cfg: Tuning): SimEvent[]
   const now = world.tick + 1;
   for (const car of world.cars) stepCar(world, car, inputs[car.id] ?? NO_INPUT, cfg, now, events);
   collideCars(world.cars, now, cfg.car, events);
+  if (world.chaos) stepBoxes(world, world.chaos, cfg.sim.dt, now, events);
   world.tick = now;
   return events;
 }

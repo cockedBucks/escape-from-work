@@ -1,7 +1,7 @@
 import { renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { ConfigError, DEFAULT_TRACK, checkTrack, parseTuning, type CarsConfig, type TeamsConfig, type Track, type Tuning } from '@escape/shared';
-import { REPO_ROOT, loadCarsFile, loadTeamsFile, loadTrackFile, loadTuningFile } from './config';
+import { ConfigError, DEFAULT_TRACK, checkTrack, parseTuning, type CarsConfig, type ItemsConfig, type TeamsConfig, type Track, type Tuning } from '@escape/shared';
+import { REPO_ROOT, loadCarsFile, loadItemsFile, loadTeamsFile, loadTrackFile, loadTuningFile } from './config';
 
 export type ConfigChange =
   | { kind: 'tuning'; tuning: Tuning }
@@ -22,6 +22,8 @@ export class LiveConfig {
   cars: CarsConfig;
   /** Default team names (read once at start). */
   readonly teams: TeamsConfig;
+  /** Chaos items (read once at start). */
+  readonly items: ItemsConfig;
   track: Track;
   readonly trackId = DEFAULT_TRACK;
   private readonly listeners = new Set<Listener>();
@@ -30,6 +32,7 @@ export class LiveConfig {
     this.tuning = loadTuningFile(this.tuningFile);
     this.cars = loadCarsFile(path.join(configDir, 'cars.json'));
     this.teams = loadTeamsFile(path.join(configDir, 'teams.json'));
+    this.items = loadItemsFile(path.join(configDir, 'items.json'));
     this.track = loadTrackFile(this.trackId, this.tuning, path.join(configDir, 'tracks'));
   }
 

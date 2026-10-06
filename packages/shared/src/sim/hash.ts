@@ -30,6 +30,16 @@ export function hashWorld(world: World): string {
       const v = c[key];
       num(typeof v === 'boolean' ? (v ? 1 : 0) : v);
     }
+    str(c.item);
+  }
+  // Chaos mode only (a world without it hashes exactly as before).
+  if (world.chaos) {
+    num(world.chaos.rng);
+    for (const b of world.chaos.boxes) {
+      num(b.x);
+      num(b.z);
+      num(b.respawnAtTick);
+    }
   }
   return h.toString(16).padStart(8, '0');
 }

@@ -38,6 +38,9 @@ export { createCar, createCarOnGrid, createWorld, placeAtGate } from './sim/car'
 export { step, type InputsByCar } from './sim/step';
 export { hashWorld } from './sim/hash';
 export { isStalled } from './sim/heat';
+export { ITEM_IDS, ItemsSchema, parseItems, type ItemId, type ItemsConfig, type RollBucket } from './config/items';
+export { buildBoxes, createChaos, stepBoxes, type ChaosState, type ItemBox } from './items/chaos';
+export { bucketOf, racePlaces, rollItem } from './items/roll';
 export { botSteer, lookAheadPoint } from './bot/pilot';
 export { botPedals, cornerAhead, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
 export { botInput } from './bot/driver';
