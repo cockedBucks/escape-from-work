@@ -131,7 +131,8 @@ installed types for the API. Anything not on this list → ask the human first.
   "sectors": 6,
   "zones": [
     { "type": "ramp",  "from": 0.31, "to": 0.33, "launch": 1.0 },
-    { "type": "slick", "from": 0.42, "to": 0.45, "side": "both" },
+    { "type": "slick", "from": 0.42, "to": 0.45, "side": "both", "look": "coffee" },
+    { "type": "push",  "from": 0.50, "to": 0.55, "toward": "right", "strength": 22 },
     { "type": "swap",  "from": 0.80, "to": 0.86, "side": "right", "minLap": 2 },
     { "type": "itemRow", "at": 0.20, "count": 4 }
   ],

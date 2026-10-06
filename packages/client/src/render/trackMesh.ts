@@ -155,6 +155,8 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   // Ramps: a wedge rising over the zone, then a vertical drop at its end.
   const ramps = new RibbonBuilder();
   const slicks = new RibbonBuilder();
+  const ice = new RibbonBuilder();
+  const fans = new RibbonBuilder();
   const swaps = new RibbonBuilder();
   const swapColors = TRACK_LOOK.swapColors.map((c) => new THREE.Color(c));
   for (const zone of track.rangedZones) {
@@ -193,8 +195,25 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
         const lo = (w: number) => (zone.side === 'right' ? 0 : -w / 2);
         const hi = (w: number) => (zone.side === 'left' ? 0 : w / 2);
         const y = L.decalLift * 3;
-        upQuad(slicks, v3(a.pos, y, a.right, lo(a.width)), v3(a.pos, y, a.right, hi(a.width)),
+        upQuad(zone.look === 'ice' ? ice : slicks, v3(a.pos, y, a.right, lo(a.width)), v3(a.pos, y, a.right, hi(a.width)),
           v3(b.pos, y, b.right, lo(b.width)), v3(b.pos, y, b.right, hi(b.width)));
+      }
+    } else if (zone.type === 'push') {
+      // Chevrons across the road pointing the way the fan blows.
+      const sign = zone.toward === 'right' ? 1 : -1;
+      const y = L.decalLift * 3;
+      for (let i = i0; i < i1; i += L.fanChevronEvery) {
+        const s = sample(i);
+        const pt = (lat: number, along: number): THREE.Vector3 =>
+          new THREE.Vector3(s.pos.x + s.right.x * lat * sign + s.dir.x * along, y, s.pos.z + s.right.z * lat * sign + s.dir.z * along);
+        const half = s.width / 2 - L.fanChevronInset;
+        for (const lat of [-half * 0.5, half * 0.5]) {
+          const tip = lat + L.fanChevronLength;
+          for (const along of [-1, 1]) {
+            upQuad(fans, pt(lat, along * L.fanChevronSpread), pt(lat, along * L.fanChevronSpread + along * L.fanChevronThick),
+              pt(tip, 0), pt(tip, along * L.fanChevronThick));
+          }
+        }
       }
     }
   }
@@ -248,6 +267,14 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   add(wallRb.build(), new THREE.MeshLambertMaterial({ color: PALETTE.cubicle, flatShading: true }), 'walls');
   if (ramps.indices.length > 0) {
     add(ramps.build(), new THREE.MeshLambertMaterial({ color: PALETTE.desk, flatShading: true, side: THREE.DoubleSide }), 'ramps');
+  }
+  if (ice.indices.length > 0) {
+    add(ice.build(), new THREE.MeshLambertMaterial({
+      color: TRACK_LOOK.iceColor, transparent: true, opacity: TRACK_LOOK.iceOpacity, depthWrite: false, ...DECAL,
+    }), 'ice');
+  }
+  if (fans.indices.length > 0) {
+    add(fans.build(), new THREE.MeshBasicMaterial({ color: TRACK_LOOK.fanChevronColor, side: THREE.DoubleSide, ...DECAL }), 'fanChevrons');
   }
   if (slicks.indices.length > 0) {
     add(slicks.build(), new THREE.MeshLambertMaterial({

@@ -96,7 +96,7 @@ export function zonesAt(track: Track, loc: TrackLocation): Extract<TrackZone, { 
   if (!loc.onTrack || loc.road !== 0) return []; // main-loop zones only
   return track.rangedZones.filter((z) => {
     if (loc.progress < z.from || loc.progress >= z.to) return false;
-    if (z.type === 'ramp' || z.side === 'both') return true;
+    if (z.type === 'ramp' || z.type === 'push' || z.side === 'both') return true;
     return z.side === 'right' ? loc.lateral >= 0 : loc.lateral <= 0;
   });
 }

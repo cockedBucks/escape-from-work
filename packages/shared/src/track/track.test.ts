@@ -175,7 +175,7 @@ describe('zonesAt', () => {
     circleDef(50, 12, {
       zones: [
         { type: 'ramp', from: 0.1, to: 0.12, launch: 1 },
-        { type: 'slick', from: 0.3, to: 0.4, side: 'right' },
+        { type: 'slick', from: 0.3, to: 0.4, side: 'right', look: 'coffee' },
       ],
     }),
     cfg,

@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
-- Next task: P10.1 Server Room
-- Status: P10.0 done. `npm run verify` passes (490 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P10.2 Smart Oasis
+- Status: P10.1 done. `npm run verify` passes (490 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -116,6 +116,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06 (cloud): P10.0 Track picker — host ◀ track ▶ in the lobby, server checks and loads it,
   pages reload into it (seat held), pages load the server's track. D108.
+
+- 2026-10-06 (cloud): P10.1 Server Room — fan push zones, icy cold aisle (slick `look: ice`), rack /
+  cable tray / fan / AC props, 1.3 km serpentine, bot laps ~48 s; lobby track switch verified live. D109.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

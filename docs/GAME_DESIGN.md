@@ -186,7 +186,7 @@ Lap target 40–55 s.
      **server-closet shortcut** → **swap lane** through the IT help desk → reception.
    - Props: desks, rolling chairs, cubicle walls, monitors, plants, water cooler,
      coffee machine, printer, whiteboards with doodles.
-3. **Server Room**: cable-tray lanes, giant cooling fans that push you sideways,
+3. **Server Room** (built in P10.1: `server-room.json`, ~1.3 km, ~48 s): cable-tray lanes, giant cooling fans that push you sideways,
    an icy cold aisle, blinking racks.
 4. **Smart Oasis**: desert dunes (gentle jumps), a palm-tree oasis shortcut, a sandstorm
    event that lowers visibility for a lap.

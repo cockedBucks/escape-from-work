@@ -51,6 +51,16 @@ export const TRACK_LOOK = {
   /** Slick patch tint and opacity. */
   slickColor: 0x7fc8e8,
   slickOpacity: 0.65,
+  /** Icy cold aisle (slick zones with `look: "ice"`). */
+  iceColor: 0xb8e6ff,
+  iceOpacity: 0.55,
+  /** Fan push zones: chevrons every N samples, their length/spread/thickness and inset from the edge (m). */
+  fanChevronEvery: 5,
+  fanChevronLength: 1.6,
+  fanChevronSpread: 1.1,
+  fanChevronThick: 0.35,
+  fanChevronInset: 1,
+  fanChevronColor: 0x4cc9f0,
   /** Dashed center line (sense of speed): dash and gap length (m), width (m). */
   centerDash: 3,
   centerGap: 5,
@@ -69,7 +79,7 @@ export const TRACK_LOOK = {
   /** The ground is pushed back in depth by this much (polygon offset), so the road always wins over it. */
   groundDepthOffset: 4,
   /** Ground color per track theme (anything else: sand). */
-  groundByTheme: { office: PALETTE.carpet } as Readonly<Record<string, number>>,
+  groundByTheme: { office: PALETTE.carpet, serverRoom: 0x2b3140 } as Readonly<Record<string, number>>,
   /** Small lift so flat decals never z-fight with the road (m). */
   decalLift: 0.02,
 } as const;
@@ -436,6 +446,7 @@ export const PROP_COLORS = {
   wood: PROP_LOOK.wood, cubicle: PROP_LOOK.cubicle, plant: PROP_LOOK.plant, metal: PROP_LOOK.metal,
   glass: PROP_LOOK.glass, dark: PROP_LOOK.dark, white: PROP_LOOK.white, screen: PROP_LOOK.screen,
   pot: PROP_LOOK.pot, accent: PROP_LOOK.accent, blue: 0x1d7fe0, mint: 0x06d6a0,
+  rack: 0x2a2f3d, led: 0x3dff9a, amber: 0xffb703,
 } as const;
 
 const box = (w: number, h: number, d: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'box', size: [w, h, d], at: [x, y, z], color });
@@ -514,5 +525,37 @@ export const PROP_SHAPES = {
     box(2.5, 0.06, 0.8, 0, 1.13, 0, 'white'),
     box(2.2, 0.6, 0.02, 0, 0.6, 0.36, 'accent'),
     box(0.5, 0.35, 0.04, 0.5, 1.35, -0.1, 'dark'),
+  ],
+  // Server room set (P10.1). A rack of servers, its front (+Z) full of status LEDs.
+  serverRack: [
+    box(0.6, 2.0, 1.0, 0, 1.0, 0, 'rack'),
+    ...[0.35, 0.65, 0.95, 1.25, 1.55, 1.85].flatMap((y, i) => [
+      box(0.5, 0.18, 0.02, 0, y, 0.505, 'dark'),
+      box(0.04, 0.04, 0.02, -0.18, y, 0.52, i % 3 === 2 ? 'amber' : 'led'),
+      box(0.04, 0.04, 0.02, -0.1, y, 0.52, i % 2 === 0 ? 'led' : 'blue'),
+    ]),
+  ],
+  // A floor cable tray with a tangle of colored cables.
+  cableTray: [
+    box(2.0, 0.08, 0.45, 0, 0.04, 0, 'metal'),
+    ...[-1, 1].map((sz) => box(2.0, 0.14, 0.03, 0, 0.07, sz * 0.21, 'metal')),
+    blob(0.95, 0.06, 0.06, -0.02, 0.12, -0.12, 'blue'),
+    blob(0.95, 0.06, 0.06, 0.03, 0.12, 0, 'accent'),
+    blob(0.95, 0.06, 0.06, 0, 0.12, 0.12, 'amber'),
+  ],
+  // A giant cooling fan facing +Z: housing, grille, blades in a cross, stand.
+  coolingFan: [
+    box(1.6, 1.6, 0.3, 0, 1.2, 0, 'white'),
+    box(1.3, 1.3, 0.02, 0, 1.2, 0.16, 'dark'),
+    blob(0.55, 0.12, 0.04, 0, 1.2, 0.19, 'metal'),
+    blob(0.12, 0.55, 0.04, 0, 1.2, 0.19, 'metal'),
+    cyl(0.1, 0.05, 0, 1.2, 0.2, 'blue'),
+    box(0.25, 0.4, 0.5, 0, 0.2, 0, 'rack'),
+  ],
+  // A big air conditioner: vents, a blue display.
+  acUnit: [
+    box(1.0, 1.8, 0.6, 0, 0.9, 0, 'white'),
+    ...[1.2, 1.35, 1.5, 1.65].map((y) => box(0.8, 0.04, 0.02, 0, y, 0.31, 'dark')),
+    box(0.3, 0.12, 0.02, 0, 0.9, 0.31, 'blue'),
   ],
 } as const satisfies Record<string, readonly PropPrim[]>;

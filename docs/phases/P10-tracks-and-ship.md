@@ -14,7 +14,7 @@ and a final stability pass.
 - [x] **P10.0 Track picker.** (added in the cloud, 2026-10-06) The host picks the track in the lobby
   between races (GAME_DESIGN §11 "track and laps (host)"); the server loads it, clients reload into it
   (held seat). Dev tracks (`"dev": true`) are not offered. Tests.
-- [ ] **P10.1 Server Room.** Props (racks, cable trays, fans, AC), fan push zones, icy cold-aisle
+- [x] **P10.1 Server Room.** Props (racks, cable trays, fans, AC), fan push zones, icy cold-aisle
   zone, cable-lane layout. `/add-track`.
 - [ ] **P10.2 Smart Oasis.** Props (palms, dunes, rocks, tents, pond), dune jumps, oasis shortcut,
   sandstorm event (fog for one lap, config-driven). `/add-track`.

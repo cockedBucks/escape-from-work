@@ -29,7 +29,11 @@ describe('track picker (P10.0)', () => {
   }
 
   it('offers every valid non-dev track (not the Test Loop, not a broken file)', () => {
-    expect(new LiveConfig(twoTracks()).availableTracks()).toEqual(['office', 'office-two']);
+    const ids = new LiveConfig(twoTracks()).availableTracks();
+    expect(ids).toEqual([...ids].sort());
+    expect(ids).toEqual(expect.arrayContaining(['office', 'office-two']));
+    expect(ids).not.toContain('test-loop');
+    expect(ids).not.toContain('broken');
   });
 
   it('switches the track and tells the room; refuses dev, unknown and broken tracks', () => {

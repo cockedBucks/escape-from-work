@@ -27,6 +27,19 @@ const SlickZoneSchema = z.strictObject({
   from: progress(),
   to: progress(),
   side: z.enum(['left', 'right', 'both']),
+  /** What it looks like (the grip loss is the same): a coffee spill or an icy floor. */
+  look: z.enum(['coffee', 'ice']).default('coffee'),
+});
+
+/** A giant cooling fan: shoves every car on this stretch sideways (the whole road width). */
+const PushZoneSchema = z.strictObject({
+  type: z.literal('push'),
+  from: progress(),
+  to: progress(),
+  /** The way it blows, relative to the direction of travel. */
+  toward: z.enum(['left', 'right']),
+  /** Sideways acceleration while inside (m/s²). */
+  strength: z.number().positive().max(40),
 });
 
 const SwapZoneSchema = z.strictObject({
@@ -47,14 +60,16 @@ const ItemRowZoneSchema = z.strictObject({
 const ZoneSchema = z.discriminatedUnion('type', [
   RampZoneSchema,
   SlickZoneSchema,
+  PushZoneSchema,
   SwapZoneSchema,
   ItemRowZoneSchema,
 ]);
 
-/** Prop kit pieces (ART_STYLE §5); the client builds them. Office set for now. */
+/** Prop kit pieces (ART_STYLE §5); the client builds them. Office set, then the server room set. */
 export const PROP_KITS = [
   'desk', 'chair', 'cubicle', 'monitor', 'keyboard', 'printer', 'waterCooler', 'coffeeMachine',
   'plant', 'whiteboard', 'filingCabinet', 'reception',
+  'serverRack', 'cableTray', 'coolingFan', 'acUnit',
 ] as const;
 export type PropKit = (typeof PROP_KITS)[number];
 
