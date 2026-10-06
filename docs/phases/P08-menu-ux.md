@@ -20,8 +20,8 @@ join and play without anyone explaining.
   "?" opens key help any time, swap-lane and item first-time hints.
 - [x] **P8.4 UI polish.** Local `@fontsource` font, consistent buttons/panels/colors, readable at
   1366×768, results podium with bobbleheads, smooth screen transitions.
-- [ ] **P8.5 Shots.** `/shots menu lobby results garage`; fix issues.
-- [ ] **HUMAN GATE — first-time players.**
+- [x] **P8.5 Shots.** `/shots menu lobby results garage`; fix issues.
+- [~] **HUMAN GATE — first-time players.** (deferred)
   1. Find 2 coworkers who have never seen the game. Give them only the URL. Watch, do not help.
   2. Reply: where they got stuck, what made them laugh, what they asked.
 - [ ] **P8.6 Phase end.** Reviewer, fixes, `git tag p8-done`, report.

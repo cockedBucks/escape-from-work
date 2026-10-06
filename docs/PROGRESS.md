@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P8 — Menu and UX (`docs/phases/P08-menu-ux.md`)
-- Next task: P8.5 Shots
-- Status: P8.4 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P8.6 Phase end
+- Status: P8.5 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -20,6 +20,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - P7 looks, sound, real FPS: on a normal work laptop race The Office with F3 open, on Medium. Reply:
   FPS (min and typical), favorite and least favorite car, anything ugly or confusing on the track,
   too loud/quiet sounds (volume sliders: speaker button top right).
+- P8 first-time players: find 2 coworkers who never saw the game, give them only the URL, watch,
+  do not help. Reply: where they got stuck, what made them laugh, what they asked.
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
 
@@ -110,6 +112,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06 (cloud): P8.4 UI polish — font weights, one outlined/shadowed style for panels and
   buttons, pop-in transitions, results podium with bobbling faces, lobby/results fit 1280×720. D101.
+
+- 2026-10-06 (cloud): P8.5 Shots — menu, lobby, results, garage pass at Low and High (max: garage
+  High 94 draws / 56k tris). P8 gate deferred.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
