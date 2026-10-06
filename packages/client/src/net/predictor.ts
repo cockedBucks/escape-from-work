@@ -62,20 +62,29 @@ const HINT_MAX_JUMP = 15;
  *
  * Per frame it reuses its objects; only the sim's own per-step event list is allocated.
  */
+/** A server state to predict from: the car, when it happened, and its timers in seconds. */
+interface Base {
+  car: CarState;
+  time: number;
+  stallLeft: number;
+  boostLeft: number;
+}
+
 export class OwnCarPredictor {
   private id = '';
   private world: World | null = null;
-  private base: CarState | null = null;
-  private baseTime = 0;
+  private base: Base | null = null;
+  /** The base before the latest one: where the car was being drawn from until this update. */
+  private prev: Base | null = null;
   private readonly serverInput: CarInput = { ...NO_INPUT };
   private readonly input: CarInput = { ...NO_INPUT };
   private inputs: Record<string, CarInput> = {};
-  private readonly shown = { valid: false, x: 0, z: 0, yaw: 0 };
+  /** Was the car drawn from a prediction last frame? (Corrections only blend from one.) */
+  private shown = false;
   private readonly off = { x: 0, z: 0, yaw: 0 };
+  private readonly pose = { x: 0, y: 0, z: 0, yaw: 0 };
   private needOffset = false;
   private lastNow = -1;
-  private baseStallLeft = 0;
-  private baseBoostLeft = 0;
 
   /** `stats`: your car's stats from cars.json (the server uses the same). */
   constructor(
@@ -98,10 +107,11 @@ export class OwnCarPredictor {
       this.world = createWorld(this.track, [createCar(id, this.stats, this.track)]);
       this.inputs = { [id]: this.input };
       this.base = null;
-      this.shown.valid = false;
+      this.prev = null;
+      this.shown = false;
       this.off.x = this.off.z = this.off.yaw = 0;
     }
-    const prev = this.base;
+    const prev = this.base?.car ?? null;
     const near = prev !== null && Math.hypot(prev.x - view.x, prev.z - view.z) < HINT_MAX_JUMP;
     const car = createCar(id, this.stats, this.track);
     car.x = view.x;
@@ -114,7 +124,6 @@ export class OwnCarPredictor {
     car.steer = view.steer;
     car.respawnAtTick = view.respawning ? 1 : -1;
     car.heat = view.heat;
-    this.baseStallLeft = view.stallLeft;
     car.driftDir = view.drift;
     car.driftLevel = view.driftLevel;
     car.driftCharge = view.driftCharge;
@@ -123,18 +132,47 @@ export class OwnCarPredictor {
     car.solo = view.solo;
     // The brake as the server last applied it: held = no fresh press to start a drift with.
     car.brakeTicks = view.inBrake ? 1 : 0;
-    this.baseBoostLeft = view.boostLeft;
     const loc = locateOnTrack(this.track, { x: view.x, z: view.z }, near ? prev.segment : undefined);
     car.segment = loc.segment;
     car.progress = lapProgress(this.track, loc.progress);
     car.lateral = loc.lateral;
-    this.base = car;
-    this.baseTime = time;
+    this.prev = this.base;
+    this.base = { car, time, stallLeft: view.stallLeft, boostLeft: view.boostLeft };
     this.serverInput.steer = view.inSteer;
     this.serverInput.gas = view.inGas;
     this.serverInput.brake = view.inBrake;
     this.serverInput.nitro = view.inNitro;
-    this.needOffset = this.shown.valid;
+    this.needOffset = this.shown;
+  }
+
+  /**
+   * Run the physics from `base` to client time `now` (+ lead) and leave the blended pose in
+   * `this.pose`; the world's car is left at the next whole tick (for speed and steering).
+   */
+  private poseAt(base: Base, now: number, leadMs: number, cfg: Tuning): CarState {
+    const world = this.world as World;
+    const dtMs = cfg.sim.dt * 1000;
+    const aheadMs = Math.min(Math.max(now - base.time + leadMs, 0), cfg.net.predictMaxMs);
+    const ticks = aheadMs / dtMs;
+    const whole = Math.floor(ticks);
+    const frac = ticks - whole;
+    const car = world.cars[0] as CarState;
+    Object.assign(car, base.car);
+    world.tick = 0;
+    car.stallUntilTick = base.stallLeft > 0 ? Math.round(base.stallLeft / cfg.sim.dt) : -1;
+    car.boostTicks = Math.round(base.boostLeft / cfg.sim.dt);
+    for (let i = 0; i < whole; i++) step(world, this.inputs, cfg);
+    const ax = car.x;
+    const az = car.z;
+    const ay = car.y;
+    const ayaw = car.yaw;
+    step(world, this.inputs, cfg);
+    // Blend between whole ticks so the car moves smoothly at any frame rate.
+    this.pose.x = ax + (car.x - ax) * frac;
+    this.pose.z = az + (car.z - az) * frac;
+    this.pose.y = ay + (car.y - ay) * frac;
+    this.pose.yaw = ayaw + angleDiff(ayaw, car.yaw) * frac;
+    return car;
   }
 
   /**
@@ -144,8 +182,8 @@ export class OwnCarPredictor {
   predict(now: number, local: CarInput, role: Role | null, leadMs: number, cfg: Tuning, out: CarSnap): boolean {
     const world = this.world;
     const base = this.base;
-    if (!world || !base || role === null || cfg.net.predictMaxMs <= 0 || base.respawnAtTick >= 0) {
-      this.shown.valid = false;
+    if (!world || !base || role === null || cfg.net.predictMaxMs <= 0 || base.car.respawnAtTick >= 0) {
+      this.shown = false;
       return false;
     }
     const input = this.input;
@@ -155,36 +193,7 @@ export class OwnCarPredictor {
     input.nitro = mayUse(role, 'nitro') ? (local.nitro ?? false) : (this.serverInput.nitro ?? false);
     input.respawn = false;
 
-    const dtMs = cfg.sim.dt * 1000;
-    const aheadMs = Math.min(Math.max(now - this.baseTime + leadMs, 0), cfg.net.predictMaxMs);
-    const ticks = aheadMs / dtMs;
-    const whole = Math.floor(ticks);
-    const frac = ticks - whole;
-
-    const car = world.cars[0] as CarState;
-    Object.assign(car, base);
-    world.tick = 0;
-    car.stallUntilTick = this.baseStallLeft > 0 ? Math.round(this.baseStallLeft / cfg.sim.dt) : -1;
-    car.boostTicks = Math.round(this.baseBoostLeft / cfg.sim.dt);
-    for (let i = 0; i < whole; i++) step(world, this.inputs, cfg);
-    const ax = car.x;
-    const az = car.z;
-    const ay = car.y;
-    const ayaw = car.yaw;
-    step(world, this.inputs, cfg);
-    // Blend between whole ticks so the car moves smoothly at any frame rate.
-    const x = ax + (car.x - ax) * frac;
-    const z = az + (car.z - az) * frac;
-    const yaw = ayaw + angleDiff(ayaw, car.yaw) * frac;
-
-    // A fresh server state moved the prediction: start from where the car was drawn and
-    // let the difference fade, so corrections never look like a jump.
-    if (this.needOffset && this.shown.valid) {
-      this.off.x = this.shown.x - x;
-      this.off.z = this.shown.z - z;
-      this.off.yaw = angleDiff(yaw, this.shown.yaw);
-    }
-    this.needOffset = false;
+    // Disagreements with the server fade out at `net.predictCorrectionRate`.
     const frameDt = this.lastNow < 0 ? 0 : Math.max(now - this.lastNow, 0) / 1000;
     this.lastNow = now;
     const keep = Math.exp(-cfg.net.predictCorrectionRate * frameDt);
@@ -192,18 +201,37 @@ export class OwnCarPredictor {
     this.off.z *= keep;
     this.off.yaw *= keep;
 
-    out.x = x + this.off.x;
-    out.z = z + this.off.z;
-    out.y = ay + (car.y - ay) * frac;
-    out.yaw = yaw + this.off.yaw;
+    // A fresh server state moved the prediction: keep drawing the car exactly where the old
+    // prediction puts it THIS frame and let the difference fade, so an update is never a
+    // visible step (measuring from last frame's spot held the car back a frame every update:
+    // the "stutter" from the P5 duo playtest).
+    let ox = 0;
+    let oz = 0;
+    let oyaw = 0;
+    const blend = this.needOffset && this.prev !== null;
+    if (blend) {
+      this.poseAt(this.prev!, now, leadMs, cfg);
+      ox = this.pose.x;
+      oz = this.pose.z;
+      oyaw = this.pose.yaw;
+    }
+    const car = this.poseAt(base, now, leadMs, cfg);
+    if (blend) {
+      this.off.x += ox - this.pose.x;
+      this.off.z += oz - this.pose.z;
+      this.off.yaw += angleDiff(this.pose.yaw, oyaw);
+    }
+    this.needOffset = false;
+
+    out.x = this.pose.x + this.off.x;
+    out.z = this.pose.z + this.off.z;
+    out.y = this.pose.y;
+    out.yaw = this.pose.yaw + this.off.yaw;
     out.speed = Math.hypot(car.vx, car.vz);
     out.steer = car.steer;
     out.respawning = false;
     out.ghost = false;
-    this.shown.valid = true;
-    this.shown.x = out.x;
-    this.shown.z = out.z;
-    this.shown.yaw = out.yaw;
+    this.shown = true;
     return true;
   }
 }

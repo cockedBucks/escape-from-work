@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P5 — Teamwork mechanics (`docs/phases/P05-teamwork.md`)
-- Next task: P5.6b Gate fixes: stutter (then P5.6c sense of speed, then re-test the gate)
+- Next task: P5.6c Gate fixes: sense of speed (then re-test the duo gate)
 - Status: P5.6 done. `npm run verify` passes (341 tests + bot race, best lap 37.25 s);
   `npm run test:load` passes (8 skilled bot cars, swap lane, 3 laps). Waiting on the human.
   Shots: cockpit 39 / chase 12 / overview 35 / stall / drift / nitro 13 draw calls.

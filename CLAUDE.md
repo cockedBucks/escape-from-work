@@ -34,6 +34,7 @@ You build everything else, agentically, from these docs. Explain decisions in pl
 | `npm run test:load` | 8 cars / 16 bot clients, 3-lap race through the real server (~2 min, not in verify) |
 | `npm run bots -- --cars 4 --seconds 60` | real WebSocket bot clients (split pilot/engineer) against a running server (`--url`) |
 | `npm run shots -- chase lobby` | Playwright screenshots + render stats → `artifacts/shots/` |
+| `npm run jitter` | real browser + server: how smoothly your car is drawn (stutter check) |
 | `npm run track:check -- office` | validate a track file and run bot laps on it — from P1 |
 
 ## Folder map

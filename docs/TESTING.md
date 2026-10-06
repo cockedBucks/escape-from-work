@@ -81,6 +81,16 @@ Try in order, and record which worked in `docs/DECISIONS.md`:
 3. `--gl headed` (a real window opens for a few seconds).
 Headless FPS is meaningless; only draw calls, triangles and the images are judged.
 
+### Smoothness (`npm run jitter -- [seconds]`)
+
+Real browser + real production server: sits solo in car 1, starts a race, holds gas while
+weaving, and records the drawn car and camera every frame (`window.__game.focusCar()` has
+`camX/camZ`). Prints the per-frame movement ÷ car speed (1.00 = perfectly even) and the
+car-vs-camera wobble; exits 1 when more than 5% of frames are off by over 40%. Use it when a
+player says "laggy" or "stutters". The unit test "server updates every 2 ticks never make the
+drawn car step unevenly" in `net/predictor.test.ts` guards the prediction part in `verify`.
+P5.6b baseline: 1.4–2.7% uneven frames, wobble p50 0.01 m (was 46% and 0.16 m).
+
 ## 5. What the human tests (HUMAN GATEs)
 
 Feel (steering, speed, drift, heat), fun (does the duo yell?), readability on a real laptop,

@@ -26,7 +26,7 @@ nitro and the swap lane. Teams that talk should clearly beat teams that do not.
 - [x] **P5.6 How-to-play cards.** One short card per role in the lobby, with the keys.
 - [x] **P5.6a Gate fixes: drift + heat.** From the first duo test (2026-10-06): drifts end too
   soon (release grace, longer brake hold), heat only from nitro overuse (normal driving cools).
-- [ ] **P5.6b Gate fixes: stutter.** Measure the drawn own-car motion per frame in a real
+- [x] **P5.6b Gate fixes: stutter.** Measure the drawn own-car motion per frame in a real
   browser; find and fix jumps (prediction corrections, timeline, camera).
 - [ ] **P5.6c Gate fixes: sense of speed.** Engine hum (pitch follows speed), tire squeal while
   drifting, speed FOV, speed lines, roadside markers so speed is visible.

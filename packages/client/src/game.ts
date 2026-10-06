@@ -249,6 +249,8 @@ export class Game {
         focusPose.z = car.z;
         focusPose.yaw = car.yaw;
         focusPose.speed = car.speed;
+        focusPose.camX = this.stage.camera.position.x;
+        focusPose.camZ = this.stage.camera.position.z;
       }
     }
 

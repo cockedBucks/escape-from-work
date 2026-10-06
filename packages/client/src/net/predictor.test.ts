@@ -92,3 +92,40 @@ describe('OwnCarPredictor', () => {
     expect(p.predict(10, NO_INPUT, 'solo', 50, cfg, out())).toBe(false);
   });
 });
+
+describe('OwnCarPredictor smoothness', () => {
+  it('server updates every 2 ticks never make the drawn car step unevenly (no stutter)', async () => {
+    const { createCar, createWorld, step } = await import('@escape/shared');
+    const GAS: CarInput = { ...NO_INPUT, gas: true };
+    const world = createWorld(track, [createCar('car0', STATS, track)]);
+    const p = new OwnCarPredictor(track, STATS);
+    const o = out();
+    const dtMs = cfg.sim.dt * 1000;
+    const viewOf = (): OwnCarView => {
+      const c = world.cars[0]!;
+      return {
+        x: c.x, y: c.y, z: c.z, yaw: c.yaw, vx: c.vx, vz: c.vz, vy: c.vy, steer: c.steer, respawning: false, ghost: false,
+        heat: c.heat, stallLeft: 0, drift: 0, driftLevel: 0, driftCharge: 0, boostLeft: 0, nitro: 0, nitroOn: false, solo: false,
+        inSteer: 0, inGas: true, inBrake: false, inNitro: false,
+      };
+    };
+    // The server: 60 ticks/s, a state every 2 ticks. The client draws at 60 fps, half a frame off.
+    const steps: number[] = [];
+    let lastX = NaN;
+    let lastZ = NaN;
+    for (let frame = 0; frame < 180; frame++) {
+      const now = frame * dtMs + dtMs / 2;
+      while (world.tick * dtMs <= now - 40) {
+        step(world, { car0: GAS }, cfg);
+        if (world.tick % 2 === 0) p.onServer('car0', viewOf(), world.tick * dtMs);
+      }
+      if (!p.predict(now, GAS, 'solo', 40, cfg, o)) continue;
+      if (!Number.isNaN(lastX) && frame > 60) steps.push(Math.hypot(o.x - lastX, o.z - lastZ) / ((o.speed * dtMs) / 1000));
+      lastX = o.x;
+      lastZ = o.z;
+    }
+    expect(steps.length).toBeGreaterThan(100);
+    expect(Math.min(...steps)).toBeGreaterThan(0.85);
+    expect(Math.max(...steps)).toBeLessThan(1.15);
+  });
+});
