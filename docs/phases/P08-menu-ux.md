@@ -16,7 +16,7 @@ join and play without anyone explaining.
   Scenario `menu`.
 - [x] **P8.2 Settings.** Quality preset, master/engine/sfx volume, default camera, show FPS,
   key help page. Stored in `localStorage` with safe fallbacks.
-- [ ] **P8.3 Onboarding.** First race per browser: role card with keys during the countdown,
+- [x] **P8.3 Onboarding.** First race per browser: role card with keys during the countdown,
   "?" opens key help any time, swap-lane and item first-time hints.
 - [ ] **P8.4 UI polish.** Local `@fontsource` font, consistent buttons/panels/colors, readable at
   1366×768, results podium with bobbleheads, smooth screen transitions.

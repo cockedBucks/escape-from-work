@@ -4,6 +4,7 @@
 import type { Volumes } from '../audio/mixer';
 import type { CameraMode } from '../input/cameraPref';
 import { QUALITY_SETTINGS, type QualitySetting, type Settings } from '../settings';
+import { isTyping } from '../input/keyboard';
 import { KEY_HELP } from './roleKeys';
 import { volumeSliders } from './volumePanel';
 
@@ -91,7 +92,22 @@ export class SettingsScreen {
       if (e.target === this.root) this.close();
     });
     parent.appendChild(this.root);
+    // Capture phase: runs before the lobby's Esc handler, so Esc only closes this window.
+    window.addEventListener('keydown', this.onKey, true);
   }
+
+  /** "?" (or F1) opens the key help any time and closes it again; Esc closes the window. */
+  private readonly onKey = (e: KeyboardEvent): void => {
+    if (isTyping(e.target)) return;
+    if (e.key === '?' || e.code === 'F1') {
+      e.preventDefault();
+      if (this.isOpen && !this.tabs.keys.hidden) this.close();
+      else this.open('keys');
+    } else if (e.code === 'Escape' && this.isOpen) {
+      e.stopImmediatePropagation(); // just close this, do not also toggle the lobby
+      this.close();
+    }
+  };
 
   get isOpen(): boolean {
     return !this.root.hidden;
@@ -166,6 +182,7 @@ export class SettingsScreen {
   }
 
   dispose(): void {
+    window.removeEventListener('keydown', this.onKey, true);
     this.root.remove();
   }
 }

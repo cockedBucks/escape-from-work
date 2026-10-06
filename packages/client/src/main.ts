@@ -12,6 +12,7 @@ import { MusicLoop } from './audio/music';
 import { showMainMenu } from './menu';
 import { loadSettings, saveSettings } from './settings';
 import { SettingsScreen } from './ui/settingsScreen';
+import { HINT_TEXT, Onboarding, RoleCard } from './ui/onboarding';
 import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
@@ -336,6 +337,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   const swapFlash = new SwapFlash(container);
   const effects = new ItemEffectsOverlay(container);
   const toasts = new Toasts(container);
+  // First-time help (P8.3): role card in your first countdown, swap lane and item hints once.
+  const onboarding = new Onboarding();
+  const roleCard = new RoleCard(container);
+  let roleCardShown = false;
   const itemsCfg = loadItems();
   const hud = new RaceHud(container);
   const gaugePanel = new GaugePanel(container);
@@ -361,6 +366,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let mySeat = '';
   let phase: RacePhase = 'lobby';
   const track = loadTrack(DEFAULT_TRACK, tuning);
+  /** The lap the swap lane opens (first-time hint), or null when the track has none. */
+  const swapMinLap = track.rangedZones.find((z) => z.type === 'swap')?.minLap ?? null;
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
   const predictor = new OwnCarPredictor(track, loadCars().cars[0]!.stats);
   const localInput: CarInput = { ...NO_INPUT };
@@ -494,6 +501,14 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
       });
     hud.set(hudNow);
+    const firstCountdown = state.phase === 'countdown' && !onboarding.has('roleCard') && myRole !== null;
+    roleCard.set(firstCountdown ? myRole : null);
+    if (firstCountdown) roleCardShown = true;
+    if (state.phase === 'racing' && roleCardShown) onboarding.mark('roleCard');
+    if (state.phase === 'racing' && myCar && myRole !== null && swapMinLap !== null && !onboarding.has('swap') && myCar.lapsDone + 1 >= swapMinLap) {
+      onboarding.mark('swap');
+      toasts.show(HINT_TEXT.swap, 'info');
+    }
     const cue = countdownCue(lastCountdown, hudNow.countdown);
     lastCountdown = hudNow.countdown;
     if (cue) horns.playSound(COUNTDOWN_SOUNDS[cue], 0);
@@ -616,6 +631,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       if (e.type === 'itemBox') {
         if (e.car === myCarId && e.item) {
           toasts.show(`${itemIcon(e.item)} You got <b>${itemName(e.item)}</b>!`, 'good');
+          if (!onboarding.has('item')) {
+            onboarding.mark('item');
+            toasts.show(HINT_TEXT.item, 'info');
+          }
           horns.playSound(ITEM_SOUNDS.pickup, 0);
         }
         continue;
@@ -683,6 +702,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     settingsScreen.dispose();
     horns.dispose();
     swapFlash.dispose();
+    roleCard.dispose();
     effects.dispose();
     toasts.dispose();
     mouseLook.dispose();
