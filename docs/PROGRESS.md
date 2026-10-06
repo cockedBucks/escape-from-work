@@ -24,6 +24,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   do not help. Reply: where they got stuck, what made them laugh, what they asked.
 - P9 a league week: play normally for a few days, look at the League screen (menu → 🏆 League).
   Reply: anything unfair, missing or not funny enough? Which awards should change?
+- P10 launch party: host on the office PC with `start-server.bat` (double-click). Get as many
+  people as possible and race all four tracks (lobby: ◀ track ▶): The Office, Server Room, Smart
+  Oasis (sandstorm on lap 2), Motherboard. Reply: anything broken, plus the next features you want
+  (see "Later ideas" in docs/ROADMAP.md).
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
 

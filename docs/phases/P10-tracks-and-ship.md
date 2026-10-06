@@ -27,7 +27,7 @@ and a final stability pass.
   and tick time; fix leaks.
 - [x] **P10.6 Final pass.** All scenarios through `/shots`, all golden tests, README refreshed,
   known issues listed.
-- [ ] **HUMAN GATE — launch party.**
+- [~] **HUMAN GATE — launch party.** (deferred)
   1. Host on the office PC with the start script. Get as many people as possible. Race all tracks.
   2. Reply: anything broken, plus the next features you want (see "Later ideas" in the roadmap).
 - [ ] **P10.7 Release.** Reviewer, fixes, `git tag v1.0`, final report.
