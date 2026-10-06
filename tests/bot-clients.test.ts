@@ -24,9 +24,9 @@ describe('networked bots (real server, 2 cars x 2 clients)', () => {
     async () => {
       const tuning = loadTuningFile();
       const track = loadTrackFile(DEFAULT_TRACK, tuning); // the track the server races
-      const stats = loadCarsFile().cars[0]!.stats;
+      const roster = loadCarsFile().cars;
       const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
-      for (let i = 0; i < 2; i++) cars.push(await startBotCar({ endpoint, tuning, track, stats }));
+      for (let i = 0; i < 2; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster }));
       expect(cars.map((c) => c.slot)).toEqual([0, 1]);
 
       await new Promise<void>((resolve, reject) => {
@@ -49,9 +49,9 @@ describe('networked bots (real server, 2 cars x 2 clients)', () => {
   it('a bot that cannot get its seat fails loudly instead of driving from nowhere', async () => {
     const tuning = loadTuningFile();
     const track = loadTrackFile(DEFAULT_TRACK, tuning); // the track the server races
-    const stats = loadCarsFile().cars[0]!.stats;
+    const roster = loadCarsFile().cars;
     const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
     // Car 1 (slot 0) is taken by the bots above.
-    await expect(startBotCar({ endpoint, tuning, track, stats, slot: 0 })).rejects.toThrow(/refused/);
+    await expect(startBotCar({ endpoint, tuning, track, roster, slot: 0 })).rejects.toThrow(/refused/);
   });
 });

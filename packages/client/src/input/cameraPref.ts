@@ -1,4 +1,5 @@
 // C switches chase ↔ cockpit; the choice is remembered in this browser (GAME_DESIGN §4).
+import { isTyping } from './keyboard';
 
 export type CameraMode = 'chase' | 'cockpit';
 
@@ -31,7 +32,7 @@ export class CameraToggle {
   }
 
   private readonly onKey = (e: KeyboardEvent): void => {
-    if (e.code !== 'KeyC' || e.repeat || e.target instanceof HTMLInputElement) return;
+    if (e.code !== 'KeyC' || e.repeat || isTyping(e.target)) return;
     this.mode = toggled(this.mode);
     saveCameraMode(this.mode);
     this.onChange(this.mode);

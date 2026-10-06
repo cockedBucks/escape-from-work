@@ -30,6 +30,8 @@ export class VolumePanel {
       slider.max = '100';
       slider.value = String(Math.round(this.vol[key] * 100));
       slider.dataset.key = key;
+      // Hand the keys back to the game after dragging (arrows would move the slider).
+      slider.addEventListener('change', () => slider.blur());
       slider.addEventListener('input', () => {
         this.vol = { ...this.vol, [key]: Number(slider.value) / 100 };
         this.onChange(this.vol);

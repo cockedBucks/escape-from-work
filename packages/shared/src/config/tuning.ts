@@ -138,9 +138,9 @@ const BotSchema = z.strictObject({
   driftLookAhead: pos(),
   /** ...and hold it only while the road within `driftHoldAhead` m still turns that way that tightly. */
   driftHoldAhead: pos(),
-  /** Skill 1+: steer this much past the drift entry / release thresholds (0–1), to be sure. */
   /** No drift start when a tight corner the other way comes within this many meters (S-bends). */
   driftClearAhead: pos(),
+  /** Skill 1+: steer this much past the drift entry / release thresholds (0–1), to be sure. */
   driftSteerMargin: fraction(),
   /** Skill 2: burn nitro on a clear straight while the engine is below this heat (0–1). */
   nitroMaxHeat: z.number().min(0).max(1),

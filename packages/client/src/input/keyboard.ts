@@ -37,6 +37,15 @@ export function controlsFrom(held: ReadonlySet<Action>): Omit<InputMessage, 'seq
  * Tracks held driving keys and calls `send` with the full control state whenever it
  * changes, and again every `resendMs`. Releases everything when the window loses focus, so gas never sticks.
  */
+/** Input types that take typed text; sliders, checkboxes and buttons do not. */
+const NON_TEXT_INPUTS = new Set(['range', 'checkbox', 'radio', 'button', 'submit', 'reset', 'color', 'file']);
+
+/** Is the key going into a text field (so it is typing, not driving)? */
+export function isTyping(target: EventTarget | null): boolean {
+  if (typeof HTMLTextAreaElement !== 'undefined' && target instanceof HTMLTextAreaElement) return true;
+  return typeof HTMLInputElement !== 'undefined' && target instanceof HTMLInputElement && !NON_TEXT_INPUTS.has(target.type);
+}
+
 export class KeyboardControls {
   private readonly held = new Set<Action>();
   private seq = 0;
@@ -56,8 +65,8 @@ export class KeyboardControls {
   }
 
   private readonly onDown = (e: KeyboardEvent): void => {
-    // Typing a name in a text field must not drive the car.
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    // Typing a name in a text field must not drive the car (a focused slider or button must not stop it).
+    if (isTyping(e.target)) return;
     const action = ACTION_BY_CODE.get(e.code);
     if (!action) {
       // Any other key still counts as mashing (Forced Update).

@@ -14,6 +14,7 @@ import {
   newBotMemory,
   resetStuck,
   type BotMemory,
+  type CarDef,
   type CarState,
   type CarStats,
   type CarViewLike,
@@ -33,13 +34,22 @@ interface BotStateView {
     get(id: string): (CarViewLike & { progress: number }) | undefined;
     forEach(cb: (car: CarViewLike & { progress: number }, id: string) => void): void;
   };
+  /** Roster car id per slot (the team's pick). */
+  carModels?: ArrayLike<string>;
+}
+
+/** The stats of the car a slot drives (its pick, else roster car N like the server's default). */
+export function slotStats(roster: readonly CarDef[], carModels: ArrayLike<string> | undefined, slot: number): CarStats {
+  const picked = carModels?.[slot];
+  return (roster.find((d) => d.id === picked) ?? roster[slot % roster.length] ?? roster[0]!).stats;
 }
 
 export interface BotCarOptions {
   endpoint: EndpointSettings;
   tuning: Tuning;
   track: Track;
-  stats: CarStats;
+  /** The car roster (config/cars.json): each bot plans with the stats of the car its slot drives. */
+  roster: readonly CarDef[];
   /** Car slot to drive; -1 = first empty car. */
   slot?: number;
   name?: string;
@@ -110,7 +120,7 @@ async function takeSeat(room: Room<unknown, BotStateView>, slot: number, seat: '
 
 /** Start one bot car (two clients). Resolves once both bots are seated. */
 export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
-  const { endpoint, tuning, track, stats } = opts;
+  const { endpoint, tuning, track, roster } = opts;
   const pilot = await new Client(endpoint).join<BotStateView>(ROOM_NAME);
   ignoreBroadcasts(pilot);
   const first = await waitFor(pilot, (s) => s.players !== undefined, CONFIRM_MS);
@@ -150,7 +160,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const othersIn = (s: BotStateView): CarState[] => {
     const out: CarState[] = [];
     s.cars?.forEach((v, id) => {
-      if (id !== carId) out.push(carStateFromView(id, v, track, stats));
+      if (id !== carId) out.push(carStateFromView(id, v, track, slotStats(roster, s.carModels, Number(id.slice('car'.length)))));
     });
     return out;
   };
@@ -162,7 +172,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   pilot.onStateChange((s) => {
     const view = s.cars?.get(carId);
     if (!view) return;
-    const car = carStateFromView(carId, view, track, stats, pilotHint);
+    const car = carStateFromView(carId, view, track, slotStats(roster, s.carModels, slot), pilotHint);
     pilotHint = car.segment;
     if (s.phase !== 'racing') resetStuck(pilotMemory);
     pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s)) });
@@ -179,7 +189,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   engineer.onStateChange((s) => {
     const view = s.cars?.get(carId);
     if (!view) return;
-    const car = carStateFromView(carId, view, track, stats, engHint);
+    const car = carStateFromView(carId, view, track, slotStats(roster, s.carModels, slot), engHint);
     engHint = car.segment;
     // Controls are ignored outside a race (countdown): standing still there is not stuck.
     if (s.phase !== 'racing') resetStuck(memory);

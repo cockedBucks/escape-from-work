@@ -390,6 +390,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
   const roster = loadCars().cars;
   const rosterNames = roster.map((d) => ({ id: d.id, name: d.name }));
   let carModels: string[] = [];
+  /** The car you drive (stats and engine voice are set when it changes). */
+  let myCarDef: CarDef | null = null;
   /** Cars seen finished this race (confetti once each; joining during results throws none). */
   const finishedCars = new Set<string>();
   const carDefOf = (carId: string): CarDef => {
@@ -441,11 +443,16 @@ async function showRace(hooks: GameHooks, tuning: Tuning): Promise<void> {
     badge.set(me?.role ?? '');
     endRace.hidden = !(state.host === room.sessionId && (state.phase === 'countdown' || state.phase === 'racing'));
     teamNames = [...state.teams];
-    carModels = [...state.carModels];
-    // Prediction runs your car with its own stats.
-    if (myCarId !== null) {
-      predictor.setStats(carDefOf(myCarId).stats);
-      engine.setVoice(carDefOf(myCarId).engine);
+    // Copy the picks only when one changed (this runs on every patch).
+    if (state.carModels.length !== carModels.length || carModels.some((m, i) => m !== state.carModels[i])) {
+      carModels = [...state.carModels];
+    }
+    // Prediction runs your car with its own stats; the engine sounds like it.
+    const myDef = myCarId === null ? null : carDefOf(myCarId);
+    if (myDef !== null && myDef !== myCarDef) {
+      myCarDef = myDef;
+      predictor.setStats(myDef.stats);
+      engine.setVoice(myDef.engine);
     }
     seatsByCar = carSeatsFrom(state, room.sessionId);
     const boardCars: BoardCar[] = [];

@@ -131,3 +131,25 @@ describe('track branches (shortcuts)', () => {
     expect(botRoute(car, track, tuning, tuning.bot.shortcutSkill)).toEqual([0]);
   });
 });
+
+describe('wrong way on a shortcut', () => {
+  it('follows the shortcut\'s own direction (the main road beside it can point elsewhere)', async () => {
+    const officeJson = (await import('../../../../config/tracks/office.json')).default;
+    const { newRun, updateWrongWay } = await import('../race/rules');
+    const office = buildTrack(parseTrack(officeJson, 'office'), cfg);
+    const br = office.branches[0]!;
+    const s = br.samples[Math.floor(br.samples.length / 2)]!;
+    const speed = 15;
+    const ticksAt = (sign: number): number => {
+      const car = createCar('a', STATS, office);
+      Object.assign(car, { x: s.pos.x, z: s.pos.z, vx: s.dir.x * speed * sign, vz: s.dir.z * speed * sign });
+      car.segment = locateOnTrack(office, s.pos).segment;
+      const run = newRun(['a'], 3, 0);
+      updateWrongWay(run, createWorld(office, [car]), tuning.race);
+      return run.cars.get('a')!.wrongWayTicks;
+    };
+    expect(locateOnTrack(office, s.pos).road).toBe(1);
+    expect(ticksAt(1)).toBe(0);
+    expect(ticksAt(-1)).toBe(1);
+  });
+});

@@ -19,6 +19,8 @@ export interface TrackLocation {
   lateral: number;
   /** Half the road width here. */
   halfWidth: number;
+  /** Unit direction of travel of the road segment here (on a branch: the branch's). */
+  dir: Vec2;
   /** Inside the road edges. */
   onTrack: boolean;
 }
@@ -71,6 +73,7 @@ export function locateOnTrack(track: Track, p: Vec2, hint?: number): TrackLocati
     progress,
     lateral,
     halfWidth,
+    dir: d,
     onTrack: Math.abs(lateral) <= halfWidth,
   };
 }

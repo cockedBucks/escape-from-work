@@ -166,6 +166,7 @@ export class HornPlayer {
       osc.type = v.type;
       osc.frequency.setValueAtTime(v.from, t0);
       osc.frequency.linearRampToValueAtTime(v.to, t0 + p.duration);
+      let vibrato: AudioNode[] = [];
       if (p.vibrato > 0) {
         const lfo = ctx.createOscillator();
         const depth = ctx.createGain();
@@ -174,6 +175,7 @@ export class HornPlayer {
         lfo.connect(depth).connect(osc.frequency);
         lfo.start(t0);
         lfo.stop(t0 + p.duration);
+        vibrato = [lfo, depth];
       }
       osc.connect(out);
       osc.start(t0);
@@ -181,6 +183,7 @@ export class HornPlayer {
       // Free the nodes once the sound is over (the output gain goes with the last voice).
       osc.onended = () => {
         osc.disconnect();
+        for (const node of vibrato) node.disconnect();
         out.disconnect();
       };
     }

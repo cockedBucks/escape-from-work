@@ -4,10 +4,10 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.9 Phase end
-- Status: P7.8 done. `npm run verify` passes (432 tests + bot race, best lap 35.52 s); `npm run test:load`
-  passes. The Office is the default track. Shots: juice 23 draws / 27k tris (software GL in the cloud).
+- Phase: P8 — Menu and UX (`docs/phases/P08-menu-ux.md`)
+- Next task: P8.1 Main menu
+- Status: P7 done. `npm run verify` passes (444 tests + bot race, best lap 35.52 s); `npm run test:load`
+  passes. The Office is the default track.
 
 ## Half-done
 - (nothing)
@@ -91,43 +91,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
   sounds, host chaos toggle, bots use items (skill ≥ 1). Chaos gate deferred. Review fixes D083.
   Decisions D077–D083.
 
-- 2026-10-06: P7.1 car kit — cars.json `look` (body preset, wheelScale, parts); one vertex-colored
-  merged body per car (+ wheels, roof number atlas, shadow = 6 draw calls, < 1,500 triangles);
-  7 body presets and 8 parts with dims in look tables; heads per body; `garage` scenario. D085.
-
-- 2026-10-06: P7.2 roster — the 8 ART_STYLE cars in cars.json (looks, stat leans inside
-  0.92–1.08, horns incl. new `siren` and `squeak`); garage camera behind the rows. D086.
-
-- 2026-10-06: P7.2b car picker — ◀ name ▶ on your team card's header (lobby:setCar, either
-  player, between races), state `carModels` (slot N = roster car N by default), server stats per
-  slot, client look/horn per car, prediction with your car's stats. D087.
-
-- 2026-10-06: P7.3 balance — roster balance test (every car's 3-lap bot time within `lapSpread`
-  ±3% of the median; Test Loop now, The Office in P7.5). Hot Fix speed 1.05 → 1.03 (was −3.4%). D088.
-
-- 2026-10-06: P7.4 office prop kit — 12 props as data (`PROP_SHAPES`, real sizes ×
-  `officeScale` 2), built by the shared kit builder, one InstancedMesh per kind (track `props`
-  now drawn), `props` scenario; track schema validates prop kinds. D089.
-
-- 2026-10-06 (cloud): P7.5 The Office — branch splines (shortcuts: open spline, progress mapped,
-  walls cut at junctions, bots with `shortcutSkill` follow them), `track:check` lap target (40–55 s,
-  `dev` flag exempts Test Loop) + shortcut bot laps, office.json (hairpin, chicane + slicks, jump
-  over the boardroom table, Server Closet shortcut, swap lane, 166 props), carpet ground, Office =
-  default track, `shots --track`. Bot drift fixes (release on straights, no drift into S-bends or
-  shortcuts). D091.
-- 2026-10-06 (cloud): P7.8 Performance — Office shots: Low ≤ 50 draws / 31k tris, High ≤ 68 / 72k
-  (budget 100/150k and 200/400k). Standalone server, 8 bot cars × 3 laps: tick avg 0.40 ms, max 5 ms,
-  0 overruns (the old GC spikes came from sharing a process with 17 clients). Shots `--quality`. D096.
-- 2026-10-06 (cloud): P7.7 Procedural audio — engine voice per car (cars.json `engine`), brake skid,
-  wall/bump/landing thuds, countdown beeps, lobby/results music loop, volume channels + top-right speaker
-  sliders. LOCAL: listen to it on the laptop (no speakers in the cloud). D095.
-- 2026-10-06 (cloud): P7.6 Juice — landing squash & stretch (spring per car), chase-cam hit shake,
-  bobblehead kicks on hits/landings (every car), finish confetti (same particle pool), HONK bubble
-  polish (tilt, springy pop, tail, float + fade), `juice` scenario. Fixed: cockpit eye now sits at your
-  own head (kit cars' heads poke out of the roof; the roof hid your teammate since P7.1); dash, screen
-  and mirror move with it. D094.
-- 2026-10-06 (cloud, 2nd session): two sessions had built P7.5 in parallel; kept `cloud-work`'s, added
-  the general wall fix, ground polygon offset and the `shortcut` scenario from the other. D093.
+- 2026-10-06: **P7 done** (P7.5–P7.9 in the cloud) — car kit + 8-car roster with looks, horns and
+  engine voices, car picker, roster balance (±3%), office prop kit; The Office (default track, Server
+  Closet shortcut on branch splines, lap target 40–55 s with a `dev` flag); juice (squash, hit shake,
+  head kicks, confetti, honk bubble) + cockpit eye fix; procedural audio + volume sliders; perf within
+  budget (standalone tick max 5 ms). Two parallel P7.5s merged (D093). Gate deferred. Review fixes
+  D097. Decisions D085–D097. Tag `p7-done` was made in the cloud on commit "P7.9" (re-tag locally).
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

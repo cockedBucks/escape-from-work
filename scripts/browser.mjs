@@ -1,19 +1,31 @@
 // Shared browser launcher for shots/jitter. Tries the installed Chrome, then Edge, then a
 // plain Chromium binary: BROWSER_PATH if set, else the Playwright bundle under
 // PLAYWRIGHT_BROWSERS_PATH (cloud/CI containers have no Chrome but ship that one).
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 
 const CHANNELS = ['chrome', 'msedge'];
 
+/** Where the Chromium program sits inside a Playwright `chromium-<version>` folder, per OS. */
+const BUNDLE_EXES = [
+  ['chrome-linux', 'chrome'],
+  ['chrome-win', 'chrome.exe'],
+  ['chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium'],
+];
+
 function chromiumBinaries() {
   const out = [];
   if (process.env.BROWSER_PATH) out.push(process.env.BROWSER_PATH);
-  if (process.env.PLAYWRIGHT_BROWSERS_PATH) {
-    out.push(path.join(process.env.PLAYWRIGHT_BROWSERS_PATH, 'chromium'));
+  const bundles = process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (bundles && existsSync(bundles)) {
+    // Some containers link `chromium` straight to the program; otherwise look in chromium-<version>/.
+    out.push(path.join(bundles, 'chromium'));
+    for (const dir of readdirSync(bundles).filter((d) => /^chromium-\d+$/.test(d)).sort().reverse()) {
+      for (const parts of BUNDLE_EXES) out.push(path.join(bundles, dir, ...parts));
+    }
   }
-  return out.filter((p) => existsSync(p));
+  return out.filter((p) => existsSync(p) && statSync(p).isFile());
 }
 
 /** Returns { browser, channel } or throws listing every attempt. */

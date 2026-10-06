@@ -49,14 +49,14 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
   it('every car finishes (or is on its last lap at the window) and the server tick stays fast', async () => {
     const tuning = loadTuningFile();
     const track = loadTrackFile(DEFAULT_TRACK, tuning); // the track the server races
-    const stats = loadCarsFile().cars[0]!.stats;
+    const roster = loadCarsFile().cars;
     const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
 
     // A watching host joins first (the first player is host), then the 16 bot clients.
     host = await new Client(endpoint).join<StateView>(ROOM_NAME);
     for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.lobbyError]) host.onMessage(type, () => {});
     await waitForState(host, (s) => s.host === host!.sessionId, 'watcher is host');
-    for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, track, stats }));
+    for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster }));
     await waitForState(host, (s) => s.cars?.size === CARS, `${CARS} cars`);
     expect(host.state.laps).toBe(3);
 

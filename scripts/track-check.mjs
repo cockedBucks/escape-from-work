@@ -52,7 +52,7 @@ for (const id of ids) {
       `width ${stats.minWidth.toFixed(0)}–${stats.maxWidth.toFixed(0)} m, ` +
       `tightest radius ${stats.minRadius.toFixed(1)} m, ${def.zones.length} zones`;
     for (const b of stats.branches) {
-      summary += `; shortcut "${b.name}" ${b.length.toFixed(0)} m (skips ${b.skips.toFixed(0)} m)`;
+      summary += `; shortcut "${b.name}" ${b.length.toFixed(0)} m, ${b.minWidth.toFixed(0)} m wide (skips ${b.skips.toFixed(0)} m)`;
     }
     if (issues.length === 0) {
       const race = shared.runBotRace(track, tuning, { cars: 2, laps: 3, maxSeconds: 3 * 180 });

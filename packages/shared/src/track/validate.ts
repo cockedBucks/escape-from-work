@@ -9,7 +9,8 @@ export interface TrackStats {
   /** Tightest centerline radius (m). */
   minRadius: number;
   /** Per shortcut: its length and the main-loop length it skips (m). */
-  branches: { name: string; length: number; skips: number }[];
+  /** Per shortcut; `minWidth` is its narrowest point (the main stats above are the main road only). */
+  branches: { name: string; length: number; skips: number; minWidth: number }[];
 }
 
 export interface TrackCheck {
@@ -45,29 +46,32 @@ export function checkTrack(track: Track, minWidth: number, branchMinWidth = minW
   let minW = Infinity;
   let maxW = 0;
   let minRadius = Infinity;
-  const roadLimits = (samples: TrackSample[], limit: number, where: (i: number) => string): void => {
+  /** Width and curve limits for one road; `main` = count it in the main-road stats. */
+  const roadLimits = (samples: TrackSample[], limit: number, where: (i: number) => string, main: boolean): void => {
     let tooNarrow = -1;
     let tooTight = -1;
     samples.forEach((s, i) => {
-      minW = Math.min(minW, s.width);
-      maxW = Math.max(maxW, s.width);
       const radius = Math.abs(s.curvature) > 0 ? 1 / Math.abs(s.curvature) : Infinity;
-      minRadius = Math.min(minRadius, radius);
+      if (main) {
+        minW = Math.min(minW, s.width);
+        maxW = Math.max(maxW, s.width);
+        minRadius = Math.min(minRadius, radius);
+      }
       if (s.width < limit && tooNarrow < 0) tooNarrow = i;
       if (radius < s.width * 0.5 && tooTight < 0) tooTight = i;
     });
     if (tooNarrow >= 0) issues.push(`road narrower than ${limit} m at ${where(tooNarrow)}`);
     if (tooTight >= 0) issues.push(`curve tighter than half the road width at ${where(tooTight)} (inner wall folds)`);
   };
-  roadLimits(track.samples, minWidth, (i) => `${pct(track, i)} of the lap`);
+  roadLimits(track.samples, minWidth, (i) => `${pct(track, i)} of the lap`, true);
 
   const branchStats: TrackStats['branches'] = [];
   track.branches.forEach((b, r) => {
     const m = b.samples.length;
     const name = `shortcut "${b.def.name}"`;
-    roadLimits(b.samples, branchMinWidth, (i) => `${name} ${((i / (m - 1)) * 100).toFixed(0)}%`);
+    roadLimits(b.samples, branchMinWidth, (i) => `${name} ${((i / (m - 1)) * 100).toFixed(0)}%`, false);
     const skips = (b.def.to - b.def.from) * track.length;
-    branchStats.push({ name: b.def.name, length: b.length, skips });
+    branchStats.push({ name: b.def.name, length: b.length, skips, minWidth: Math.min(...b.samples.map((s) => s.width)) });
     if (b.length >= skips) {
       issues.push(`${name} is ${b.length.toFixed(0)} m, not shorter than the ${skips.toFixed(0)} m it skips`);
     }

@@ -8,7 +8,17 @@ import { headKick, Squash } from './juice';
 import { BOX_CAR, CAR_KIT, COCKPIT, DUCK, HEAD, MIRROR, PALETTE, TEAM_COLORS } from './look';
 
 /** A string that changes when a car's look does. */
-export const lookKeyOf = (look: CarLook): string => `${look.body}|${look.wheelScale}|${look.parts.join(',')}`;
+const lookKeys = new WeakMap<CarLook, string>();
+
+/** A key that changes when the car must be rebuilt; cached per look object (asked every frame). */
+export function lookKeyOf(look: CarLook): string {
+  let key = lookKeys.get(look);
+  if (key === undefined) {
+    key = `${look.body}|${look.wheelScale}|${look.parts.join(',')}`;
+    lookKeys.set(look, key);
+  }
+  return key;
+}
 
 /** What a seat shows: a player's bobblehead (hidden = it is you, in the cockpit), a duck, or nobody. */
 export type SeatContent =

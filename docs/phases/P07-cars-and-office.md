@@ -38,4 +38,4 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   1. On a normal work laptop: race The Office with F3 open, on Medium.
   2. Reply: the FPS you saw (min and typical), your favorite and least favorite car,
      anything ugly or confusing on the track, too loud/quiet sounds.
-- [ ] **P7.9 Phase end.** Reviewer, fixes, `git tag p7-done`, report.
+- [x] **P7.9 Phase end.** Reviewer, fixes, `git tag p7-done`, report.
