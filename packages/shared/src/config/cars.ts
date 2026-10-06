@@ -11,7 +11,7 @@ const StatsSchema = z.strictObject({
 });
 
 /** Procedural horn sounds (the client synthesizes them; no audio files). */
-export const HORNS = ['toot', 'duck', 'truck', 'clown', 'bike', 'kazoo'] as const;
+export const HORNS = ['toot', 'duck', 'truck', 'clown', 'bike', 'kazoo', 'siren', 'squeak'] as const;
 export type Horn = (typeof HORNS)[number];
 
 /** Car kit body presets (ART_STYLE §4); the client has their proportions. */

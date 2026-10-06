@@ -2,11 +2,60 @@
   "statRange": { "min": 0.92, "max": 1.08 },
   "cars": [
     {
-      "id": "boxcar",
-      "name": "Box Car",
+      "id": "spoiler-alert",
+      "name": "Spoiler Alert",
       "stats": { "speed": 1, "grip": 1, "weight": 1 },
       "horn": "toot",
-      "look": { "body": "hatch", "wheelScale": 1, "parts": [] }
+      "look": { "body": "hatch", "wheelScale": 1.05, "parts": ["spoiler"] }
+    },
+    {
+      "id": "cabbie",
+      "name": "Cabbie",
+      "stats": { "speed": 0.99, "grip": 1.03, "weight": 1 },
+      "horn": "kazoo",
+      "look": { "body": "sedan", "wheelScale": 1, "parts": ["roofSign"] }
+    },
+    {
+      "id": "bass-drop",
+      "name": "Bass Drop",
+      "stats": { "speed": 0.98, "grip": 0.98, "weight": 1.07 },
+      "horn": "truck",
+      "look": { "body": "pickup", "wheelScale": 1.15, "parts": ["speakers"] }
+    },
+    {
+      "id": "hot-fix",
+      "name": "Hot Fix",
+      "stats": { "speed": 1.05, "grip": 0.96, "weight": 1 },
+      "horn": "clown",
+      "look": { "body": "muscle", "wheelScale": 1.1, "parts": ["hoodScoop"] }
+    },
+    {
+      "id": "packet-loss",
+      "name": "Packet Loss",
+      "stats": { "speed": 0.97, "grip": 1.04, "weight": 1.06 },
+      "horn": "duck",
+      "look": { "body": "van", "wheelScale": 1, "parts": ["roofBox"] }
+    },
+    {
+      "id": "pocket-rocket",
+      "name": "Pocket Rocket",
+      "stats": { "speed": 0.99, "grip": 1.05, "weight": 0.93 },
+      "horn": "bike",
+      "look": { "body": "mini", "wheelScale": 1.45, "parts": [] }
+    },
+    {
+      "id": "bug-report",
+      "name": "Bug Report",
+      "stats": { "speed": 1.02, "grip": 1, "weight": 0.94 },
+      "horn": "squeak",
+      "look": { "body": "round", "wheelScale": 1.1, "parts": ["windupKey"] }
+    },
+    {
+      "id": "help-desk",
+      "name": "Help Desk",
+      "stats": { "speed": 0.98, "grip": 0.99, "weight": 1.08 },
+      "horn": "siren",
+      "look": { "body": "van", "wheelScale": 1.05, "parts": ["dish", "ladder"] }
     }
   ]
 }

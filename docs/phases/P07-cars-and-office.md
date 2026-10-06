@@ -15,7 +15,7 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
 - [x] **P7.1 Car kit.** Body presets, parts library, team paint, roof number decal, wheels that
   spin and steer, bobblehead mounts, merging per material. `garage` scenario.
   `/add-car` is usable from here.
-- [ ] **P7.2 Roster.** The 8 cars in `config/cars.json` per the roster table (use `/add-car` per
+- [x] **P7.2 Roster.** The 8 cars in `config/cars.json` per the roster table (use `/add-car` per
   car or in batches). Each has its horn preset.
 - [ ] **P7.2b Car picker.** Each team picks its car in the lobby (human decision 2026-10-06):
   synced per car slot, server uses that car's stats and horn, prediction uses its stats, bots

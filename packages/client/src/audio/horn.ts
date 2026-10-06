@@ -28,6 +28,10 @@ export const HORN_PRESETS: Readonly<Record<Horn, HornPreset>> = {
   clown: { voices: [{ type: 'triangle', from: 700, to: 1300 }], duration: 0.3, vibrato: 60, vibratoRate: 18, gain: 0.3 },
   bike: { voices: [{ type: 'sine', from: 2100, to: 2050 }], duration: 0.5, vibrato: 25, vibratoRate: 30, gain: 0.25 },
   kazoo: { voices: [{ type: 'sawtooth', from: 300, to: 320 }], duration: 0.45, vibrato: 18, vibratoRate: 7, gain: 0.2 },
+  // IT support van: a fake two-tone siren (a slow wide vibrato).
+  siren: { voices: [{ type: 'square', from: 700, to: 700 }], duration: 0.7, vibrato: 160, vibratoRate: 3, gain: 0.14 },
+  // Wind-up beetle: a rubber-toy squeak that rises.
+  squeak: { voices: [{ type: 'sine', from: 1400, to: 2600 }], duration: 0.16, vibrato: 0, vibratoRate: 0, gain: 0.22 },
 };
 
 /** Engine sounds, made the same way: a sad sinking "waaah" when it stalls, a cough on restart. */

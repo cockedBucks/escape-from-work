@@ -121,8 +121,8 @@ export function frozenItems(world: World): ItemsView | null {
   };
 }
 
-/** Garage: cars parked in two rows at the start line (spacing m) and where the camera stands. */
-const GARAGE = { cars: 8, sideGap: 5, rowGap: 7, camAhead: 15, camSide: -4, camHeight: 4.5, lookHeight: 1 };
+/** Garage: cars parked in two rows at the start line (spacing m); the camera stands behind and above (where the chase cam and the roof numbers face). */
+const GARAGE = { cars: 8, sideGap: 5, rowGap: 7, camAhead: -19, camSide: -5, camHeight: 7, lookHeight: 0.5 };
 
 /**
  * The `garage` showroom: one car per slot (car0…car7, so team colors and numbers differ)

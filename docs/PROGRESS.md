@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.2 Roster
+- Next task: P7.2b Car picker
 - Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
   `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
 
@@ -82,6 +82,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-06: P7.1 car kit — cars.json `look` (body preset, wheelScale, parts); one vertex-colored
   merged body per car (+ wheels, roof number atlas, shadow = 6 draw calls, < 1,500 triangles);
   7 body presets and 8 parts with dims in look tables; heads per body; `garage` scenario. D085.
+
+- 2026-10-06: P7.2 roster — the 8 ART_STYLE cars in cars.json (looks, stat leans inside
+  0.92–1.08, horns incl. new `siren` and `squeak`); garage camera behind the rows. D086.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
