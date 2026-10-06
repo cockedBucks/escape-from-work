@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.2b Car picker
+- Next task: P7.3 Balance
 - Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
   `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
 
@@ -85,6 +85,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 - 2026-10-06: P7.2 roster — the 8 ART_STYLE cars in cars.json (looks, stat leans inside
   0.92–1.08, horns incl. new `siren` and `squeak`); garage camera behind the rows. D086.
+
+- 2026-10-06: P7.2b car picker — ◀ name ▶ on your team card's header (lobby:setCar, either
+  player, between races), state `carModels` (slot N = roster car N by default), server stats per
+  slot, client look/horn per car, prediction with your car's stats. D087.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

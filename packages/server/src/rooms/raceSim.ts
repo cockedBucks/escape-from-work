@@ -2,6 +2,7 @@ import {
   NO_INPUT,
   Rng,
   createChaos,
+  type CarDef,
   type ItemsConfig,
   applyEvents,
   botInput,
@@ -307,6 +308,37 @@ export class RaceSim {
     return this.players.get(id)?.ready ?? false;
   }
 
+  /** The roster (cars.json) and the car each slot drives (default: roster car N for slot N). */
+  private roster: readonly CarDef[] = [];
+  readonly carModels: string[] = [];
+
+  /** New roster (start, or cars.json edited): keep valid picks, give every car its stats. */
+  setRoster(defs: readonly CarDef[]): void {
+    this.roster = defs;
+    for (let slot = 0; slot < this.cfg.race.maxCars; slot++) {
+      const picked = this.carModels[slot];
+      if (!picked || !defs.some((d) => d.id === picked)) this.carModels[slot] = defs[slot % Math.max(1, defs.length)]?.id ?? '';
+    }
+    for (const car of this.world.cars) car.stats = { ...this.statsOf(slotOfCar(car.id)) };
+  }
+
+  /** The stats of the car a slot drives. */
+  statsOf(slot: number): CarStats {
+    return this.roster.find((d) => d.id === this.carModels[slot])?.stats ?? this.stats;
+  }
+
+  /** A team picks its car (either of its players, between races). */
+  pickCar(by: string, slot: number, carId: string): string | null {
+    if (!Number.isInteger(slot) || slot < 0 || slot >= this.cfg.race.maxCars) return 'there is no such car';
+    if (!seatChangesAllowed(this.flow.phase)) return 'not during a race';
+    if (this.players.get(by)?.slot !== slot) return 'only the players in that car can pick it';
+    if (!this.roster.some((d) => d.id === carId)) return 'there is no such car model';
+    this.carModels[slot] = carId;
+    const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
+    if (car) car.stats = { ...this.statsOf(slot) };
+    return null;
+  }
+
   /** Rename a team: its own players or the host. */
   setTeamName(by: string, slot: number, name: string): string | null {
     if (!Number.isInteger(slot) || slot < 0 || slot >= this.teamNames.length) return 'there is no such car';
@@ -427,7 +459,7 @@ export class RaceSim {
     }
     for (const id of wanted) {
       if (this.world.cars.some((c) => c.id === id)) continue;
-      const car = createCarOnGrid(id, this.stats, this.world.track, slotOfCar(id), this.cfg.race);
+      const car = createCarOnGrid(id, this.statsOf(slotOfCar(id)), this.world.track, slotOfCar(id), this.cfg.race);
       // A car appearing mid-race is ghosted for a moment, so it can't land on a passing car.
       car.ghostUntilTick = this.world.tick + Math.round(this.cfg.race.respawnGhostSeconds / this.cfg.sim.dt);
       // Keep cars sorted by id: the sim iterates them in this order (determinism).

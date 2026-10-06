@@ -161,6 +161,10 @@ body {
 }
 
 .join-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--team);
@@ -1018,4 +1022,31 @@ body {
 
 .item-icon {
   vertical-align: middle;
+}
+
+/* Car picker on a team card's header line: ◀ Car Name ▶ (your own car), or just the name. */
+.car-pick {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  color: #1e2230;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.car-pick span {
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.car-pick button {
+  padding: 0 0.4rem;
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }

@@ -215,6 +215,12 @@ Lobby (P3.2): `lobby:setTeamName {slot,name}` (team members or host), `lobby:rea
 `host:shuffle` (random pairs via `shuffleSeats`, seeded), `host:bots {on}`. State adds `teams[]`,
 `bots`, `players.ready`. Client `ui/lobbyScreen.ts`: opens between races, closes on countdown,
 Esc hides it to drive around; never redraws under a focused text field.
+Cars and chaos (P6–P7): `lobby:setCar {slot, car}` (that car's players, between races; cars.json id)
+→ state `carModels[]` (slot N defaults to roster car N); the server gives the car that model's
+stats, clients its look and horn. `host:chaos {on}` → state `chaos`; chaos sync: `boxesUp`
+('1'/'0' per box), `shots` map (envelopes/puddles with velocity); car effect timers
+(`spinLeft`, `shieldLeft`, `blueLeft`, `lagLeft`, `swapLeft`, `updateLeft`) and `item`.
+Input adds `nitro`, `fire` (once per press), `aimBack`, `mash` (running key-press count).
 Honk (P4.6): `input.honk` (anyone in the car, once per press) → the sim emits `honk` (cooldown
 `race.honkCooldownSeconds`; cosmetic, not in the replay hash) → every client shows a "HONK!" bubble
 and plays the car's `horn` preset from cars.json, synthesized with Web Audio (`audio/horn.ts`), quieter

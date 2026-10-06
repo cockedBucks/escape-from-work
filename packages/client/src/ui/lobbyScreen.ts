@@ -28,6 +28,9 @@ export interface LobbyView {
   bots: boolean;
   /** Chaos mode (items); absent = on. */
   chaos?: boolean;
+  /** The car each slot drives (cars.json id) and the roster to pick from (in order). */
+  carModels?: readonly string[];
+  roster?: readonly { id: string; name: string }[];
   /** Car slots currently driven by server bots. */
   botSlots: number[];
   /** Faces available on the host (from /faces/faces.json); empty = placeholder only. */
@@ -46,6 +49,8 @@ export interface LobbyHandlers {
   shuffle(): void;
   setBots(on: boolean): void;
   setChaos(on: boolean): void;
+  /** Pick the car for your team's slot. */
+  setCar(slot: number, car: string): void;
 }
 
 export interface LobbyLimits {
@@ -113,8 +118,15 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
     const head = mineCar || iAmHost
       ? `<input class="team-name" data-slot="${slot}" maxlength="${TEAM_NAME_MAX_LENGTH}" value="${team}" aria-label="Team name">`
       : `<div class="team-name">${team}</div>`;
+    // The car this team drives: its own players flip through the roster with ◀ ▶.
+    const model = v.roster?.find((d) => d.id === v.carModels?.[slot]);
+    const carRow = !model
+      ? ''
+      : mineCar && v.phase !== 'racing' && v.phase !== 'countdown'
+        ? `<div class="car-pick"><button data-action="car-prev" data-slot="${slot}" aria-label="Previous car">◀</button><span>${escapeHtml(model.name)}</span><button data-action="car-next" data-slot="${slot}" aria-label="Next car">▶</button></div>`
+        : `<div class="car-pick"><span>${escapeHtml(model.name)}</span></div>`;
     html.push(`<div class="join-card${mineCar ? ' my-team' : ''}" style="--team:${hex(TEAM_COLORS[slot % TEAM_COLORS.length]!)}">
-      <div class="join-card-head">Car ${slot + 1}</div>${head}
+      <div class="join-card-head"><span>Car ${slot + 1}</span>${carRow}</div>${head}
       ${seatBtn('pilot', 'Pilot')}${seatBtn('engineer', 'Engineer')}${seatBtn('solo', 'Solo')}
     </div>`);
   }
@@ -246,6 +258,15 @@ export class LobbyScreen {
       case 'shuffle': return this.handlers.shuffle();
       case 'bots': return this.handlers.setBots(!v.bots);
       case 'chaos': return this.handlers.setChaos(!(v.chaos ?? true));
+      case 'car-prev':
+      case 'car-next': {
+        const slot = Number(btn.dataset['slot']);
+        const roster = v.roster ?? [];
+        const at = roster.findIndex((d) => d.id === v.carModels?.[slot]);
+        const next = roster[(at + (btn.dataset['action'] === 'car-next' ? 1 : -1) + roster.length) % roster.length];
+        if (next) this.handlers.setCar(slot, next.id);
+        return;
+      }
       case 'laps-down': return this.handlers.setLaps(v.laps - 1);
       case 'laps-up': return this.handlers.setLaps(v.laps + 1);
       default:

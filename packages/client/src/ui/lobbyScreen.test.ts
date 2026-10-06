@@ -19,6 +19,15 @@ const base = (over: Partial<LobbyView> = {}): LobbyView => ({
 });
 
 describe('lobbyHtml', () => {
+  it("shows each team's car; only its own players get the ◀ ▶ picker", () => {
+    const roster = [{ id: 'spoiler-alert', name: 'Spoiler Alert' }, { id: 'cabbie', name: 'Cabbie' }];
+    const html = lobbyHtml(base({ carModels: ['cabbie', 'spoiler-alert'], roster }), limits);
+    expect(html).toContain('data-action="car-next" data-slot="0"');
+    expect(html).not.toContain('data-action="car-next" data-slot="1"');
+    expect(html).toContain('<span>Cabbie</span>');
+    expect(html).toContain('<span>Spoiler Alert</span>');
+  });
+
   it('the host can switch chaos mode (on by default)', () => {
     expect(lobbyHtml(base(), limits)).toContain('data-action="chaos" class="on"');
     expect(lobbyHtml(base({ chaos: false }), limits)).toContain('💥 Chaos: off');

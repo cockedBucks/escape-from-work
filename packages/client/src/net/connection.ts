@@ -80,6 +80,7 @@ export interface RaceStateView {
   host: string;
   laps: number;
   teams: ArrayLike<string> & Iterable<string>;
+  carModels: ArrayLike<string> & Iterable<string>;
   bots: boolean;
   chaos: boolean;
   boxesUp: string;

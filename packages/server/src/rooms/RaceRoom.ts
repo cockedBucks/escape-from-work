@@ -2,6 +2,7 @@ import { Room, type Client } from '@colyseus/core';
 import {
   BotsSchema,
   ChaosSchema,
+  SetCarSchema,
   MSG,
   NAME_MAX_LENGTH,
   ReadySchema,
@@ -55,6 +56,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     if (!firstCar) throw new Error('config/cars.json has no cars');
     this.sim = new RaceSim(live.track, this.tuning, firstCar.stats, live.teams, live.items);
     for (const name of this.sim.teamNames) this.state.teams.push(name);
+    this.sim.setRoster(live.cars.cars);
+    for (const model of this.sim.carModels) this.state.carModels.push(model);
     // Two players per car plus some watchers (seats themselves are limited by the seat rules).
     this.maxClients = this.tuning.race.maxCars * 2 + this.tuning.race.maxSpectators;
     this.setPatchRate(this.tuning.net.patchRateMs);
@@ -117,6 +120,15 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       const problem = this.sim.setTeamName(client.sessionId, msg.data.slot, msg.data.name);
       if (problem) return this.refuse(client, problem);
       this.state.teams[msg.data.slot] = msg.data.name;
+    });
+
+    this.onMessage(MSG.setCar, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = SetCarSchema.safeParse(message);
+      if (!msg.success) return;
+      const problem = this.sim.pickCar(client.sessionId, msg.data.slot, msg.data.car);
+      if (problem) return this.refuse(client, problem);
+      this.state.carModels[msg.data.slot] = msg.data.car;
     });
 
     this.onMessage(MSG.ready, (client, message: unknown) => {
@@ -277,6 +289,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     } else if (change.kind === 'cars') {
       const first = change.cars.cars[0];
       if (first) this.sim.setStats(first.stats);
+      this.sim.setRoster(change.cars.cars);
+      this.sim.carModels.forEach((model, slot) => (this.state.carModels[slot] = model));
     } else {
       this.sim.setTrack(change.track);
       this.broadcast(MSG.reload, { reason: 'track' });

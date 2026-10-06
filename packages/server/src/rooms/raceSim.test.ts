@@ -611,3 +611,41 @@ describe('RaceSim chaos toggle', () => {
     expect(sim.world.chaos?.boxes.length).toBeGreaterThan(0);
   });
 });
+
+describe('RaceSim car picker', () => {
+  const roster = loadCarsFile().cars;
+
+  function lobby(): RaceSim {
+    const sim = new RaceSim(track, cfg, stats);
+    sim.setRoster(roster);
+    sim.addPlayer('p');
+    sim.addPlayer('e');
+    sim.addPlayer('x');
+    sim.setSeat('p', 0, 'pilot');
+    sim.setSeat('e', 0, 'engineer');
+    sim.setSeat('x', 1, 'solo');
+    return sim;
+  }
+
+  it('every slot starts with a different roster car (slot N = car N)', () => {
+    const sim = lobby();
+    expect(sim.carModels.slice(0, roster.length)).toEqual(roster.map((d) => d.id));
+  });
+
+  it("either player of a car picks its car and the car gets that car's stats", () => {
+    const sim = lobby();
+    const heavy = roster.find((d) => d.id === 'help-desk')!;
+    expect(sim.pickCar('e', 0, 'help-desk')).toBeNull();
+    expect(sim.carModels[0]).toBe('help-desk');
+    expect(car(sim, 'car0').stats).toEqual(heavy.stats);
+    expect(sim.pickCar('p', 0, 'pocket-rocket')).toBeNull();
+  });
+
+  it("nobody else picks for a team; unknown cars and mid-race picks are refused", () => {
+    const sim = lobby();
+    expect(sim.pickCar('x', 0, 'cabbie')).toMatch(/only the players/);
+    expect(sim.pickCar('p', 0, 'flying-car')).toMatch(/no such car model/);
+    expect(sim.startRace('p')).toBeNull();
+    expect(sim.pickCar('p', 0, 'cabbie')).toMatch(/not during a race/);
+  });
+});

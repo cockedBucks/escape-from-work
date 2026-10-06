@@ -129,6 +129,8 @@ export const RaceState = schema(
     laps: t.uint8().default(3),
     /** Team name per car slot. */
     teams: t.array('string'),
+    /** The car (cars.json id) each slot drives. */
+    carModels: t.array('string'),
     /** Host switch: bots fill empty cars. */
     bots: t.boolean().default(false),
     /** Host switch: chaos mode (item boxes and items). */

@@ -56,6 +56,7 @@ export {
   SetNameSchema,
   BotsSchema,
   ChaosSchema,
+  SetCarSchema,
   HeadSchema,
   parseHead,
   ReadySchema,

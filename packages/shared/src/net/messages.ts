@@ -26,6 +26,8 @@ export const MSG = {
   leaveSeat: 'lobby:leaveSeat',
   /** client → server: `{ slot, name }` rename a team (its players or the host). */
   setTeamName: 'lobby:setTeamName',
+  /** client → server: `{ slot, car }` pick the car (cars.json id) your team drives. */
+  setCar: 'lobby:setCar',
   /** client → server: `{ ready }`. */
   ready: 'lobby:ready',
   /** client (host) → server: random pairs for everyone. */
@@ -118,6 +120,9 @@ export interface LobbyError {
 export const SetLapsSchema = z.strictObject({
   laps: z.number().int(),
 });
+
+/** `lobby:setCar` (client → server): a cars.json id for your team's car slot. */
+export const SetCarSchema = z.strictObject({ slot: z.number().int().nonnegative(), car: z.string().min(1).max(40) });
 
 /** `lobby:setTeamName` (client → server). */
 export const SetTeamNameSchema = z.strictObject({

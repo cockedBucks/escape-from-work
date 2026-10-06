@@ -11,6 +11,8 @@ describe('stylesheet covers the lobby', () => {
         players: [{ id: 'me', name: 'Me', slot: 0, seat: 'pilot', connected: true, ready: true, face: 'a.png' }],
         myId: 'me', host: 'me', phase: 'lobby', laps: 3, teams: ['T'], bots: true, botSlots: [1],
         faces: [{ file: 'a.png', name: 'a' }],
+        carModels: ['a', 'b'],
+        roster: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }],
       },
       { maxCars: 2, minLaps: 1, maxLaps: 10 },
     );
