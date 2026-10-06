@@ -11,7 +11,7 @@ and a final stability pass.
 
 ## Tasks
 
-- [ ] **P10.0 Track picker.** (added in the cloud, 2026-10-06) The host picks the track in the lobby
+- [x] **P10.0 Track picker.** (added in the cloud, 2026-10-06) The host picks the track in the lobby
   between races (GAME_DESIGN §11 "track and laps (host)"); the server loads it, clients reload into it
   (held seat). Dev tracks (`"dev": true`) are not offered. Tests.
 - [ ] **P10.1 Server Room.** Props (racks, cable trays, fans, AC), fan push zones, icy cold-aisle

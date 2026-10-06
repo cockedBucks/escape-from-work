@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -16,6 +16,37 @@ function tempConfig(): string {
 }
 afterEach(() => {
   for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
+});
+
+describe('track picker (P10.0)', () => {
+  /** A config with a second real track: a copy of the Office under another id. */
+  function twoTracks(): string {
+    const dir = tempConfig();
+    const office = JSON.parse(readFileSync(path.join(dir, 'tracks', 'office.json'), 'utf8')) as Record<string, unknown>;
+    writeFileSync(path.join(dir, 'tracks', 'office-two.json'), JSON.stringify({ ...office, id: 'office-two', name: 'Office Two' }));
+    writeFileSync(path.join(dir, 'tracks', 'broken.json'), '{ nope');
+    return dir;
+  }
+
+  it('offers every valid non-dev track (not the Test Loop, not a broken file)', () => {
+    expect(new LiveConfig(twoTracks()).availableTracks()).toEqual(['office', 'office-two']);
+  });
+
+  it('switches the track and tells the room; refuses dev, unknown and broken tracks', () => {
+    const live = new LiveConfig(twoTracks());
+    const heard: ConfigChange[] = [];
+    live.subscribe((c) => heard.push(c));
+    expect(live.selectTrack('test-loop')).toMatch(/no such track/);
+    expect(live.selectTrack('nope')).toMatch(/no such track/);
+    expect(live.selectTrack('broken')).toMatch(/no such track/);
+    expect(heard).toEqual([]);
+    expect(live.selectTrack('office-two')).toBeNull();
+    expect(live.trackId).toBe('office-two');
+    expect(live.track.def.id).toBe('office-two');
+    expect(heard.map((c) => c.kind)).toEqual(['track']);
+    expect(live.selectTrack('office-two')).toBeNull(); // already: nothing happens
+    expect(heard).toHaveLength(1);
+  });
 });
 
 describe('LiveConfig', () => {

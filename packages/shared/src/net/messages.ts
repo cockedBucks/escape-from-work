@@ -42,6 +42,8 @@ export const MSG = {
   hostStart: 'host:start',
   /** client (host) → server: `{ laps }` for the next race. */
   hostLaps: 'host:laps',
+  /** client → server (host, between races): `{ id }` race this track next (P10.0). */
+  hostTrack: 'host:track',
   /** client (host) → server: stop the race now (countdown → lobby, racing → results with DNFs). */
   hostEndRace: 'host:endRace',
   /** client (host) → server: from the results back to the lobby. */
@@ -121,6 +123,11 @@ export interface LobbyError {
 /** `host:laps` (client → server). Range is checked against the config by the race rules. */
 export const SetLapsSchema = z.strictObject({
   laps: z.number().int(),
+});
+
+/** `host:track` (client → server): a track file id. */
+export const SetTrackSchema = z.strictObject({
+  id: z.string().regex(/^[a-z0-9-]{1,40}$/),
 });
 
 /** `lobby:setCar` (client → server): a cars.json id for your team's car slot. */

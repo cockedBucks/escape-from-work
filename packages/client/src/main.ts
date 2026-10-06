@@ -5,7 +5,7 @@ import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning } from '@escape/shared';
-import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning } from './content';
+import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning, pickableTracks } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
 import { EngineSound, squealing } from './audio/engine';
@@ -20,7 +20,8 @@ import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
-import { ServerCarSource, hasSavedSeat, joinOrReconnect, joinRace } from './net/connection';
+import { ServerCarSource, hasSavedSeat, joinOrReconnect, joinRace, type RaceStateView } from './net/connection';
+import type { Room } from '@colyseus/sdk';
 import { HeadSender } from './net/heads';
 import { InputDelayMeter } from './net/latency';
 import { OwnCarPredictor } from './net/predictor';
@@ -116,6 +117,8 @@ const SCENARIO_SMOKE_SECONDS = 1;
 
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
+/** How long to wait for the server's first state (its track) after joining (ms). */
+const TRACK_WAIT_MS = 3000;
 /** Weight of the newest measurement in the smoothed input delay shown on F3. */
 const INPUT_DELAY_SMOOTHING = 0.2;
 
@@ -234,7 +237,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     const noop = (): void => {};
     const handlers: LobbyHandlers = {
       setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
-      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop,
+      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop, setTrack: noop,
     };
     const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
@@ -242,6 +245,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     lobby.update({
       players: fakePlayers, myId: 'me', host: 'me', phase: 'lobby', laps: r.defaultLaps, teams, bots: true, botSlots: [4],
       carModels: roster.map((d) => d.id), roster: roster.map((d) => ({ id: d.id, name: d.name })),
+      track: DEFAULT_TRACK, tracks: pickableTracks(),
     });
   });
 }
@@ -280,6 +284,23 @@ const fakePlayers: LobbyPlayer[] = [
   { id: 'e', name: 'Youssef', slot: 3, seat: 'engineer', connected: false, ready: false },
 ];
 
+/** The track id the server races (waits briefly for the first state after joining). */
+async function serverTrack(room: Room<unknown, RaceStateView>): Promise<string> {
+  if (room.state?.track) return room.state.track;
+  return new Promise((resolve) => {
+    const done = (id: string): void => {
+      window.clearTimeout(timer);
+      room.onStateChange.remove(listener);
+      resolve(id || DEFAULT_TRACK);
+    };
+    const listener = (s: RaceStateView): void => {
+      if (s.track) done(s.track);
+    };
+    const timer = window.setTimeout(() => done(DEFAULT_TRACK), TRACK_WAIT_MS);
+    room.onStateChange(listener);
+  });
+}
+
 /** The real thing: join the server's race, pick a seat, drive. */
 async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Promise<void> {
   const settings = loadSettings();
@@ -307,8 +328,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     latestTuning = t;
     for (const l of tuningListeners) l(t);
   });
-  room.onMessage(MSG.reload, () => {
-    if (import.meta.env.DEV) window.location.reload();
+  // The host picked another track (or, in dev, a track/car file changed): load it. Your seat is
+  // held over the reload, so you come straight back to it.
+  room.onMessage(MSG.reload, (msg: { reason?: string } | undefined) => {
+    if (import.meta.env.DEV || msg?.reason === 'track') window.location.reload();
   });
   // Sim events (bumps, jumps, …) drive sounds and effects later (P7). Listening now keeps the
   // SDK from warning about every unhandled one.
@@ -333,6 +356,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     setFace: (face) => room.send(MSG.setFace, { face }),
     start: () => room.send(MSG.hostStart, {}),
     setLaps: (laps) => room.send(MSG.hostLaps, { laps }),
+    setTrack: (id) => room.send(MSG.hostTrack, { id }),
     shuffle: () => room.send(MSG.hostShuffle, {}),
     setBots: (on) => room.send(MSG.hostBots, { on }),
     setChaos: (on) => room.send(MSG.hostChaos, { on }),
@@ -374,7 +398,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let myRole: Role | null = null;
   let mySeat = '';
   let phase: RacePhase = 'lobby';
-  const track = loadTrack(DEFAULT_TRACK, tuning);
+  // The server's track (the host picks it; the first state may arrive just after joining).
+  const trackId = await serverTrack(room);
+  const track = loadTrack(trackId, tuning);
+  const trackChoices = pickableTracks();
   /** The lap the swap lane opens (first-time hint), or null when the track has none. */
   const swapMinLap = track.rangedZones.find((z) => z.type === 'swap')?.minLap ?? null;
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
@@ -549,6 +576,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       roster: rosterNames,
       botSlots: botSlotsOf(state),
       faces,
+      track: state.track,
+      tracks: trackChoices,
     });
   });
 

@@ -1,6 +1,6 @@
-import { renameSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { ConfigError, DEFAULT_TRACK, checkTrack, parseTuning, type CarsConfig, type ItemsConfig, type TeamsConfig, type Track, type Tuning } from '@escape/shared';
+import { ConfigError, DEFAULT_TRACK, checkTrack, parseTrack, parseTuning, type CarsConfig, type ItemsConfig, type TeamsConfig, type Track, type Tuning } from '@escape/shared';
 import { REPO_ROOT, loadCarsFile, loadItemsFile, loadTeamsFile, loadTrackFile, loadTuningFile } from './config';
 
 export type ConfigChange =
@@ -25,7 +25,7 @@ export class LiveConfig {
   /** Chaos items (read once at start). */
   readonly items: ItemsConfig;
   track: Track;
-  readonly trackId = DEFAULT_TRACK;
+  private currentTrackId: string = DEFAULT_TRACK;
   private readonly listeners = new Set<Listener>();
 
   constructor(readonly configDir = path.join(REPO_ROOT, 'config')) {
@@ -34,6 +34,42 @@ export class LiveConfig {
     this.teams = loadTeamsFile(path.join(configDir, 'teams.json'));
     this.items = loadItemsFile(path.join(configDir, 'items.json'));
     this.track = loadTrackFile(this.trackId, this.tuning, path.join(configDir, 'tracks'));
+  }
+
+  /** The track raced now (a config/tracks file id). */
+  get trackId(): string {
+    return this.currentTrackId;
+  }
+
+  /** Tracks the host may pick: every valid track file that is not a dev track, sorted. */
+  availableTracks(): string[] {
+    const dir = path.join(this.configDir, 'tracks');
+    return readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => f.slice(0, -'.json'.length))
+      .filter((id) => {
+        try {
+          return !parseTrack(JSON.parse(readFileSync(path.join(dir, `${id}.json`), 'utf8')), id).dev;
+        } catch {
+          return false; // a broken file is simply not offered
+        }
+      })
+      .sort();
+  }
+
+  /** Race this track from now on. Returns why not (unknown / dev / broken track), or null. */
+  selectTrack(id: string): string | null {
+    if (id === this.currentTrackId) return null;
+    if (!this.availableTracks().includes(id)) return 'there is no such track';
+    const previous = this.currentTrackId;
+    this.currentTrackId = id;
+    try {
+      this.reloadTrack();
+    } catch (err) {
+      this.currentTrackId = previous;
+      return `that track does not work: ${String(err instanceof Error ? err.message : err).split('\n')[0]}`;
+    }
+    return null;
   }
 
   get tuningFile(): string {

@@ -5,8 +5,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
-- Next task: P10.0 Track picker (added: the lobby must pick tracks before new tracks matter)
-- Status: P9 done. `npm run verify` passes (490 tests + bot race, best lap 35.52 s); `npm run test:load`
+- Next task: P10.1 Server Room
+- Status: P10.0 done. `npm run verify` passes (490 tests + bot race, best lap 35.52 s); `npm run test:load`
   passes. The Office is the default track.
 
 ## Half-done
@@ -113,6 +113,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   by the host-local date, duos, lap records, award counters + 6 config awards + the Rubber Duck of
   Shame, results points/awards, League screen (/league/tables.json). Gate deferred. Review fixes
   D107. Decisions D103–D107. Tag `p9-done` made in the cloud (re-tag locally).
+
+- 2026-10-06 (cloud): P10.0 Track picker — host ◀ track ▶ in the lobby, server checks and loads it,
+  pages reload into it (seat held), pages load the server's track. D108.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

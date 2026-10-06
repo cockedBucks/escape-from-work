@@ -1,6 +1,6 @@
 import { Client, type EndpointSettings } from '@colyseus/sdk';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { MSG, ROOM_NAME, carIdForSlot, type LobbyError } from '@escape/shared';
+import { DEFAULT_TRACK, MSG, ROOM_NAME, carIdForSlot, type LobbyError } from '@escape/shared';
 import { startServer, type GameServer } from '../packages/server/src/app';
 import { waitForState } from './helpers';
 
@@ -18,6 +18,7 @@ interface StateView {
   cars?: { get(id: string): { x: number } | undefined; size: number };
   phase?: string;
   host?: string;
+  track?: string;
 }
 
 describe('race room (real server, real clients)', () => {
@@ -84,6 +85,20 @@ describe('race room (real server, real clients)', () => {
     await waitForState(room, (s) => s.players?.get(room.sessionId)?.ackSeq === 2, 'input seq 2 echoed');
 
     await room.leave();
+  });
+
+  it('tells everyone the track; only the host may pick one, and only a real one (P10.0)', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId && s.track === DEFAULT_TRACK, 'A is host, the default track');
+    const byB = new Promise<LobbyError>((resolve) => b.onMessage(MSG.lobbyError, resolve));
+    b.send(MSG.hostTrack, { id: DEFAULT_TRACK });
+    expect((await byB).reason).toMatch(/only the host/);
+    const devTrack = new Promise<LobbyError>((resolve) => a.onMessage(MSG.lobbyError, resolve));
+    a.send(MSG.hostTrack, { id: 'test-loop' });
+    expect((await devTrack).reason).toMatch(/no such track/);
+    await b.leave();
+    await a.leave();
   });
 
   it('only the host starts the race; the phase goes countdown → racing', async () => {

@@ -32,6 +32,16 @@ export function trackIds(): string[] {
     .sort();
 }
 
+/** Tracks the host may pick in the lobby (not the dev ones), with their names, by id. */
+export function pickableTracks(): { id: string; name: string }[] {
+  return trackIds()
+    .filter((id) => {
+      const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));
+      return (entry?.[1] as { dev?: unknown } | undefined)?.dev !== true;
+    })
+    .map((id) => ({ id, name: trackName(id) }));
+}
+
 /** A track's display name ("office" → "The Office"); the id itself if unknown. */
 export function trackName(id: string): string {
   const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));

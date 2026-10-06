@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lobbyHtml, type LobbyView } from './lobbyScreen';
+import { lobbyHtml, trackHtml, type LobbyView } from './lobbyScreen';
 
 const limits = { maxCars: 4, minLaps: 1, maxLaps: 10 };
 const base = (over: Partial<LobbyView> = {}): LobbyView => ({
@@ -95,5 +95,20 @@ describe('lobbyHtml faces', () => {
     const html = lobbyHtml(base({ faces: [{ file: 'a"b.png', name: '<b>x</b>' }] }), limits);
     expect(html).not.toContain('<b>x</b>');
     expect(html).toContain('data-face="a&quot;b.png"');
+  });
+});
+
+describe('track line (P10.0)', () => {
+  const tracks = [{ id: 'office', name: 'The Office' }, { id: 'server-room', name: 'Server <Room>' }];
+  it('the host gets ◀ name ▶; everyone else just sees the name', () => {
+    expect(trackHtml(base({ track: 'office', tracks }))).toContain('data-action="track-next"');
+    const other = trackHtml(base({ track: 'server-room', tracks, host: 'b' }));
+    expect(other).not.toContain('track-next');
+    expect(other).toContain('Server &lt;Room&gt;');
+  });
+
+  it('no arrows when there is only one track; nothing before the state arrives', () => {
+    expect(trackHtml(base({ track: 'office', tracks: tracks.slice(0, 1) }))).not.toContain('button');
+    expect(trackHtml(base({}))).toBe('');
   });
 });

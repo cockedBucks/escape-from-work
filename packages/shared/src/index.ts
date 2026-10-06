@@ -70,6 +70,7 @@ export {
   ReadySchema,
   SetFaceSchema,
   SetLapsSchema,
+  SetTrackSchema,
   SetSeatSchema,
   SetTeamNameSchema,
   TuningPostSchema,

@@ -79,6 +79,8 @@ export interface RaceStateView {
   phaseTick: number;
   host: string;
   laps: number;
+  /** The track raced (config/tracks id; '' until the first state arrives). */
+  track: string;
   teams: ArrayLike<string> & Iterable<string>;
   carModels: ArrayLike<string> & Iterable<string>;
   bots: boolean;

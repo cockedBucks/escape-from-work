@@ -1806,3 +1806,35 @@ body {
   background: var(--sand);
   border-top: 2px solid rgba(30, 34, 48, 0.1);
 }
+
+/* Lobby top row: your name, and the track (host: ◀ name ▶) (P10.0). */
+.lobby-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1.5rem;
+}
+
+.track-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 1.15rem;
+}
+
+.track-pick .track-label {
+  color: var(--road);
+  font-weight: 600;
+}
+
+.track-pick button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.15rem 0.5rem;
+  border: var(--edge);
+  border-radius: 0.5rem;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: var(--pop);
+}

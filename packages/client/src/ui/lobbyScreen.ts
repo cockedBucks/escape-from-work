@@ -35,6 +35,9 @@ export interface LobbyView {
   botSlots: number[];
   /** Faces available on the host (from /faces/faces.json); empty = placeholder only. */
   faces?: { file: string; name: string }[];
+  /** The track raced next, and the ones the host may pick (P10.0). */
+  track?: string;
+  tracks?: readonly { id: string; name: string }[];
 }
 
 export interface LobbyHandlers {
@@ -51,6 +54,8 @@ export interface LobbyHandlers {
   setChaos(on: boolean): void;
   /** Pick the car for your team's slot. */
   setCar(slot: number, car: string): void;
+  /** Host: race this track next. */
+  setTrack(id: string): void;
 }
 
 export interface LobbyLimits {
@@ -159,6 +164,15 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
   return html.join('');
 }
 
+/** The track line at the top of the lobby: ◀ name ▶ for the host, just the name otherwise. Pure, tested. */
+export function trackHtml(v: LobbyView): string {
+  const tracks = v.tracks ?? [];
+  const name = escapeHtml(tracks.find((t) => t.id === v.track)?.name ?? v.track ?? '');
+  if (!name) return '';
+  if (v.myId !== v.host || tracks.length < 2) return `<span class="track-label">Track</span><strong>${name}</strong>`;
+  return `<span class="track-label">Track</span><button data-action="track-prev" title="Previous track">◀</button><strong>${name}</strong><button data-action="track-next" title="Next track">▶</button>`;
+}
+
 const laps = (n: number): string => `${n} lap${n === 1 ? '' : 's'}`;
 
 /** How-to-play: one short card per role (yours highlighted) and the team loop in a line. */
@@ -178,6 +192,7 @@ export class LobbyScreen {
   private readonly body = document.createElement('div');
   private readonly error = document.createElement('p');
   private readonly nameInput = document.createElement('input');
+  private readonly trackEl = document.createElement('div');
   private view: LobbyView | null = null;
   private lastHtml = '';
 
@@ -198,6 +213,11 @@ export class LobbyScreen {
     this.nameInput.placeholder = 'Name';
     this.nameInput.addEventListener('change', () => this.commitName());
     nameRow.appendChild(this.nameInput);
+    const topRow = document.createElement('div');
+    topRow.className = 'lobby-top';
+    this.trackEl.className = 'track-pick';
+    this.trackEl.addEventListener('click', this.onTrackClick);
+    topRow.append(nameRow, this.trackEl);
     this.body.addEventListener('click', this.onClick);
     this.body.addEventListener('change', this.onChange);
     this.error.className = 'join-error';
@@ -208,7 +228,7 @@ export class LobbyScreen {
       '<div><strong>Engineer</strong> gas W · brake / reverse S</div>' +
       '<div><strong>Solo</strong> does both</div>' +
       '<div>R respawn · Esc hide the lobby and drive around</div>';
-    panel.append(title, nameRow, this.body, this.error, help);
+    panel.append(title, topRow, this.body, this.error, help);
     this.root.appendChild(panel);
     parent.appendChild(this.root);
     window.addEventListener('keydown', this.onKey);
@@ -226,6 +246,16 @@ export class LobbyScreen {
     saveName(name);
     this.handlers.setName(name);
   }
+
+  private readonly onTrackClick = (e: MouseEvent): void => {
+    const action = (e.target as HTMLElement).closest('button')?.dataset['action'];
+    const v = this.view;
+    const tracks = v?.tracks ?? [];
+    if (!v || (action !== 'track-prev' && action !== 'track-next') || tracks.length === 0) return;
+    const at = tracks.findIndex((t) => t.id === v.track);
+    const next = tracks[(at + (action === 'track-next' ? 1 : -1) + tracks.length) % tracks.length];
+    if (next) this.handlers.setTrack(next.id);
+  };
 
   private readonly onKey = (e: KeyboardEvent): void => {
     // Esc while typing just leaves the field; it must not hide the lobby under you.
@@ -308,6 +338,8 @@ export class LobbyScreen {
     // (Only text fields: a clicked button also keeps focus, and must not freeze the lobby.)
     const typing = document.activeElement instanceof HTMLInputElement && this.body.contains(document.activeElement);
     if (!force && typing) return;
+    const track = trackHtml(this.view);
+    if (this.trackEl.innerHTML !== track) this.trackEl.innerHTML = track;
     const next = lobbyHtml(this.view, this.limits);
     if (next === this.lastHtml) return;
     this.lastHtml = next;

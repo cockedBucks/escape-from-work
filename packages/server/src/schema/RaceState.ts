@@ -127,6 +127,8 @@ export const RaceState = schema(
     host: t.string().default(''),
     /** Laps for the next / current race. */
     laps: t.uint8().default(3),
+    /** The track raced (config/tracks/<id>.json); clients load the same file (P10.0). */
+    track: t.string().default(''),
     /** Team name per car slot. */
     teams: t.array('string'),
     /** The car (cars.json id) each slot drives. */

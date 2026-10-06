@@ -11,6 +11,8 @@ import {
   parseHead,
   SetFaceSchema,
   SetLapsSchema,
+  SetTrackSchema,
+  seatChangesAllowed,
   SetNameSchema,
   SetSeatSchema,
   carIdForSlot,
@@ -65,6 +67,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     if (!firstCar) throw new Error('config/cars.json has no cars');
     this.sim = new RaceSim(live.track, this.tuning, firstCar.stats, live.teams, live.items);
     for (const name of this.sim.teamNames) this.state.teams.push(name);
+    this.state.track = live.trackId;
     this.sim.setRoster(live.cars.cars);
     for (const model of this.sim.carModels) this.state.carModels.push(model);
     // Two players per car plus some watchers (seats themselves are limited by the seat rules).
@@ -188,6 +191,18 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (!msg.success) return this.refuse(client, 'bad laps request');
       const problem = this.sim.setLaps(client.sessionId, msg.data.laps);
       if (problem) this.refuse(client, problem);
+    });
+
+    this.onMessage(MSG.hostTrack, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = SetTrackSchema.safeParse(message);
+      if (!msg.success) return this.refuse(client, 'bad track request');
+      if (client.sessionId !== this.sim.flow.host) return this.refuse(client, 'only the host can pick the track');
+      if (!seatChangesAllowed(this.sim.flow.phase)) return this.refuse(client, 'not during a race');
+      // Loading the track emits a config change: the sim takes it and every page reloads into it.
+      const problem = liveConfig().selectTrack(msg.data.id);
+      if (problem) return this.refuse(client, problem);
+      console.log(`[room] track is now ${msg.data.id}`);
     });
 
     this.onMessage(MSG.hostEndRace, (client) => {
@@ -343,6 +358,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       this.sim.carModels.forEach((model, slot) => (this.state.carModels[slot] = model));
     } else {
       this.sim.setTrack(change.track);
+      this.state.track = liveConfig().trackId;
       this.broadcast(MSG.reload, { reason: 'track' });
     }
   }
