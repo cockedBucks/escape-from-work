@@ -4,12 +4,9 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: ALL PHASES BUILT (P0–P10). v1.0 = commit "P10.7: release" (tag it locally, see below).
-- Next task: run the "Deferred human tests" below with the human (first: merge the cloud branch
-  back on the local machine, see "Cloud session").
-- Status: `npm run verify` passes (524 tests + bot race, best lap 35.52 s); `npm run test:load` passes.
-  P10.8 fixed the fixable known issues after v1.0. Four tracks: The Office (default), Server Room, Smart Oasis,
-  Motherboard.
+- Phase: P11 — Extras after v1.0 (`docs/phases/P11-extras.md`), human's request 2026-10-07 (D117).
+- Next task: P11.1 Ghost of your best lap
+- Status: v1.0 done (P0–P10 + P10.8 fixes). `npm run verify` passes (524 tests + bot race).
 
 ## Half-done
 - (none)

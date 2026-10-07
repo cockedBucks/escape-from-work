@@ -16,6 +16,7 @@ is answered in Phase 2, before any art or content. Each phase ends playable.
 | P8 | `phases/P08-menu-ux.md` | Goofy main menu, settings, onboarding, UI polish | HUMAN GATE: first-time players |
 | P9 | `phases/P09-league.md` | League, records, weekly cup, awards, Rubber Duck | HUMAN GATE: a league week |
 | P10 | `phases/P10-tracks-and-ship.md` | 3 more tracks, office deployment, v1.0 | launch party |
+| P11 | `phases/P11-extras.md` | Later ideas: ghost lap, photo finish, seasons, Arabic UI, phone pads, battle mode | tested with the deferred tests |
 
 ## How tasks work
 
@@ -41,5 +42,6 @@ same task that changed the code.
 
 ## Later ideas (not scheduled)
 
-Ghost of your best lap, photo-finish replay, battle arena mode, seasonal track decorations,
-phones as controllers, a public internet server, Arabic UI translation.
+Built in P11 (2026-10-07): ghost of your best lap, photo-finish replay, battle arena mode,
+seasonal track decorations, phones as controllers, Arabic UI translation.
+Still open: a public internet server (needs hosting the human chooses; see P11).

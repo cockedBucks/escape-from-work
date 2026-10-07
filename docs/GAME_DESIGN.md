@@ -224,3 +224,13 @@ Lap target 40–55 s.
 
 - Fixed teams vs shuffled teams for the league (both supported; decide the default).
 - Prediction on the client (Phase 2 fun gate decides if steering feels laggy without it).
+
+## 13. Extras (P11, after v1.0; each can be turned off)
+
+- **Ghost of your best lap**: a see-through copy of your best lap on this track (kept in this
+  browser) drives with you. Settings → Ghost.
+- **Photo finish**: a close finish between 1st and 2nd replays in slow motion at the finish line.
+- **Seasonal decorations**: holiday props beside the tracks on their dates. Settings → Decorations.
+- **Arabic UI**: every screen in English or Arabic (right-to-left). Settings → Language.
+- **Phones as controllers**: a phone can take a seat and drive with touch buttons.
+- **Battle mode**: 3 lives per car, item hits take one, last car standing wins.
