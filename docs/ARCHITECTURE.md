@@ -402,6 +402,8 @@ it is ignored (clients may send everything). Respawn: any player in the car.
   `league.awards` rules), broadcasts it (`race:record`, for the results screen) and saves it.
   No database server and no native modules, so it installs on Windows without build tools.
 - Player name and settings: browser `localStorage` (wrapped in try/catch).
+- Ghost of your best lap (P11.1): browser `localStorage` `efw.ghost.<track>` (`packages/client/src/ghost/`):
+  the drawn path of your fastest lap there at 20 Hz (~30 KB). Client only; the server never sees it.
 
 ## 9. Test hooks (for agents)
 

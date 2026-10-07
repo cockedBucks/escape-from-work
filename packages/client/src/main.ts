@@ -4,7 +4,7 @@ import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, sandstormOn, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning } from '@escape/shared';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, sandstormOn, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning, type World } from '@escape/shared';
 import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning, pickableTracks } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
@@ -15,6 +15,7 @@ import { showMainMenu } from './menu';
 import { FAKE_RECORD, FAKE_TABLES } from './scenarioLeague';
 import { loadSettings, saveSettings } from './settings';
 import { SettingsScreen } from './ui/settingsScreen';
+import { GhostRecorder, LapWatch, ghostPoseAt, keepIfBest, loadGhost, type GhostLap, type GhostPose } from './ghost/ghostLap';
 import { HINT_TEXT, Onboarding, RoleCard } from './ui/onboarding';
 import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
@@ -163,6 +164,17 @@ async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
   room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
 }
 
+/** The `ghost` scenario's ghost: ahead of bot1 and a little to its right. */
+function scenarioGhost(world: World, look: CarLook): { look: CarLook; pose: GhostPose } | null {
+  const car = world.cars[0];
+  if (!car) return null;
+  const f = { x: Math.sin(car.yaw), z: Math.cos(car.yaw) };
+  const ahead = SCENARIO_GHOST.ahead;
+  const right = SCENARIO_GHOST.right;
+  return { look, pose: { x: car.x + f.x * ahead - f.z * right, y: 0, z: car.z + f.z * ahead + f.x * right, yaw: car.yaw } };
+}
+const SCENARIO_GHOST = { ahead: 8, right: 3 };
+
 /** A frozen local bot race, for screenshots (`chase`, `track-overview`). */
 async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScenario, overlay?: () => void): Promise<void> {
   const trackId = new URLSearchParams(window.location.search).get('track') ?? DEFAULT_TRACK;
@@ -195,6 +207,8 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     view: scenario === 'track-overview' ? 'overview' : scenario === 'cockpit' ? 'cockpit' : fixedCamera ? 'fixed' : 'chase',
     ...(fixedCamera ? { fixedCamera } : {}),
     lookOf,
+    // `ghost`: the ghost of your best lap a few meters ahead of you, to the right.
+    ...(scenario === 'ghost' ? { lapGhost: () => scenarioGhost(world, roster[2 % roster.length]!.look) } : {}),
     focus: () => 'bot1',
     seatSide: () => 'left',
     // Hold the head where the scenario points it (as if the mouse were captured).
@@ -406,6 +420,15 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   const trackId = await serverTrack(room);
   const track = loadTrack(trackId, tuning);
   const trackChoices = pickableTracks();
+  // Ghost of your best lap (P11.1): record where your car is drawn, race your best lap here.
+  let ghostOn = settings.ghost;
+  const ghostRecorder = new GhostRecorder();
+  const lapWatch = new LapWatch();
+  let bestGhost: GhostLap | null = loadGhost(trackId);
+  /** The ghost racing you this lap (null = none) and when its lap began (client ms). */
+  let ghostRun: GhostLap | null = null;
+  let ghostLapStart = 0;
+  const ghostDraw: { look: CarLook; pose: GhostPose } = { look: loadCars().cars[0]!.look, pose: { x: 0, y: 0, z: 0, yaw: 0 } };
   /** The lap the swap lane opens (first-time hint), or null when the track has none. */
   const swapMinLap = track.rangedZones.find((z) => z.type === 'swap')?.minLap ?? null;
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
@@ -426,6 +449,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       if (keyboard) keyboard.readInto(localInput);
       // While the server ignores controls (countdown), predicting would make the car creep.
       predictor.predict(now, localInput, inputsAllowed(phase) ? myRole : null, lead, latestTuning, mine);
+      if (ghostRecorder.recording) ghostRecorder.add(now, mine.x, mine.y, mine.z, mine.yaw);
       // Your engine: your own gas key, or your partner's as the server last applied it.
       const gas = (myRole !== null && mayUse(myRole, 'gas') && localInput.gas) || serverGas;
       const brake = (myRole !== null && mayUse(myRole, 'brake') && localInput.brake) || serverBrake;
@@ -516,6 +540,23 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       myCarDef = myDef;
       predictor.setStats(myDef.stats);
       engine.setVoice(myDef.engine);
+    }
+    // Ghost: laps start and end with the race state; a faster lap becomes the new ghost.
+    const lap = lapWatch.update(myCar ? state.phase : 'lobby', myCar?.lapsDone ?? 0, myCar?.finished ?? true);
+    if (lap.ended && myCarDef) {
+      const done = ghostRecorder.finish(now, trackId, myCarDef.id);
+      if (done && keepIfBest(done, bestGhost)) {
+        bestGhost = done;
+        if (ghostOn) toasts.show(`👻 New best lap: <b>${(done.lapMs / 1000).toFixed(2)} s</b>. Your ghost races you from now on.`, 'good');
+      }
+    }
+    if (lap.started) {
+      ghostRecorder.start(now);
+      ghostLapStart = now;
+      ghostRun = bestGhost;
+    } else if (lap.ended || lap.stopped) {
+      ghostRecorder.abort();
+      ghostRun = null;
     }
     seatsByCar = carSeatsFrom(state, room.sessionId);
     const boardCars: BoardCar[] = [];
@@ -616,6 +657,13 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     sandstorm: () => stormOn,
     // Each car looks like the car its team picked.
     lookOf: (carId) => carDefOf(carId).look,
+    lapGhost: (now) => {
+      if (!ghostOn || ghostRun === null || phase !== 'racing' || myCarId === null) return null;
+      if (!ghostPoseAt(ghostRun, now - ghostLapStart, ghostDraw.pose)) return null;
+      const run = ghostRun;
+      ghostDraw.look = (roster.find((d) => d.id === run.car) ?? roster[0]!).look;
+      return ghostDraw;
+    },
     onFrame: (now) => {
       // Chase-cam gauges for your car (the cockpit has its dashboard screen instead).
       gauges.speed = focusPose.speed;
@@ -653,6 +701,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     onSettings: (s) => {
       saveSettings(s);
       game.setShowFps(s.showFps);
+      ghostOn = s.ghost;
     },
     onVolumes: (v) => horns.setVolumes(v),
     onCamera: (mode) => cameraToggle.set(mode),

@@ -10,9 +10,11 @@ export const QUALITY_SETTINGS = ['auto', 'low', 'medium', 'high'] as const satis
 export interface Settings {
   quality: QualitySetting;
   showFps: boolean;
+  /** Race the ghost of your best lap on this track (P11.1). */
+  ghost: boolean;
 }
 
-export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false };
+export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, ghost: true };
 
 const KEY = 'efw.settings';
 
@@ -26,7 +28,8 @@ export function parseSettings(raw: string | null): Settings {
   }
   const quality = (QUALITY_SETTINGS as readonly unknown[]).includes(data.quality) ? (data.quality as QualitySetting) : DEFAULT_SETTINGS.quality;
   const showFps = typeof data.showFps === 'boolean' ? data.showFps : DEFAULT_SETTINGS.showFps;
-  return { quality, showFps };
+  const ghost = typeof data.ghost === 'boolean' ? data.ghost : DEFAULT_SETTINGS.ghost;
+  return { quality, showFps, ghost };
 }
 
 export function loadSettings(): Settings {

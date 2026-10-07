@@ -23,6 +23,8 @@ import { CAMERA_NEAR, createStage, type Stage } from './render/renderer';
 import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
 import { focusPose, liveStats } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
+import { LapGhostMesh } from './render/lapGhost';
+import type { GhostPose } from './ghost/ghostLap';
 
 /** Where car states come from: the server (interpolated) or a local scenario sim. */
 export interface CarSource {
@@ -61,6 +63,8 @@ export interface GameOptions {
   mouseLocked?: () => boolean;
   /** Called at the start of every frame with the client time (ms), for per-frame stats. */
   onFrame?: (now: number) => void;
+  /** The ghost of your best lap at client time `now` (P11.1); null = none to draw. */
+  lapGhost?: (now: number) => { look: CarLook; pose: GhostPose } | null;
 }
 
 /** A player in a seat: their face, where they look (synced), and whether it is you. */
@@ -122,6 +126,7 @@ export class Game {
   private readonly speedLines: SpeedLines;
   private readonly itemProps: ItemProps;
   private readonly weather: Weather;
+  private readonly lapGhost: LapGhostMesh;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -150,6 +155,7 @@ export class Game {
     this.itemProps = new ItemProps(buildBoxes(opts.track));
     this.weather = new Weather(this.stage.scene.fog as THREE.Fog, this.stage.scene.background as THREE.Color, opts.track.def.sandstorm);
     this.stage.scene.add(this.itemProps.group);
+    this.lapGhost = new LapGhostMesh(this.stage.scene);
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     this.overlay.setShowFps(opts.showFps ?? false);
     if (opts.view === 'overview') {
@@ -272,6 +278,8 @@ export class Game {
     this.stage.renderer.info.reset();
     this.opts.source.sample(now, this.snaps);
     this.syncCars(dt);
+    const ghost = this.opts.lapGhost?.(now) ?? null;
+    this.lapGhost.update(ghost?.look ?? null, ghost?.pose ?? null, dt);
     this.heads.sweep();
     this.smoke.update(now, dt, this.snaps);
     this.sparks.update(now, dt, this.snaps);
@@ -449,6 +457,7 @@ export class Game {
     this.sparks.dispose();
     this.speedLines.dispose();
     this.itemProps.dispose();
+    this.lapGhost.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();
     this.trackMeshes.dispose();

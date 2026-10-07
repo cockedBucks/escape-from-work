@@ -11,7 +11,8 @@ describe('settings', () => {
   it('reads saved settings and falls back for anything missing or junk', () => {
     expect(parseSettings(null)).toEqual(DEFAULT_SETTINGS);
     expect(parseSettings('{oops')).toEqual(DEFAULT_SETTINGS);
-    expect(parseSettings(JSON.stringify({ quality: 'low', showFps: true }))).toEqual({ quality: 'low', showFps: true });
+    expect(parseSettings(JSON.stringify({ quality: 'low', showFps: true }))).toEqual({ quality: 'low', showFps: true, ghost: true });
+    expect(parseSettings(JSON.stringify({ ghost: false })).ghost).toBe(false);
     expect(parseSettings(JSON.stringify({ quality: 'ultra', showFps: 'yes' }))).toEqual(DEFAULT_SETTINGS);
   });
 

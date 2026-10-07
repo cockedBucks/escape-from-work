@@ -63,6 +63,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 |---|---|
 | `hello` | Phase 0 player-count page |
 | `chase` | 4-bot race on the test track (or `&track=<id>`), run locally with the shared sim and frozen at 6 s; chase cam behind car 1 |
+| `ghost` | same frozen race in chase view, with the see-through ghost of your best lap 8 m ahead and to the right of car 1 (P11.1) |
 | `juice` | same frozen race in chase view: confetti over car 1 (its finish), its body squashed by a landing, and a HONK! bubble over it (P7.6) |
 | `cockpit` | same frozen race from car 1's Pilot seat, head turned right at the teammate's bobblehead (placeholder face) |
 | `stall` | same frozen race in chase view, car 1's engine just stalled: smoke puffing from the hood (P5.1) |

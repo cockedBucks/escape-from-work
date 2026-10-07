@@ -170,25 +170,32 @@ export class SettingsScreen {
     this.cameraRow = camera;
     const volumes = volumeSliders(this.h.volumes, (v) => this.h.onVolumes(v));
     this.refreshVolumes = volumes.refresh;
-    const fpsLabel = document.createElement('label');
-    fpsLabel.className = 'check';
-    const fps = document.createElement('input');
-    fps.type = 'checkbox';
-    fps.checked = this.settings.showFps;
-    fps.dataset.key = 'showFps';
-    fps.addEventListener('change', () => {
-      fps.blur();
-      this.settings = { ...this.settings, showFps: fps.checked };
-      this.h.onSettings(this.settings);
-    });
-    fpsLabel.append(fps, ' Show FPS in the corner');
+    const fpsLabel = this.checkbox('showFps', ' Show FPS in the corner');
+    const ghostLabel = this.checkbox('ghost', ' Race the ghost of my best lap (see-through car)');
     page.append(
       section('Picture quality', quality, qualityNote, reload),
       section('Sound', volumes.el),
       section('Default camera (C switches any time)', camera),
-      section('Screen', fpsLabel),
+      section('Screen', fpsLabel, ghostLabel),
     );
     return page;
+  }
+
+  /** A checkbox for an on/off setting, saved when clicked. */
+  private checkbox(key: 'showFps' | 'ghost', text: string): HTMLElement {
+    const label = document.createElement('label');
+    label.className = 'check';
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = this.settings[key];
+    box.dataset.key = key;
+    box.addEventListener('change', () => {
+      box.blur();
+      this.settings = { ...this.settings, [key]: box.checked };
+      this.h.onSettings(this.settings);
+    });
+    label.append(box, text);
+    return label;
   }
 
   private buildKeys(): HTMLElement {

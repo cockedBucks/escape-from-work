@@ -38,6 +38,20 @@ export const LIGHT = {
 } as const;
 
 /** The Smart Oasis sandstorm (its fog distances come from the track file). */
+/** Ghost of your best lap (P11.1): recording and how the see-through car looks. */
+export const GHOST = {
+  /** Stored path samples per second (resampled from the drawn frames). */
+  hz: 20,
+  /** Laps longer than this are not kept (s): stuck, AFK. */
+  maxLapSeconds: 240,
+  /** A gap between drawn frames longer than this (tab hidden, hitch) spoils the lap (ms). */
+  maxGapMs: 500,
+  /** Body color, glow and opacity of the ghost car. */
+  color: 0xbfe9ff,
+  glow: 0x3a6a8a,
+  opacity: 0.4,
+} as const;
+
 export const SANDSTORM = {
   /** Fog and sky color while it blows. */
   color: 0xd9a865,

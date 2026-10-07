@@ -23,7 +23,7 @@ import { PROP_LOOK, PROP_SHAPES, type PropPrim } from './render/look';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, cockpit: 6, juice: 6, stall: 6, drift: 6, nitro: 6, sandstorm: 6, items: 2.2, garage: 0, props: 0, shortcut: 0, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, ghost: 6, cockpit: 6, juice: 6, stall: 6, drift: 6, nitro: 6, sandstorm: 6, items: 2.2, garage: 0, props: 0, shortcut: 0, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 

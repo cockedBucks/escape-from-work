@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P11 — Extras after v1.0 (`docs/phases/P11-extras.md`), human's request 2026-10-07 (D117).
-- Next task: P11.1 Ghost of your best lap
+- Next task: P11.2 Photo-finish replay
 - Status: v1.0 done (P0–P10 + P10.8 fixes). `npm run verify` passes (524 tests + bot race).
 
 ## Half-done
@@ -143,6 +143,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   LOCAL: double-click `start-server.bat` once on the Windows host to confirm it.
 - 2026-10-07 (cloud): P10.8 known-issue fixes — network bots follow the server's track, busy port
   prints only the friendly line, `props` showroom off the roads. D116.
+- 2026-10-07 (cloud): P11.1 Ghost of your best lap — records your drawn car per lap, keeps the
+  best per track in the browser, see-through ghost car, Settings toggle, scenario `ghost`. D118.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
