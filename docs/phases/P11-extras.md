@@ -17,7 +17,7 @@ Left in "Later ideas" for the human to decide.
 - [x] **P11.1 Ghost of your best lap.** The page records your car's path each lap and keeps your
   best lap per track (this browser); in later races a see-through ghost car drives it. Settings
   toggle. Visual only (the sim never sees it).
-- [ ] **P11.2 Photo-finish replay.** When 2nd place finishes within a few tenths of the winner, a
+- [x] **P11.2 Photo-finish replay.** When 2nd place finishes within a few tenths of the winner, a
   slow-motion replay from a camera at the finish line, with "PHOTO FINISH! by 0.12 s", for
   players already finished and spectators; drivers still racing get a toast.
 - [ ] **P11.3 Seasonal decorations.** Date ranges in config (winter, Halloween, Ramadan, …) put

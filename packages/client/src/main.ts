@@ -15,6 +15,9 @@ import { showMainMenu } from './menu';
 import { FAKE_RECORD, FAKE_TABLES } from './scenarioLeague';
 import { loadSettings, saveSettings } from './settings';
 import { SettingsScreen } from './ui/settingsScreen';
+import { ReplayRecorder, crossingTime, photoCamera, photoFinishPair, replayWindow } from './replay/photoFinish';
+import { PhotoBanner } from './ui/photoBanner';
+import { PHOTO } from './render/look';
 import { GhostRecorder, LapWatch, ghostPoseAt, keepIfBest, loadGhost, type GhostLap, type GhostPose } from './ghost/ghostLap';
 import { HINT_TEXT, Onboarding, RoleCard } from './ui/onboarding';
 import { VolumePanel } from './ui/volumePanel';
@@ -30,7 +33,7 @@ import { seatSideFor } from './render/cockpitCam';
 import { setFaceFraming } from './render/faceTexture';
 import type { FaceFraming } from './render/facePlacement';
 import { pickQuality } from './render/renderer';
-import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, propsShowroom, shortcutCamera, type RaceScenario } from './scenarios';
+import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, photoFinishClip, propsShowroom, shortcutCamera, type RaceScenario } from './scenarios';
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
@@ -183,8 +186,9 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   const itemsCfg = loadItems();
   const garage = scenario === 'garage' ? garageWorld(track) : null;
   const shortcutCam = scenario === 'shortcut' ? shortcutCamera(track) : null;
-  const world = garage?.world ?? (showroom || shortcutCam ? createWorld(track, []) : frozenBotRace(track, tuning, scenario, itemsCfg));
-  const fixedCamera = garage?.camera ?? showroom?.camera ?? shortcutCam ?? undefined;
+  const photo = scenario === 'photo' ? photoFinishClip(track) : null;
+  const world = garage?.world ?? (showroom || shortcutCam || photo ? createWorld(track, []) : frozenBotRace(track, tuning, scenario, itemsCfg));
+  const fixedCamera = garage?.camera ?? photo?.camera ?? showroom?.camera ?? shortcutCam ?? undefined;
   // Each car's look: the garage shows the roster in slot order; races use the first car.
   const roster = loadCars().cars;
   const lookOf = (carId: string): CarLook => {
@@ -227,6 +231,11 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   // Cockpit shot: turn your head right toward your teammate's bobblehead.
   if (scenario === 'cockpit') game.lookAt(SCENARIO_LOOK.yaw, SCENARIO_LOOK.pitch);
   if (scenario === 'sandstorm') game.snapWeather(true);
+  // `photo`: the photo-finish replay, held at the moment the cars cross, with its banner.
+  if (photo) {
+    new PhotoBanner(container).show('<b>The Blue Screens</b> beat <b>404 Not Found</b> by 0.03 s');
+    game.playReplay({ clip: photo.clip, from: photo.at, to: photo.at + 1, rate: 0, camera: photo.camera, marks: [], onMark: () => {}, onDone: () => {} }, performance.now());
+  }
   if (scenario === 'items') {
     // The Forced Update overlay, 40% done, as both players of a hit car would see it.
     const max = itemsCfg.items.forcedUpdate.maxSeconds;
@@ -429,6 +438,50 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let ghostRun: GhostLap | null = null;
   let ghostLapStart = 0;
   const ghostDraw: { look: CarLook; pose: GhostPose } = { look: loadCars().cars[0]!.look, pose: { x: 0, y: 0, z: 0, yaw: 0 } };
+  // Photo finish (P11.2): the last seconds of every car as drawn, replayed when 1st and 2nd are close.
+  const replayRec = new ReplayRecorder(race.maxCars, PHOTO.hz, PHOTO.bufferSeconds);
+  const photoBanner = new PhotoBanner(container);
+  /** One photo finish per race; cars seen still racing on this page (an old finish is not replayed). */
+  let photoDone = false;
+  const seenRacing = new Set<number>();
+  /** A replay is coming or playing: the results screen waits for it. */
+  let photoHold = false;
+  const photoFinish = (winner: number, runnerUp: number, gapMs: number, stillDriving: boolean): void => {
+    const name = (slot: number): string => escapeHtml(teamNames[slot] || `Car ${slot + 1}`);
+    const line = `<b>${name(winner)}</b> beat <b>${name(runnerUp)}</b> by ${(gapMs / 1000).toFixed(2)} s`;
+    // Still driving: a replay would take your view away, so just say it.
+    if (stillDriving) {
+      toasts.show(`📸 Photo finish! ${line}`, 'info');
+      return;
+    }
+    photoHold = true;
+    // Wait for the drawn cars to cross (they are drawn a little behind the server).
+    window.setTimeout(() => playPhoto(winner, runnerUp, line), PHOTO.waitMs);
+  };
+  const playPhoto = (winner: number, runnerUp: number, line: string): void => {
+    if (phase !== 'racing' && phase !== 'results') {
+      photoHold = false;
+      return;
+    }
+    const clip = replayRec.clip();
+    const gate = track.gates[0]!;
+    const wc = crossingTime(clip, winner, gate);
+    const rc = crossingTime(clip, runnerUp, gate);
+    const win = replayWindow(clip, wc, rc, PHOTO.leadSeconds, PHOTO.tailSeconds);
+    photoBanner.show(line);
+    game.playReplay({
+      clip,
+      ...win,
+      rate: PHOTO.rate,
+      camera: photoCamera(gate),
+      marks: [wc, rc].filter((t): t is number => t !== null),
+      onMark: () => photoBanner.flash(),
+      onDone: () => {
+        photoHold = false;
+        photoBanner.hide(0);
+      },
+    }, performance.now());
+  };
   /** The lap the swap lane opens (first-time hint), or null when the track has none. */
   const swapMinLap = track.rangedZones.find((z) => z.type === 'swap')?.minLap ?? null;
   // Your own car is predicted (answers your keys at once); everyone else is interpolated.
@@ -572,11 +625,28 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       });
     });
     board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase));
+    // Photo finish: 1st and 2nd close together, both seen racing on this page. The runner-up's
+    // finish may also end the race (results), so it is checked then too.
+    if (state.phase === 'lobby' || state.phase === 'countdown') {
+      photoDone = false;
+      photoHold = false;
+      seenRacing.clear();
+      if (game.replaying) game.stopReplay();
+    }
+    if (state.phase === 'racing') for (const c of boardCars) if (!c.finished) seenRacing.add(c.slot);
+    if ((state.phase === 'racing' || state.phase === 'results') && !photoDone) {
+      const pair = photoFinishPair(boardCars, PHOTO.gapMs);
+      if (pair && seenRacing.has(pair.runnerUp)) {
+        photoDone = true;
+        const stillDriving = state.phase === 'racing' && myCar !== undefined && !myCar.finished;
+        photoFinish(pair.winner, pair.runnerUp, pair.gapMs, stillDriving);
+      }
+    }
     const storm = sandstormOn(track.def.sandstorm, state.phase, boardCars.map((c) => c.lapsDone));
     if (storm && !stormOn) toasts.show(STORM_TOAST, 'bad');
     stormOn = storm;
     if (state.phase === 'countdown') lastRecord = null;
-    resultsScreen.update(state.phase === 'results', {
+    resultsScreen.update(state.phase === 'results' && !photoHold, {
       record: lastRecord,
       league: latestTuning.league,
       cars: boardCars,
@@ -657,6 +727,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     sandstorm: () => stormOn,
     // Each car looks like the car its team picked.
     lookOf: (carId) => carDefOf(carId).look,
+    recordCars: (now, cars) => replayRec.record(now, cars),
     lapGhost: (now) => {
       if (!ghostOn || ghostRun === null || phase !== 'racing' || myCarId === null) return null;
       if (!ghostPoseAt(ghostRun, now - ghostLapStart, ghostDraw.pose)) return null;
@@ -667,7 +738,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     onFrame: (now) => {
       // Chase-cam gauges for your car (the cockpit has its dashboard screen instead).
       gauges.speed = focusPose.speed;
-      gaugePanel.update(game.view === 'chase' && myCarId !== null && focusPose.set, gauges);
+      gaugePanel.update(game.view === 'chase' && myCarId !== null && focusPose.set && !game.replaying, gauges);
       // Share where you look (your teammate sees your bobblehead turn).
       const h = game.head;
       const send = headSender.next(now, h.yaw, h.pitch, latestTuning.net.headSendMs);

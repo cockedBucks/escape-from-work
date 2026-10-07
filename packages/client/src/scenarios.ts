@@ -20,10 +20,11 @@ import type { CarSource } from './game';
 import type { CarSnap } from './net/snapshots';
 import type { ItemsView } from './render/itemProps';
 import { PROP_LOOK, PROP_SHAPES, type PropPrim } from './render/look';
+import { ReplayRecorder, photoCamera, type ReplayClip } from './replay/photoFinish';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, ghost: 6, cockpit: 6, juice: 6, stall: 6, drift: 6, nitro: 6, sandstorm: 6, items: 2.2, garage: 0, props: 0, shortcut: 0, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, ghost: 6, cockpit: 6, juice: 6, stall: 6, drift: 6, nitro: 6, sandstorm: 6, items: 2.2, garage: 0, photo: 0, props: 0, shortcut: 0, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 
@@ -155,6 +156,36 @@ export function garageWorld(track: Track): { world: World; camera: { from: [numb
       at: [mid.x, GARAGE.lookHeight, mid.z],
     },
   };
+}
+
+/** `photo` scenario: cars around the finish line at the crossing moment (m ahead of the line, m to the right). */
+const PHOTO_SCENE = { speed: 25, crossMs: 1500, clipMs: 3000, frameMs: 1000 / 30, cars: [[-1.6, -2.2], [-1.9, 2.2], [-8, 0], [-13, -2.5]] as const };
+
+/**
+ * The `photo` scenario: a recorded clip of four cars driving through the finish line (built
+ * here, as the page would record it), to play through the real replay at the crossing moment.
+ */
+export function photoFinishClip(track: Track): { clip: ReplayClip; at: number; camera: { from: [number, number, number]; at: [number, number, number] } } {
+  const gate = track.gates[0]!;
+  const f = { x: Math.sin(gate.yaw), z: Math.cos(gate.yaw) };
+  const r = { x: gate.right.x - gate.pos.x, z: gate.right.z - gate.pos.z };
+  const len = Math.hypot(r.x, r.z) || 1;
+  const rec = new ReplayRecorder(PHOTO_SCENE.cars.length, 1000 / PHOTO_SCENE.frameMs, PHOTO_SCENE.clipMs / 1000);
+  const snaps = new Map<string, CarSnap>();
+  for (let t = 0; t <= PHOTO_SCENE.clipMs; t += PHOTO_SCENE.frameMs) {
+    const along = ((t - PHOTO_SCENE.crossMs) / 1000) * PHOTO_SCENE.speed;
+    PHOTO_SCENE.cars.forEach(([ahead, side], i) => {
+      snaps.set(`car${i}`, {
+        x: gate.pos.x + f.x * (ahead + along) + (r.x / len) * side,
+        y: 0,
+        z: gate.pos.z + f.z * (ahead + along) + (r.z / len) * side,
+        yaw: gate.yaw, speed: PHOTO_SCENE.speed, steer: 0, respawning: false, ghost: false, stalled: false,
+        drift: 0, driftLevel: 0, boosting: false, nitroOn: false, shielded: false,
+      });
+    });
+    rec.record(t, snaps);
+  }
+  return { clip: rec.clip(), at: PHOTO_SCENE.crossMs, camera: photoCamera(gate) };
 }
 
 /** Props showroom: one of each office prop in a row beside the start straight (spacing m). */

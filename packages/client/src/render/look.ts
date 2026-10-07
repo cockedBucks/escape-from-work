@@ -52,6 +52,27 @@ export const GHOST = {
   opacity: 0.4,
 } as const;
 
+/** Photo-finish replay (P11.2): when, what is kept, and how it is shown. */
+export const PHOTO = {
+  /** 1st and 2nd finishing at most this far apart (ms) is a photo finish. */
+  gapMs: 500,
+  /** Drawn car poses kept for a replay (s) and how often (per s). */
+  bufferSeconds: 4,
+  hz: 30,
+  /** Wait after the runner-up's finish arrives before cutting the clip (ms): the drawn cars cross a bit later. */
+  waitMs: 700,
+  /** The replay runs from this long before the winner crosses to this long after the runner-up (s). */
+  leadSeconds: 1.2,
+  tailSeconds: 0.8,
+  /** Replay speed (0.4 = slow motion). */
+  rate: 0.4,
+  /** Camera: beside the road at the line, this far out from the road edge and this high (m). */
+  camSide: 9,
+  camHeight: 5,
+  /** It looks at the middle of the line this high (m). */
+  lookHeight: 0.8,
+} as const;
+
 export const SANDSTORM = {
   /** Fog and sky color while it blows. */
   color: 0xd9a865,

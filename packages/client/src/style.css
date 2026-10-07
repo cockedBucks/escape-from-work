@@ -886,6 +886,73 @@ body {
   to { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
+/* Photo finish (P11.2): banner over the slow-motion replay and a camera flash per crossing. */
+.photo-finish {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 6vh;
+  gap: 0.4rem;
+  color: #fff;
+  text-align: center;
+}
+
+.photo-finish strong {
+  font-size: 3.2rem;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1.4rem;
+  border: var(--edge);
+  border-radius: 1rem;
+  background: var(--red);
+  box-shadow: var(--pop-big);
+  animation: panel-in 0.35s var(--ease-pop);
+}
+
+.photo-finish .who {
+  font-size: 1.4rem;
+  padding: 0.3rem 1rem;
+  border-radius: 0.8rem;
+  background: rgba(30, 34, 48, 0.85);
+}
+
+.photo-finish .replay-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 0.2rem 0.7rem;
+  border-radius: 0.6rem;
+  background: rgba(30, 34, 48, 0.85);
+}
+
+.photo-finish .replay-badge .dot {
+  color: #ff5a5a;
+  animation: stall-blink 0.6s ease-in-out infinite alternate;
+}
+
+.photo-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+}
+
+.photo-flash.go {
+  animation: photo-flash 0.5s ease-out;
+}
+
+@keyframes photo-flash {
+  from { opacity: 0.9; }
+  to { opacity: 0; }
+}
+
 /* How-to-play cards in the lobby: one per role, yours highlighted. */
 .howto {
   display: grid;

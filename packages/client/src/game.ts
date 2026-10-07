@@ -25,6 +25,7 @@ import { focusPose, liveStats } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
 import { LapGhostMesh } from './render/lapGhost';
 import type { GhostPose } from './ghost/ghostLap';
+import { sampleClip, type ReplayClip } from './replay/photoFinish';
 
 /** Where car states come from: the server (interpolated) or a local scenario sim. */
 export interface CarSource {
@@ -63,6 +64,8 @@ export interface GameOptions {
   mouseLocked?: () => boolean;
   /** Called at the start of every frame with the client time (ms), for per-frame stats. */
   onFrame?: (now: number) => void;
+  /** Every live frame's cars as drawn (the photo-finish recorder keeps the last seconds). */
+  recordCars?: (now: number, cars: ReadonlyMap<string, CarSnap>) => void;
   /** The ghost of your best lap at client time `now` (P11.1); null = none to draw. */
   lapGhost?: (now: number) => { look: CarLook; pose: GhostPose } | null;
 }
@@ -98,6 +101,20 @@ const DEFAULT_LOOK: CarLook = { body: 'hatch', wheelScale: 1, parts: [] };
 const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
 const SIDES = ['left', 'right'] as const;
 const DUCK_SEAT: SeatContent = { kind: 'duck' };
+
+/** A slow-motion replay of recorded frames from a fixed camera (photo finish, P11.2). */
+export interface ReplayPlay {
+  clip: ReplayClip;
+  /** Clip time (ms) to play from and to, and the speed (0.4 = slow motion). */
+  from: number;
+  to: number;
+  rate: number;
+  camera: { from: readonly [number, number, number]; at: readonly [number, number, number] };
+  /** Clip times that call `onMark(index)` when the replay passes them (the crossings). */
+  marks: readonly number[];
+  onMark(index: number): void;
+  onDone(): void;
+}
 
 /** Longest frame step the camera smoothing accepts (s), so a hitch doesn't fling it. */
 const MAX_FRAME_DT = 0.1;
@@ -139,6 +156,10 @@ export class Game {
   private frame = 0;
   private lastTime = -1;
   private running = false;
+  /** The replay playing (null = live) and when it started (client ms). */
+  private replay: { play: ReplayPlay; startedAt: number; nextMark: number } | null = null;
+  /** Snap the chase cam on the next frame (after a replay moved the camera away). */
+  private snapNext = false;
 
   constructor(private readonly opts: GameOptions) {
     this.stage = createStage(opts.container, opts.tuning, opts.quality);
@@ -254,6 +275,24 @@ export class Game {
     if (p) this.sparks.confetti(p.x, p.y, p.z, JUICE.confettiPieces * (mine ? JUICE.confettiMine : 1));
   }
 
+  /** Play recorded frames in slow motion from a fixed camera, then go back to live. */
+  playReplay(play: ReplayPlay, now: number): void {
+    this.replay = { play, startedAt: now, nextMark: 0 };
+  }
+
+  /** Stop a replay early (the race ended). */
+  stopReplay(): void {
+    if (!this.replay) return;
+    const { play } = this.replay;
+    this.replay = null;
+    this.snapNext = true;
+    play.onDone();
+  }
+
+  get replaying(): boolean {
+    return this.replay !== null;
+  }
+
   /** Jump straight to full sandstorm (or clear), skipping the fade (`sandstorm` scenario). */
   snapWeather(stormOn: boolean): void {
     this.weather.update(stormOn, Number.POSITIVE_INFINITY);
@@ -277,8 +316,10 @@ export class Game {
     // Count draw calls over the whole frame (mirror pass + main pass), not just the last render.
     this.stage.renderer.info.reset();
     this.opts.source.sample(now, this.snaps);
+    if (!this.replay) this.opts.recordCars?.(now, this.snaps);
+    const replay = this.stepReplay(now);
     this.syncCars(dt);
-    const ghost = this.opts.lapGhost?.(now) ?? null;
+    const ghost = replay ? null : (this.opts.lapGhost?.(now) ?? null);
     this.lapGhost.update(ghost?.look ?? null, ghost?.pose ?? null, dt);
     this.heads.sweep();
     this.smoke.update(now, dt, this.snaps);
@@ -287,7 +328,14 @@ export class Game {
     this.weather.update(this.opts.sandstorm?.() ?? false, dt);
 
     const view = this.opts.view;
-    if (view === 'chase' || view === 'cockpit') {
+    if (replay) {
+      const { from, at } = replay.camera;
+      this.stage.camera.position.set(from[0], from[1], from[2]);
+      this.stage.camera.lookAt(at[0], at[1], at[2]);
+      this.setBackdrop(false);
+      this.showDash(null);
+      this.speedLines.update(0);
+    } else if (view === 'chase' || view === 'cockpit') {
       const id = this.opts.focus() ?? this.snaps.keys().next().value ?? null;
       const car = id === null ? undefined : this.snaps.get(id);
       const cam = this.opts.tuning.camera;
@@ -298,7 +346,8 @@ export class Game {
         const locked = this.opts.mouseLocked?.() ?? false;
         this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked, this.cars.get(id!)?.cockpitLift);
       } else if (car) {
-        this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera, car.speed / this.opts.tuning.car.topSpeed);
+        this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera || this.snapNext, car.speed / this.opts.tuning.car.topSpeed);
+        this.snapNext = false;
         this.shake.step(dt);
         if (this.shake.amp > 0) {
           this.stage.camera.translateX(this.shake.x);
@@ -341,6 +390,20 @@ export class Game {
     liveStats.textures = info.memory.textures;
     liveStats.cars = this.cars.size;
     this.overlay.update(now);
+  }
+
+  /** Replay time for this frame: puts the recorded cars in `snaps`; null when live. */
+  private stepReplay(now: number): ReplayPlay | null {
+    const r = this.replay;
+    if (!r) return null;
+    const t = r.play.from + (now - r.startedAt) * r.play.rate;
+    while (r.nextMark < r.play.marks.length && t >= r.play.marks[r.nextMark]!) r.play.onMark(r.nextMark++);
+    if (t > r.play.to) {
+      this.stopReplay();
+      return null;
+    }
+    sampleClip(r.play.clip, t, this.snaps);
+    return r.play;
   }
 
   /** Showing the track overview because there is no car to follow. */

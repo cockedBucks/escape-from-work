@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P11 — Extras after v1.0 (`docs/phases/P11-extras.md`), human's request 2026-10-07 (D117).
-- Next task: P11.2 Photo-finish replay
+- Next task: P11.3 Seasonal decorations
 - Status: v1.0 done (P0–P10 + P10.8 fixes). `npm run verify` passes (524 tests + bot race).
 
 ## Half-done
@@ -145,6 +145,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   prints only the friendly line, `props` showroom off the roads. D116.
 - 2026-10-07 (cloud): P11.1 Ghost of your best lap — records your drawn car per lap, keeps the
   best per track in the browser, see-through ghost car, Settings toggle, scenario `ghost`. D118.
+- 2026-10-07 (cloud): P11.2 Photo finish — 1st/2nd within 0.5 s: slow-motion replay of the last
+  seconds from a finish-line camera with flashes and a banner (finished players and spectators;
+  drivers get a toast), scenario `photo`. D119.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
