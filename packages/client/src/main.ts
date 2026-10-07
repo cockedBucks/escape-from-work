@@ -709,6 +709,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
         cars: state.cars.size,
         me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay, lives: myCar.lives, out: myCar.out } : null,
         mode: state.mode,
+        gasRole: myRole !== null && mayUse(myRole, 'gas'),
       });
     hud.set(hudNow);
     const firstCountdown = state.phase === 'countdown' && !onboarding.has('roleCard') && myRole !== null;
@@ -840,6 +841,13 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
       if (e.type === 'stall' || e.type === 'restart') {
         if (e.type === 'stall') game.say(e.car, t('bubble.stall'));
         horns.playSound(ENGINE_SOUNDS[e.type], heardFrom(e.car));
+        continue;
+      }
+      if (e.type === 'rocketStart' || e.type === 'flooded') {
+        const rocket = e.type === 'rocketStart';
+        game.say(e.car, t(rocket ? 'bubble.rocket' : 'bubble.flooded'));
+        horns.playSound(rocket ? DRIFT_SOUNDS.boost : ENGINE_SOUNDS.stall, heardFrom(e.car));
+        if (e.car === myCarId) toasts.show(t(rocket ? 'toast.rocket' : 'toast.flooded'), rocket ? 'good' : 'bad');
         continue;
       }
       if (e.type === 'driftStart') {

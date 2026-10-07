@@ -119,6 +119,7 @@ export {
   type RacePhase,
 } from './race/flow';
 export { sandstormOn } from './race/sandstorm';
+export { applyRocketStarts, rocketResult, trackCountdownGas, type RocketResult, type RocketTracker } from './race/rocketStart';
 export { TEAM_NAME_MAX_LENGTH, TeamsSchema, defaultTeamName, parseTeams, type TeamsConfig } from './config/teams';
 export { DECOR_KITS, SeasonsSchema, activeSeason, parseSeasons, seasonOn, type DecorKit, type Season, type SeasonsConfig } from './config/seasons';
 export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby';

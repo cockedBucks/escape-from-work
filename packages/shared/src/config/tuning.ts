@@ -219,6 +219,20 @@ const NitroSchema = z.strictObject({
   topSpeed: z.number().min(1).max(3),
 });
 
+/** Rocket start (P13.3): time the gas in the countdown. */
+const RocketSchema = z.strictObject({
+  /** Gas pressed at most this long before GO (s) and still held at GO = a rocket start... */
+  windowSeconds: pos(),
+  /** ...held since more than this long before GO (s) = the engine floods. */
+  floodSeconds: pos(),
+  /** Rocket boost length (s); it pushes like a drift boost (`drift.boostAccel`, `drift.boostTopSpeed`). */
+  boostSeconds: pos(),
+  /** A flooded engine stalls this long (s) at GO. */
+  floodStallSeconds: pos(),
+  /** Bots of this skill or more always nail it. */
+  botSkill: z.number().int().min(0),
+}).refine((r) => r.windowSeconds < r.floodSeconds, 'rocket.windowSeconds must be shorter than rocket.floodSeconds');
+
 /** Race rules. A stub for now; P3 adds countdown, finish and results. */
 const RaceSchema = z.strictObject({
   /** Shortest time between two honks of the same car (s). */
@@ -412,6 +426,7 @@ export const TuningSchema = z.strictObject({
   heat: HeatSchema,
   drift: DriftSchema,
   nitro: NitroSchema,
+  rocket: RocketSchema,
   solo: SoloSchema,
   race: RaceSchema,
   battle: BattleSchema,

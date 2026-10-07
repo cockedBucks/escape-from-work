@@ -231,7 +231,8 @@ describe('RaceSim race flow', () => {
     for (let i = 0; i < countdown - 1; i++) sim.tick(); // gas still held: ignored
     expect(moved(sim, 'car0')).toBeCloseTo(0);
     expect(sim.flow.phase).toBe('countdown');
-    for (let i = 0; i < 30; i++) sim.tick();
+    // Gas held since before the countdown: the engine floods for a moment at GO (P13.3), then drives.
+    for (let i = 0; i < 30 + Math.round(cfg.rocket.floodStallSeconds / cfg.sim.dt); i++) sim.tick();
     expect(sim.flow.phase).toBe('racing');
     expect(moved(sim, 'car0')).toBeGreaterThan(1); // GO
   });
@@ -782,5 +783,35 @@ describe('RaceSim battle end (review fixes)', () => {
     expect(out.item).toBe('');
     expect(box.respawnAtTick).toBe(0);
     expect(sim.setMode('a', 'race')).toMatch(/lobby/);
+  });
+});
+
+describe('RaceSim rocket start (P13.3)', () => {
+  const countdown = Math.round(cfg.race.countdownSeconds / cfg.sim.dt);
+  /** Start a 2-car solo race; `a` presses gas `aEarly` s before GO, `b` holds it from the start. Runs to just after GO. */
+  function start(aEarly: number): { sim: RaceSim; events: string[] } {
+    const sim = soloSim('a', 'b');
+    expect(sim.startRace('a')).toBeNull();
+    sim.handleInput('b', { seq: 1, gas: true });
+    const events: string[] = [];
+    const press = countdown - Math.round(aEarly / cfg.sim.dt);
+    for (let i = 0; i < countdown + 3; i++) {
+      if (i === press) sim.handleInput('a', { seq: 1, gas: true });
+      for (const e of sim.tick()) if (e.type === 'rocketStart' || e.type === 'flooded') events.push(`${e.type}:${e.car}`);
+    }
+    return { sim, events };
+  }
+
+  it('gas on "1" = rocket start (boost); gas held from "3" = flooded engine', () => {
+    const { sim, events } = start(cfg.rocket.windowSeconds * 0.5);
+    expect(sim.flow.phase).toBe('racing');
+    expect(events).toEqual(['rocketStart:car0', 'flooded:car1']);
+    expect(car(sim, 'car0').boostTicks).toBeGreaterThan(0);
+    expect(car(sim, 'car1').stallUntilTick).toBeGreaterThan(sim.world.tick);
+  });
+
+  it('gas a bit early (not on "3") is a normal start', () => {
+    const { events } = start((cfg.rocket.windowSeconds + cfg.rocket.floodSeconds) / 2);
+    expect(events).toEqual(['flooded:car1']);
   });
 });

@@ -100,6 +100,13 @@
     "restartHeat": 0.6,
     "nitroRisePerSec": 0.4
   },
+  "rocket": {
+    "windowSeconds": 0.5,
+    "floodSeconds": 2,
+    "boostSeconds": 0.9,
+    "floodStallSeconds": 1,
+    "botSkill": 2
+  },
   "solo": {
     "speedMultiplier": 1
   },

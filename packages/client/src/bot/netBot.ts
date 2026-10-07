@@ -29,6 +29,9 @@ import {
 
 interface BotStateView {
   phase?: string;
+  /** Server tick and the tick the phase began (the countdown's timing, for the rocket start). */
+  tick?: number;
+  phaseTick?: number;
   players?: {
     forEach(cb: (p: { slot: number; seat: string }, id: string) => void): void;
     get(id: string): { slot: number; seat: string } | undefined;
@@ -265,9 +268,15 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     engHint = car.segment;
     // Controls are ignored outside a race (countdown): standing still there is not stuck.
     if (s.phase !== 'racing') resetStuck(memory);
-    // Engineer half (until a swap): pedals, heat, drift taps, nitro.
+    // Engineer half (until a swap): pedals, heat, nitro.
     const seat = s.players?.get(engineer.sessionId)?.seat;
-    engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(t, seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s, t)) });
+    const half = halfFor(t, seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s, t));
+    // Countdown: a skilled bot hits the gas just before GO (rocket start, P13.3); others wait.
+    if (s.phase === 'countdown' && half.gas !== undefined) {
+      const left = tuning.race.countdownSeconds - ((s.tick ?? 0) - (s.phaseTick ?? 0)) * tuning.sim.dt;
+      half.gas = tuning.bot.skill >= tuning.rocket.botSkill && left <= tuning.rocket.windowSeconds / 2;
+    }
+    engineer.send(MSG.input, { seq: ++engSeq, ...half });
     if (lastProgress > WRAP && view.progress < 1 - WRAP) {
       wraps++;
       const now = performance.now();

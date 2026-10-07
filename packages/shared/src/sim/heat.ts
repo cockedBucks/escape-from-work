@@ -19,7 +19,7 @@ export function stepHeat(car: CarState, input: CarInput, speed: number, cfg: Tun
   if (car.stallUntilTick >= 0) {
     if (now < car.stallUntilTick) return input.gas ? { ...input, gas: false } : input;
     car.stallUntilTick = -1;
-    car.heat = h.restartHeat;
+    car.heat = Math.min(car.heat, h.restartHeat); // an overheat restarts warm; a flooded start stays cold
     events.push({ type: 'restart', car: car.id });
   }
   const top = cfg.car.topSpeed * car.stats.speed;

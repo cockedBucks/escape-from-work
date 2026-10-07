@@ -19,6 +19,8 @@ export interface HudInput {
   me: { lapsDone: number; place: number; finished: boolean; dnf: boolean; wrongWay: boolean; lives?: number; out?: boolean } | null;
   /** 'battle' shows lives instead of laps (P11.6); absent = race. */
   mode?: string;
+  /** You work the gas (Engineer or Solo): the countdown shows the rocket-start tip (P13.3). */
+  gasRole?: boolean;
 }
 
 /** "❤❤❤" for 3 lives. */
@@ -26,6 +28,8 @@ export const hearts = (lives: number): string => '❤'.repeat(Math.max(0, lives)
 
 export interface HudText {
   countdown: string | null;
+  /** Under the countdown: how to rocket start (only for whoever has the gas). */
+  tip?: string | null;
   lap: string | null;
   place: string | null;
   banner: string | null;
@@ -41,22 +45,24 @@ export function hudText(h: HudInput): HudText {
   let countdown: string | null = null;
   if (h.phase === 'countdown') countdown = String(Math.max(1, Math.ceil(h.countdownSeconds - since)));
   else if (h.phase === 'racing' && since < GO_SECONDS) countdown = t('hud.go');
+  const tip = h.phase === 'countdown' && h.gasRole ? t('hud.rocketTip') : null;
 
   const racing = h.phase === 'racing' || h.phase === 'results';
   const me = racing ? h.me : null;
   const place = me && me.place > 0 ? t('hud.place', { ord: ordinal(me.place), cars: h.cars }) : null;
   if (h.mode === 'battle') {
     const lives = me && !me.out ? t('hud.lives', { hearts: hearts(me.lives ?? 0) }) : null;
-    return { countdown, lap: lives, place, banner: me?.out ? t('hud.out') : null, wrongWay: false };
+    return { countdown, tip, lap: lives, place, banner: me?.out ? t('hud.out') : null, wrongWay: false };
   }
   const lap = me && !me.finished && !me.dnf ? t('hud.lap', { n: Math.min(me.lapsDone + 1, h.laps), laps: h.laps }) : null;
   const banner = me?.finished ? t('hud.finished', { ord: ordinal(me.place) }) : me?.dnf ? t('hud.dnf') : null;
-  return { countdown, lap, place, banner, wrongWay: h.phase === 'racing' && (me?.wrongWay ?? false) };
+  return { countdown, tip, lap, place, banner, wrongWay: h.phase === 'racing' && (me?.wrongWay ?? false) };
 }
 
 export class RaceHud {
   private readonly root = document.createElement('div');
   private readonly countdown = document.createElement('div');
+  private readonly tip = document.createElement('div');
   private readonly info = document.createElement('div');
   private readonly banner = document.createElement('div');
   private readonly wrong = document.createElement('div');
@@ -66,11 +72,13 @@ export class RaceHud {
     this.root.className = 'race-hud';
     this.countdown.className = 'hud-countdown';
     this.countdown.hidden = true;
+    this.tip.className = 'hud-tip';
+    this.tip.hidden = true;
     this.info.className = 'hud-info';
     this.banner.className = 'hud-banner';
     this.wrong.className = 'hud-wrong';
     this.wrong.textContent = t('hud.wrongWay');
-    this.root.append(this.countdown, this.info, this.banner, this.wrong);
+    this.root.append(this.countdown, this.tip, this.info, this.banner, this.wrong);
     parent.appendChild(this.root);
     this.set({ countdown: null, lap: null, place: null, banner: null, wrongWay: false });
   }
@@ -87,6 +95,8 @@ export class RaceHud {
       void this.countdown.offsetWidth;
       if (t.countdown) this.countdown.classList.add('pop');
     }
+    this.tip.innerHTML = t.tip ?? '';
+    this.tip.hidden = !t.tip;
     this.info.innerHTML = [t.lap, t.place].filter(Boolean).map((s) => `<span>${s}</span>`).join('');
     this.info.hidden = !t.lap && !t.place;
     this.banner.textContent = t.banner ?? '';

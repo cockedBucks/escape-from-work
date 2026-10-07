@@ -1,4 +1,7 @@
 import {
+  applyRocketStarts,
+  trackCountdownGas,
+  type RocketTracker,
   NO_INPUT,
   Rng,
   createChaos,
@@ -613,6 +616,9 @@ export class RaceSim {
   /** The merged input each car used in the last tick (by car id). */
   lastInputs: Readonly<Record<string, CarInput>> = {};
 
+  /** Rocket start (P13.3): when each car's gas went down in this countdown. */
+  private rocket: RocketTracker = new Map();
+
   /** One fixed sim tick. */
   tick(): SimEvent[] {
     const inputs: Record<string, CarInput> = {};
@@ -620,7 +626,10 @@ export class RaceSim {
     // During the countdown everyone waits on the grid: controls are ignored.
     const live = inputsAllowed(this.flow.phase);
     for (const slot of usedSlots(seating)) {
-      inputs[carIdForSlot(slot)] = live ? this.carInput(slot, seating) : NO_INPUT;
+      const wanted = this.carInput(slot, seating);
+      inputs[carIdForSlot(slot)] = live ? wanted : NO_INPUT;
+      // The car waits on the grid, but the Engineer's gas timing counts (rocket start).
+      if (this.flow.phase === 'countdown') trackCountdownGas(this.rocket, carIdForSlot(slot), wanted.gas, this.world.tick);
       // One player driving alone: the optional solo handicap applies (solo.speedMultiplier).
       const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
       if (car) car.solo = occupants(seating, slot).some((s) => s.connected && effectiveRole(seating, s.id) === 'solo');
@@ -677,8 +686,14 @@ export class RaceSim {
       this.endRequested = false;
     }
     const changed = stepFlow(this.flow, tick, race, sim.dt, over);
+    if (this.flow.phase !== 'countdown' && changed !== 'racing') this.rocket.clear();
     if (changed === 'racing') {
-      // GO: the race clock starts now.
+      // GO: the race clock starts now. Rocket starts and flooded engines too.
+      const botSkill = new Map([...this.botSlots].flatMap((slot) => {
+        const memory = this.botMemory.get(slot);
+        return memory ? [[carIdForSlot(slot), memory.skill] as const] : [];
+      }));
+      events.push(...applyRocketStarts(this.world.cars, this.rocket, tick, this.cfg, botSkill));
       this.run = newRun(this.world.cars.map((c) => c.id), this.flow.laps, tick);
       this.battle = this.mode === 'battle' ? newBattle(this.world.cars.map((c) => c.id), this.cfg.battle, tick) : null;
       this.counts = newCounts(this.world.cars.map((c) => c.id));

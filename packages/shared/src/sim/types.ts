@@ -122,6 +122,9 @@ export type SimEvent =
   | { type: 'respawn'; car: string; gate: number }
   | { type: 'honk'; car: string }
   | { type: 'stall'; car: string }
+  /** At GO: a perfectly timed gas (boost), or gas held far too early (the engine floods, P13.3). */
+  | { type: 'rocketStart'; car: string }
+  | { type: 'flooded'; car: string }
   /** A drift began (the kart hops into it): `dir` -1 left / +1 right. */
   | { type: 'driftStart'; car: string; dir: number }
   | { type: 'driftLevel'; car: string; level: number }

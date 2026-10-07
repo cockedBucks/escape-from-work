@@ -124,7 +124,9 @@ Arcade, not simulation. Fast acceleration, strong grip, small slides, big forgiv
 - Default 3 laps, about 45 s per lap, about 2.5 min per race. Laps are configurable.
 - Staggered 2-wide grid, up to 8 cars. Grid order: random for the first race, then reverse
   of the previous result (leaders start at the back).
-- Countdown: "3… 2… 1… CLOCK OUT!"
+- Countdown: "3… 2… 1… CLOCK OUT!" **Rocket start** (P13.3): the Engineer (or Solo) hits the gas on
+  "1" (the last half second) and still holds it at GO = a boost off the line. Holding the gas since
+  "3" floods the engine: a 1 s sputter with smoke. Anything in between is a normal start.
 - Laps count by passing sector checkpoints in order (no shortcut cheating across the infield).
 - Positions update live. Wrong-way warning when driving backwards for a few seconds.
 - When the winner finishes, everyone else has 30 s (configurable) to finish, then DNF.

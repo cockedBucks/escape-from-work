@@ -487,6 +487,18 @@ body {
   white-space: nowrap;
 }
 
+.hud-tip {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0.08em 0.08em 0 var(--ui-dark);
+  white-space: nowrap;
+}
+
 .hud-countdown.pop {
   animation: hud-pop 0.45s ease-out;
 }

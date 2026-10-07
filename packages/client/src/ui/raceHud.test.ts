@@ -31,8 +31,14 @@ describe('race HUD text', () => {
   });
 
   it('nothing race-related in the lobby or while watching', () => {
-    expect(hudText(base({ phase: 'lobby' }))).toEqual({ countdown: null, lap: null, place: null, banner: null, wrongWay: false });
+    expect(hudText(base({ phase: 'lobby' }))).toEqual({ countdown: null, tip: null, lap: null, place: null, banner: null, wrongWay: false });
     expect(hudText(base({ me: null })).lap).toBeNull();
+  });
+
+  it('the rocket-start tip shows in the countdown, only to whoever has the gas (P13.3)', () => {
+    expect(hudText(base({ phase: 'countdown', tick: 0, gasRole: true })).tip).toMatch(/ROCKET/);
+    expect(hudText(base({ phase: 'countdown', tick: 0, gasRole: false })).tip).toBeNull();
+    expect(hudText(base({ phase: 'racing', gasRole: true })).tip).toBeNull();
   });
 
   it('ordinals', () => {

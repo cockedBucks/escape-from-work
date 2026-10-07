@@ -373,12 +373,13 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | can turn your head too far / not far enough, head snaps back | `camera.headYawLimit`, `camera.headPitchLimit`, `camera.headRecenterRate` |
 | cockpit too shaky / too stiff on bumps (motion sickness!) | `camera.headBob` (0 = off), `camera.headBobStiffness` |
 | a car too strong | car `stats` and `statRange` (cars.json, all stats 0.92–1.08); `lapSpread` = balance test limit (±3%) |
-| drifting hard to start (P5) | `drift.minSteer`, `drift.minSpeedRatio`, `drift.brakeTapMaxMs` |
+| drifting hard to start / picks the wrong side (P13.2) | `drift.minSpeedRatio`, `drift.steerPick`, `drift.autoLookAhead`, `drift.autoMinCurvature` |
+| Space-only drifts hit walls / feel on rails | `drift.assist` (false = no road-following), `bot.steerGain`, `bot.lookAheadBase`, `bot.lookAheadTime` (the assist uses the bots' aim) |
 | drift too slidey / too grippy / turns too little | `car.driftGrip`, `drift.turnRate`, `drift.steerBase`, `drift.steerRange`, `drift.carve` |
-| drift ends too easily / never ends | `drift.releaseSteer`, `drift.exitSpeedRatio` |
+| drift ends too easily (too slow) | `drift.exitSpeedRatio` (letting go of Space always ends it) |
 | spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
 | overheating too fast / never (P5) | `heat.nitroRisePerSec` (the main source), `heat.coolOnGasPerSec`, `heat.coolPerSec`; optional gas heat: `heat.risePerSec` (0 = off), `heat.hotSpeedFraction` |
-| drift ends too easily on a quick key tap | `drift.releaseMs` (how long steering must stay straight), `drift.brakeTapMaxMs` |
+| rocket start too easy / too hard / too strong (P13.3) | `rocket.windowSeconds`, `rocket.floodSeconds`, `rocket.boostSeconds`, `rocket.floodStallSeconds`, `rocket.botSkill` |
 | nitro too weak / too strong / runs out too fast | `nitro.accel`, `nitro.topSpeed`, `nitro.burnPerSec` |
 | swap lane never worth it / always worth it | `car.swapLaneSpeed` (top-speed share inside the lane), zone `minLap`, `from`/`to` (track file) |
 | solo players too strong / too weak vs duos | `solo.speedMultiplier` (1 = no handicap) |
@@ -391,11 +392,12 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | stalls too long / restart too hot | `heat.stallSeconds`, `heat.restartHeat` |
 | bots overheat / waste speed cooling (moves golden lap windows!) | `bot.heatLiftAt`, `bot.driftHeatLiftAt` |
 | server/network bots too good / too plain | `bot.skill` (0 plain, 1 drifts, 2 drifts + nitro) |
-| skilled bots drift too much / too little / crash in drifts | `bot.driftMinCurvature`, `bot.driftLookAhead`, `bot.driftHoldAhead` |
+| skilled bots drift too much / too little / crash in drifts | `bot.driftMinCurvature`, `bot.driftLookAhead`, `bot.driftHoldAhead`, `bot.driftHoldCurvature` (keep it below the start curvature, or drifts flicker) |
 | skilled bots waste nitro / overheat with it | `bot.nitroMaxHeat` |
 | bots waste items / never fire them | `bot.itemAimCone`, `bot.itemAimRange`, `bot.itemDropRange` |
 | teamwork pays too much / too little (balance test fails) | `bot.balanceGain` [min, max] share of race time; tune drift/nitro, not the test |
 | laggy | `net.patchRateMs`, `net.interpDelayMs`, `net.predictMaxMs` (0 = prediction off, to compare) |
+| other cars stutter / freeze and jump on Wi-Fi (P13.1) | `net.interpDelayMaxMs`, `net.interpMarginMs`, `net.interpWindow`, `net.interpGrowPerSec`, `net.interpShrinkPerSec`, `net.extrapolateMaxMs`; F3 shows jitter and late frames |
 | own car shimmers / snaps after bumps | `net.predictCorrectionRate` (lower = softer corrections) |
 | players lose their seat after a Wi-Fi blip | `net.reconnectSeconds` |
 | teammate's head turns choppy / too much network | `net.headSendMs`, `net.headRatePerSec`, `net.headBurst` |

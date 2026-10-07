@@ -30,7 +30,7 @@ tricks fill the nitro meter). **Solo**: Space drifts/tricks, **E** uses items.
 - [x] **P13.2 Kart drift on Space.** `drift` input (Pilot / Solo), hold to drift: direction from
   your steering or the bend ahead, steering only adjusts tight/wide, auto-follow when no key is
   held, three mini-turbo levels, release = boost + nitro. Visual hop, solo items on E, bots, pad.
-- [ ] **P13.3 Rocket start.** Engineer (or Solo) presses gas in the last moment before "CLOCK
+- [x] **P13.3 Rocket start.** Engineer (or Solo) presses gas in the last moment before "CLOCK
   OUT!": boost; too early: the engine floods (short sputter). Bots by skill. HUD + sound.
 - [ ] **P13.4 Slipstream.** Close behind a rival at speed: wind lines charge, then a boost.
 - [ ] **P13.5 Jump tricks.** Space in the air (Pilot / Solo): the car flips; landing = boost.

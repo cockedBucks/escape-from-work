@@ -6,8 +6,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Now
 - Phase: P13 — Smooth online play + kart fun pass (`docs/phases/P13-fun-pass.md`), the human's request
   of 2026-10-07 after the first real test (friend saw lag; drift on Space; more fun mechanics).
-- Next task: P13.3 Rocket start.
-- Status: P13.1 (smooth online play, D129) and P13.2 (kart drift on Space, D130) done; /shots batched at P13.7. `npm run verify` passes.
+- Next task: P13.4 Slipstream.
+- Status: P13.1 (smooth online play, D129) P13.2 (kart drift on Space, D130), P13.3 (rocket start, D131) done; /shots batched at P13.7. `npm run verify` passes.
 
 ## P12 phase report (cloud, 2026-10-07)
 - Works: HOST (name, track, mode, laps, bots, chaos) and JOIN (live list of every game on the
