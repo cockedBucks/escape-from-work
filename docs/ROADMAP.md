@@ -44,6 +44,6 @@ same task that changed the code.
 
 ## Later ideas (not scheduled)
 
-Built in P11 (2026-10-07): ghost of your best lap, photo-finish replay, battle arena mode,
+Built in P11 (2026-10-07): ghost of your best lap (removed again 2026-10-07, D136), photo-finish replay, battle arena mode,
 seasonal track decorations, phones as controllers, Arabic UI translation.
 Still open: a public internet server (needs hosting the human chooses; see P11).

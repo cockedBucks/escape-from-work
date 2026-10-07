@@ -206,20 +206,19 @@ export class SettingsScreen {
     const volumes = volumeSliders(this.h.volumes, (v) => this.h.onVolumes(v));
     this.refreshVolumes = volumes.refresh;
     const fpsLabel = this.checkbox('showFps', t('settings.fps'));
-    const ghostLabel = this.checkbox('ghost', t('settings.ghost'));
     page.append(
       section(t('settings.language'), language, langNote, langReload),
       section(t('settings.quality'), quality, qualityNote, reload),
       section(t('settings.sound'), volumes.el),
       section(t('settings.camera'), camera),
-      section(t('settings.screen'), fpsLabel, ghostLabel),
+      section(t('settings.screen'), fpsLabel),
       section(t('settings.decorations'), decor, decorNote, decorReload),
     );
     return page;
   }
 
   /** A checkbox for an on/off setting, saved when clicked. */
-  private checkbox(key: 'showFps' | 'ghost', text: string): HTMLElement {
+  private checkbox(key: 'showFps', text: string): HTMLElement {
     const label = document.createElement('label');
     label.className = 'check';
     const box = document.createElement('input');

@@ -72,7 +72,7 @@ escape-from-work/
       ui/              menu, lobby, hud, results, settings, overlays (blue screen…)
       i18n/            UI strings: en.ts (every string), ar.ts (Arabic, type-checked complete), t() (P11.4)
       pad/             phone controller page (?pad): seat list, touch buttons → the same input messages (P11.5)
-      ghost/ replay/   ghost of your best lap (P11.1), photo-finish recorder and replay (P11.2)
+      replay/          photo-finish recorder and replay (P11.2)
       audio/           procedural Web Audio: engine, horns, sfx
       debug/           F3 overlay, F2 tuning panel (dev)
       test-hooks.ts    ?scenario= handling + window.__game
@@ -429,8 +429,6 @@ it is ignored (clients may send everything). Respawn: any player in the car.
   `league.awards` rules), broadcasts it (`race:record`, for the results screen) and saves it.
   No database server and no native modules, so it installs on Windows without build tools.
 - Player name and settings: browser `localStorage` (wrapped in try/catch).
-- Ghost of your best lap (P11.1): browser `localStorage` `efw.ghost.<track>` (`packages/client/src/ghost/`):
-  the drawn path of your fastest lap there at 20 Hz (~30 KB). Client only; the server never sees it.
 
 ## 9. Test hooks (for agents)
 

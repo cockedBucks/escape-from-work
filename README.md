@@ -42,9 +42,9 @@ lap 2) trades seats and cools it. Too much nitro and the engine stalls for 2 s.
 
 **No second laptop?** Open the same address on a phone and press **📱 Use this phone as a
 controller** (or add `?pad` to the address). Pick your seat: you get big touch buttons for your
-role (Pilot: ◀ ▶; Engineer: gas, brake, nitro, item) and watch the race on your teammate's laptop.
+role (Pilot: ◀ ▶ and DRIFT; Engineer: gas, brake, nitro, item) and watch the race on your teammate's laptop.
 
-**Extras** (Settings ⚙): race the see-through **ghost** of your best lap, holiday **decorations**
+**Extras** (Settings ⚙): holiday **decorations**
 (Ramadan, Eid, Halloween, winter snow), and the whole game in **العربية** (Language). A close
 finish gets a slow-motion **photo finish** replay.
 

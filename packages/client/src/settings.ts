@@ -11,15 +11,13 @@ export const QUALITY_SETTINGS = ['auto', 'low', 'medium', 'high'] as const satis
 export interface Settings {
   quality: QualitySetting;
   showFps: boolean;
-  /** Race the ghost of your best lap on this track (P11.1). */
-  ghost: boolean;
   /** Seasonal decorations (P11.3): 'auto' (on the holiday dates), 'off', or a season id. */
   decor: string;
   /** UI language (P11.4): 'auto' follows the browser. */
   lang: LangSetting;
 }
 
-export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, ghost: true, decor: 'auto', lang: 'auto' };
+export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, decor: 'auto', lang: 'auto' };
 
 const KEY = 'efw.settings';
 
@@ -33,10 +31,9 @@ export function parseSettings(raw: string | null): Settings {
   }
   const quality = (QUALITY_SETTINGS as readonly unknown[]).includes(data.quality) ? (data.quality as QualitySetting) : DEFAULT_SETTINGS.quality;
   const showFps = typeof data.showFps === 'boolean' ? data.showFps : DEFAULT_SETTINGS.showFps;
-  const ghost = typeof data.ghost === 'boolean' ? data.ghost : DEFAULT_SETTINGS.ghost;
   const decor = typeof data.decor === 'string' && /^[a-z0-9-]{1,32}$/.test(data.decor) ? data.decor : DEFAULT_SETTINGS.decor;
   const lang = (LANG_SETTINGS as readonly unknown[]).includes(data.lang) ? (data.lang as LangSetting) : DEFAULT_SETTINGS.lang;
-  return { quality, showFps, ghost, decor, lang };
+  return { quality, showFps, decor, lang };
 }
 
 export function loadSettings(): Settings {

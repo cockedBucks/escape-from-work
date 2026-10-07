@@ -63,7 +63,6 @@ split-control networking end to end. Bots also fill empty cars in real races.
 |---|---|
 | `hello` | Phase 0 player-count page |
 | `chase` | 4-bot race on the test track (or `&track=<id>`), run locally with the shared sim and frozen at 6 s; chase cam behind car 1 |
-| `ghost` | same frozen race in chase view, with the see-through ghost of your best lap 8 m ahead and to the right of car 1 (P11.1) |
 | `photo` | photo finish: a recorded clip of 4 cars through the finish line played by the real replay, held where car 1 and 2 cross nose to nose, from the photo-finish camera, with the "PHOTO FINISH!" banner (P11.2) |
 | `pad` | the phone controller (P11.5) as the Engineer mid-race: status line and the big touch buttons; shot on a landscape phone (844×390, touch) |
 | `juice` | same frozen race in chase view: confetti over car 1 (its finish), its body squashed by a landing, and a HONK! bubble over it (P7.6) |

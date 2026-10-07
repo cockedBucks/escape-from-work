@@ -46,8 +46,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
 - P11 extras (built in the cloud 2026-10-07; each can be turned off):
-  1. Ghost: race 2+ laps on one track; from your next lap a see-through car drives your best lap.
-     Reply: helpful or distracting? (Settings → Screen → ghost checkbox.)
+  1. (Ghost of your best lap: removed 2026-10-07 at the human's request, D136.)
   2. Photo finish: finish close behind/ahead of another car (or watch bots: many cars, 1 lap).
      Reply: is the slow-motion replay fun, too long, or confusing?
   3. Decorations: Settings → Decorations → try Ramadan, Eid, Halloween, Winter on a track.

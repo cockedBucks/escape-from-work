@@ -23,9 +23,7 @@ import { CAMERA_NEAR, createStage, type Stage } from './render/renderer';
 import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
 import { focusPose, liveStats, otherPose } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
-import { LapGhostMesh } from './render/lapGhost';
 import { Snowfall, buildDecorations, type PlacedDecor } from './render/decorations';
-import type { GhostPose } from './ghost/ghostLap';
 import { sampleClip, type ReplayClip } from './replay/photoFinish';
 
 /** Where car states come from: the server (interpolated) or a local scenario sim. */
@@ -69,8 +67,6 @@ export interface GameOptions {
   decorations?: { placed: readonly PlacedDecor[]; snow: boolean };
   /** Every live frame's cars as drawn (the photo-finish recorder keeps the last seconds). */
   recordCars?: (now: number, cars: ReadonlyMap<string, CarSnap>) => void;
-  /** The ghost of your best lap at client time `now` (P11.1); null = none to draw. */
-  lapGhost?: (now: number) => { look: CarLook; pose: GhostPose } | null;
 }
 
 /** A player in a seat: their face, where they look (synced), and whether it is you. */
@@ -146,7 +142,6 @@ export class Game {
   private readonly speedLines: SpeedLines;
   private readonly itemProps: ItemProps;
   private readonly weather: Weather;
-  private readonly lapGhost: LapGhostMesh;
   private readonly decor: { group: THREE.Group; dispose(): void } | null = null;
   private readonly snow: Snowfall | null = null;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
@@ -183,7 +178,6 @@ export class Game {
     this.itemProps = new ItemProps(buildBoxes(opts.track));
     this.weather = new Weather(this.stage.scene.fog as THREE.Fog, this.stage.scene.background as THREE.Color, opts.track.def.sandstorm);
     this.stage.scene.add(this.itemProps.group);
-    this.lapGhost = new LapGhostMesh(this.stage.scene);
     if (opts.decorations && opts.decorations.placed.length > 0) {
       this.decor = buildDecorations(opts.decorations.placed);
       this.stage.scene.add(this.decor.group);
@@ -334,8 +328,6 @@ export class Game {
     if (!this.replay) this.opts.recordCars?.(now, this.snaps);
     const replay = this.stepReplay(now);
     this.syncCars(dt);
-    const ghost = replay ? null : (this.opts.lapGhost?.(now) ?? null);
-    this.lapGhost.update(ghost?.look ?? null, ghost?.pose ?? null, dt);
     this.heads.sweep();
     this.smoke.update(now, dt, this.snaps);
     this.sparks.update(now, dt, this.snaps);
@@ -555,7 +547,6 @@ export class Game {
     this.sparks.dispose();
     this.speedLines.dispose();
     this.itemProps.dispose();
-    this.lapGhost.dispose();
     this.decor?.dispose();
     this.snow?.dispose();
     this.dashScreen?.dispose();
