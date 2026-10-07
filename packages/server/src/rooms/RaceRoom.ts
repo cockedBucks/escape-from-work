@@ -3,6 +3,7 @@ import { Room, type Client } from '@colyseus/core';
 import {
   BotsSchema,
   ChaosSchema,
+  ModeSchema,
   SetCarSchema,
   MSG,
   NAME_MAX_LENGTH,
@@ -183,12 +184,24 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       this.state.chaos = this.sim.chaos;
     });
 
+    this.onMessage(MSG.hostMode, (client, message: unknown) => {
+      if (!this.limits.get(client.sessionId)?.lobby.take()) return;
+      const msg = ModeSchema.safeParse(message);
+      if (!msg.success) return this.refuse(client, 'bad mode request');
+      const problem = this.sim.setMode(client.sessionId, msg.data.mode);
+      if (problem) return this.refuse(client, problem);
+      this.state.mode = this.sim.mode;
+      this.state.chaos = this.sim.chaos;
+    });
+
     this.onMessage(MSG.hostStart, (client) => {
       if (!this.limits.get(client.sessionId)?.lobby.take()) return;
       const problem = this.sim.startRace(client.sessionId);
       if (problem) return this.refuse(client, problem);
       this.syncPlayers(); // ready flags reset
-      console.log(`[room] race start (${this.sim.world.cars.length} cars, ${this.sim.flow.laps} laps)`);
+      console.log(this.sim.mode === 'battle'
+        ? `[room] battle start (${this.sim.world.cars.length} cars, ${this.tuning.battle.lives} lives)`
+        : `[room] race start (${this.sim.world.cars.length} cars, ${this.sim.flow.laps} laps)`);
     });
 
     this.onMessage(MSG.hostLaps, (client, message: unknown) => {
@@ -268,7 +281,8 @@ export class RaceRoom extends Room<{ state: RaceState }> {
    */
   private recordRace(): void {
     const results = this.sim.lastResults;
-    if (!results) return;
+    // A battle is not a league race (no lap times, no finish): nothing to score or keep.
+    if (!results || this.sim.mode === 'battle') return;
     const players = [...this.state.players.entries()].map(([id, p]) => ({ name: p.name, slot: p.slot, seat: p.seat, bot: this.botClients.has(id) }));
     const record = raceRecord({
       at: localIso(new Date()),
@@ -473,6 +487,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     this.state.phaseTick = flow.phaseTick;
     this.state.host = flow.host ?? '';
     this.state.laps = flow.laps;
+    this.state.mode = this.sim.mode;
     this.syncChaos(world);
     // Input echo: sent with the same patch as the motion it caused.
     this.state.players.forEach((view, id) => {
@@ -516,6 +531,9 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       view.inNitro = input?.nitro ?? false;
       view.respawning = car.respawnAtTick >= 0;
       view.ghost = car.ghostUntilTick > world.tick;
+      const fight = this.sim.carBattle(car.id);
+      view.lives = fight?.lives ?? 0;
+      view.out = fight?.out ?? false;
       view.heat = car.heat;
       view.stallLeft = car.stallUntilTick > world.tick ? (car.stallUntilTick - world.tick) * this.tuning.sim.dt : 0;
       view.drift = car.driftDir;

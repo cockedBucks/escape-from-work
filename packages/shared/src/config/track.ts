@@ -116,6 +116,8 @@ export const TrackSchema = z
     branches: z.array(BranchSchema).default([]),
     /** Dev-only track (greybox): `track:check` skips the lap-time target. */
     dev: z.boolean().default(false),
+    /** A small arena made for battle mode (P11.6): short laps, so `track:check` skips the lap-time target. */
+    battle: z.boolean().default(false),
     /** A sandstorm (thick fog) for one whole lap: while the race leader is on lap `lap`. */
     sandstorm: z
       .strictObject({

@@ -258,6 +258,21 @@ export const EN = {
   'pad.honk': 'HONK',
   'pad.respawn': 'RESPAWN',
   'pad.speed': '{n} km/h',
+
+  // Battle mode (P11.6)
+  'mode.race': '🏁 Race',
+  'mode.battle': '💥 Battle',
+  'mode.title': 'Race (laps) or Battle (lives: last car standing)',
+  'lobby.battleRules': '❤ ×{lives} · {minutes} min · item hits take a life',
+  'lobby.waitingBattle': 'Battle · waiting for <strong>{host}</strong> to start',
+  'hud.lives': 'LIVES {hearts}',
+  'hud.out': '💥 OUT! Watch the rest',
+  'hud.lastStanding': '🏆 LAST CAR STANDING!',
+  'board.lives': 'Lives',
+  'board.out': 'OUT',
+  'toast.out': '💥 <b>{team}</b> is out!',
+  'toast.youOut': '💥 You are out! Watch the rest.',
+  'results.battleTitle': 'Battle results — last car standing!',
 } as const;
 
 export type StringKey = keyof typeof EN;

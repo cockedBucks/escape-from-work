@@ -170,6 +170,7 @@ installed types for the API. Anything not on this list → ask the human first.
   Ramps may look like sand dunes or black chips (`look: "dune"` / `"chip"`), slicks like ice
   (`look: "ice"`). The road color follows the track `theme` (copper traces on `motherboard`).
 - `dev: true` marks a greybox track (Test Loop): `track:check` skips its lap-time target.
+  `battle: true` marks a small battle arena (The Break Room): offered in the picker, no lap target.
 - `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, branches
   ≥ `track.branchMinWidth`, no curve tighter than half the road width, no crossing walls, each
   branch shorter than what it skips and off the main road between its junctions), then bot laps:
@@ -278,7 +279,8 @@ seated car) puts cars on the grid and starts the countdown, during which control
 `host:lobby` (after results), `host:track {id}` (P10.0: a valid non-dev track; the server loads
 it, syncs `state.track` and sends `reload {reason:'track'}`; pages reload into it with their seats
 held, the host keeps host over the reload, and a page whose track differs from `state.track`
-reloads itself). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
+reloads itself), `host:mode {mode}` (P11.6: `'race' | 'battle'`, between races; synced as
+`state.mode`, with per-car `lives` / `out` in a battle). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
 `race.maxSpectators`.
 Disconnects (P2.4): an unplanned drop (`onDrop`: Wi-Fi blip, closed or reloaded tab) keeps the
 seat for `net.reconnectSeconds`; the player shows as away and their partner drives solo. The
@@ -344,6 +346,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | too few / too many bot cars | `race.botFillCars` (bots fill empty cars up to this many cars) |
 | stragglers wait too long / get cut off | `race.finishWindowSeconds` |
 | a race nobody finishes ends too soon / late | `race.maxRaceSeconds` (host can also press End race) |
+| battles too short / too long | `battle.lives`, `battle.hitGraceSeconds`, `battle.timeLimitSeconds` (P11.6) |
 | wrong-way warning too eager / too late | `race.wrongWaySeconds`, `race.wrongWayMinSpeed` |
 | races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |
 | name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |

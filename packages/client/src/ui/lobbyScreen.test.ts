@@ -115,3 +115,19 @@ describe('track line (P10.0)', () => {
     expect(trackHtml(base({}))).toBe('');
   });
 });
+
+describe('lobby battle switch (P11.6)', () => {
+  it('the host switches Race ↔ Battle; a battle shows its rules instead of laps and no chaos switch', () => {
+    const race = lobbyHtml(base(), limits);
+    expect(race).toContain('data-action="mode"');
+    expect(race).toContain('data-action="laps-up"');
+    const battle = lobbyHtml(base({ mode: 'battle', battle: { lives: 3, minutes: 2.5 } }), limits);
+    expect(battle).toContain('Battle');
+    expect(battle).toContain('×3');
+    expect(battle).not.toContain('data-action="laps-up"');
+    expect(battle).not.toContain('data-action="chaos"');
+    const guest = lobbyHtml(base({ mode: 'battle', host: 'b' }), limits);
+    expect(guest).toContain('Battle · waiting for');
+    expect(guest).not.toContain('data-action="mode"');
+  });
+});

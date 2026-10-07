@@ -27,7 +27,7 @@ Left in "Later ideas" for the human to decide.
 - [x] **P11.5 Phones as controllers.** A phone opens the same URL and becomes a controller: pick a
   car and seat, then big touch buttons for that role (the teammate's laptop shows the race). Two
   people can share one laptop.
-- [ ] **P11.6 Battle mode.** Host picks Race or Battle. Battle: every car has 3 lives, item hits take
+- [x] **P11.6 Battle mode.** Host picks Race or Battle. Battle: every car has 3 lives, item hits take
   one, last car standing (or most lives at the time limit) wins. A small arena track. Bots play it.
   Battle results are not league races.
 - [ ] **P11.7 Final sweep.** All shots, all tracks, load + soak, reviewer on `p10-done..HEAD`, fixes,

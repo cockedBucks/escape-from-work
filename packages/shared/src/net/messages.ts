@@ -3,6 +3,7 @@ import { clamp } from '../util/math';
 import { TEAM_NAME_MAX_LENGTH } from '../config/teams';
 import { SEATS } from '../race/seats';
 import type { CarInput } from '../sim/types';
+import { RACE_MODES } from '../race/battle';
 
 /** Message type names, shared by client and server so they cannot drift apart. */
 export const MSG = {
@@ -38,6 +39,8 @@ export const MSG = {
   hostBots: 'host:bots',
   /** client (host) → server: `{ on }` chaos mode (item boxes and items). */
   hostChaos: 'host:chaos',
+  /** client (host) → server: `{ mode }` Race or Battle for the next race (P11.6). */
+  hostMode: 'host:mode',
   /** client (host) → server: start the race / rematch. */
   hostStart: 'host:start',
   /** client (host) → server: `{ laps }` for the next race. */
@@ -146,6 +149,8 @@ export const ReadySchema = z.strictObject({ ready: z.boolean() });
 export const BotsSchema = z.strictObject({ on: z.boolean() });
 /** `host:chaos` body: chaos mode on/off. */
 export const ChaosSchema = z.strictObject({ on: z.boolean() });
+/** `host:mode` body: Race or Battle. */
+export const ModeSchema = z.strictObject({ mode: z.enum(RACE_MODES) });
 
 /** `head` (client → server, ~20/s in the cockpit): where your head points, relative to the car. */
 export const HeadSchema = z.strictObject({

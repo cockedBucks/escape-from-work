@@ -394,6 +394,16 @@ body {
   font-size: 1.3rem;
 }
 
+/* Battle (P11.6): the host's Race / Battle switch and, in Battle, the rules instead of laps. */
+.host-controls .mode.on {
+  background: var(--red);
+  color: #fff;
+}
+
+.battle-rules {
+  font-weight: 600;
+}
+
 .lobby-actions .watch {
   grid-column: auto;
 }

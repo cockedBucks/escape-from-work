@@ -5,9 +5,10 @@ import { lobbyHtml } from './lobbyScreen';
 // Guard: an unstyled UI piece can break the whole screen (unstyled face photos once pushed the
 // lobby seats off-screen). Every class the lobby HTML uses must exist in the stylesheet.
 describe('stylesheet covers the lobby', () => {
-  it('has a rule for every class in the lobby HTML', () => {
+  it.each(['race', 'battle'])('has a rule for every class in the lobby HTML (%s)', (mode) => {
     const html = lobbyHtml(
       {
+        mode,
         players: [{ id: 'me', name: 'Me', slot: 0, seat: 'pilot', connected: true, ready: true, face: 'a.png' }],
         myId: 'me', host: 'me', phase: 'lobby', laps: 3, teams: ['T'], bots: true, botSlots: [1],
         faces: [{ file: 'a.png', name: 'a' }],

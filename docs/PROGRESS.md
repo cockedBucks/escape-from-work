@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P11 — Extras after v1.0 (`docs/phases/P11-extras.md`), human's request 2026-10-07 (D117).
-- Next task: P11.6 Battle mode
+- Next task: P11.7 Final sweep
 - Status: v1.0 done (P0–P10 + P10.8 fixes). `npm run verify` passes (524 tests + bot race).
 
 ## Half-done
@@ -157,6 +157,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-07 (cloud): P11.5 Phone controller — `?pad` (menu button on touch screens): seat list, big touch
   buttons per role, status line, buzz on hits; same input messages (no server change); checked live
   in a phone-sized browser (holding GAS drove the car). Scenario `pad`. D122.
+- 2026-10-07 (cloud): P11.6 Battle mode — host 🏁 Race / 💥 Battle, 3 lives, item hits take one (2 s grace),
+  last car standing or most lives at 2.5 min, out cars see-through; lives in HUD/scoreboard/results/pad;
+  not a league race; new arena track The Break Room (`battle: true`, ~22 s laps). A real 4-bot battle
+  in the browser ended in 116 s. D123.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -65,3 +65,20 @@ describe('results', () => {
     expect(podiumHtml(view({ cars: [{ slot: 0, place: 1, finished: false, dnf: true, finishMs: 0, bestLapMs: 0, bot: false }] }))).toBe('');
   });
 });
+
+describe('battle results (P11.6)', () => {
+  it('lives (or OUT) instead of times, no best-lap column, a podium of the top three', () => {
+    const v = view({
+      mode: 'battle',
+      cars: [
+        { slot: 0, place: 1, finished: false, dnf: false, finishMs: 0, bestLapMs: 0, bot: false, lives: 2, out: false },
+        { slot: 1, place: 2, finished: false, dnf: true, finishMs: 0, bestLapMs: 0, bot: false, lives: 0, out: true },
+      ],
+    });
+    const html = resultsHtml(v);
+    expect(html).toContain('❤❤');
+    expect(html).toContain('OUT');
+    expect(html).not.toContain('Best lap');
+    expect(podiumHtml(v)).toContain('Ctrl Freaks');
+  });
+});

@@ -20,6 +20,7 @@ interface StateView {
   phase?: string;
   host?: string;
   track?: string;
+  mode?: string;
 }
 
 describe('race room (real server, real clients)', () => {
@@ -91,6 +92,21 @@ describe('race room (real server, real clients)', () => {
     await waitForState(room, (s) => s.players?.get(room.sessionId)?.ackSeq === 2, 'input seq 2 echoed');
 
     await room.leave();
+  });
+
+  it('only the host switches Race ↔ Battle, and everyone sees it (P11.6)', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId && s.mode === 'race', 'A is host, race mode');
+    const byB = new Promise<LobbyError>((resolve) => b.onMessage(MSG.lobbyError, resolve));
+    b.send(MSG.hostMode, { mode: 'battle' });
+    expect((await byB).reason).toMatch(/only the host/);
+    a.send(MSG.hostMode, { mode: 'battle' });
+    await waitForState(b, (s) => s.mode === 'battle', 'B sees battle mode');
+    a.send(MSG.hostMode, { mode: 'race' });
+    await waitForState(b, (s) => s.mode === 'race', 'back to race mode');
+    await b.leave();
+    await a.leave();
   });
 
   it('tells everyone the track; only the host may pick one, and only a real one (P10.0)', async () => {

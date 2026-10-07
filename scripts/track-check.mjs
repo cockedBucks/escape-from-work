@@ -1,7 +1,7 @@
 // npm run track:check -- [track ids...]
 // Validates track files (schema + geometry). With no ids, checks every file in config/tracks/.
 // Then 2 bots drive 3 laps: they must finish without ever needing a respawn (a stuck spot),
-// and (except dev tracks) their median lap must be inside the lap target (tuning track.lapTarget*).
+// and (except dev tracks and battle arenas) their median lap must be inside the lap target (tuning track.lapTarget*).
 // On a track with shortcuts, skilled bots (bot.shortcutSkill) also drive 3 laps through them.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -66,6 +66,7 @@ for (const id of ids) {
         const median = sorted[Math.floor(sorted.length / 2)];
         const { lapTargetMin: lo, lapTargetMax: hi } = tuning.track;
         if (def.dev) summary += ' (dev track: no lap target)';
+        else if (def.battle) summary += ' (battle arena: no lap target)';
         else if (median < lo || median > hi) {
           issues.push(`median bot lap ${median.toFixed(1)} s is outside the ${lo}–${hi} s target`);
         }

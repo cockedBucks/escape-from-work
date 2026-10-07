@@ -53,6 +53,7 @@ finish gets a slow-motion **photo finish** replay.
 | **Server Room** | giant cooling fans that shove you sideways, an icy cold aisle, blinking racks |
 | **Smart Oasis** | desert dune jumps, the Palm Oasis shortcut past the pond, a sandstorm on lap 2 |
 | **Motherboard** | tiny cars on copper traces, jumps over chips between capacitors, a loop around the CPU fan |
+| **The Break Room** | a small arena for **Battle** mode (host: 🏁 Race / 💥 Battle in the lobby): 3 lives, item hits take one, last car standing wins |
 | Test Loop | the greybox test track (dev only, not in the picker) |
 
 Chaos items (host toggle): Reply-All, Firewall, Coffee Spill, Ctrl+Z, Blue Screen, Lag Spike,

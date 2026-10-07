@@ -253,6 +253,16 @@ const RaceSchema = z.strictObject({
   maxCars: z.number().int().min(1).max(8),
 });
 
+/** Battle mode (P11.6, GAME_DESIGN §13): lives instead of laps, last car standing wins. */
+const BattleSchema = z.strictObject({
+  /** Lives per car; an item hit that a Firewall does not block takes one. */
+  lives: z.number().int().min(1).max(9),
+  /** After losing a life a car cannot lose another for this long (s). */
+  hitGraceSeconds: nonNeg(),
+  /** The battle ends after this long (s): most lives left wins. */
+  timeLimitSeconds: pos(),
+});
+
 /** Chase camera feel (client only, but tuned live like everything else). */
 const CameraSchema = z.strictObject({
   /** Vertical field of view (degrees). */
@@ -389,6 +399,7 @@ export const TuningSchema = z.strictObject({
   nitro: NitroSchema,
   solo: SoloSchema,
   race: RaceSchema,
+  battle: BattleSchema,
   net: NetSchema,
   camera: CameraSchema,
   quality: QualitySchema,

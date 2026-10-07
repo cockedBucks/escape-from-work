@@ -39,3 +39,15 @@ describe('race HUD text', () => {
     expect([1, 2, 3, 4, 11, 12, 13, 21, 22].map(ordinal)).toEqual(['1st', '2nd', '3rd', '4th', '11th', '12th', '13th', '21st', '22nd']);
   });
 });
+
+describe('race HUD in a battle (P11.6)', () => {
+  it('lives instead of laps, OUT when knocked out, never wrong way', () => {
+    const live = hudText(base({ mode: 'battle', me: { lapsDone: 0, place: 1, finished: false, dnf: false, wrongWay: true, lives: 2, out: false } }));
+    expect(live.lap).toBe('LIVES ❤❤');
+    expect(live.place).toBe('1st / 4');
+    expect(live.wrongWay).toBe(false);
+    const out = hudText(base({ mode: 'battle', me: { lapsDone: 0, place: 4, finished: false, dnf: false, wrongWay: false, lives: 0, out: true } }));
+    expect(out.lap).toBeNull();
+    expect(out.banner).toMatch(/OUT/);
+  });
+});

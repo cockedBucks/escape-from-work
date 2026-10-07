@@ -36,6 +36,9 @@ export interface LobbyView {
   botSlots: number[];
   /** Faces available on the host (from /faces/faces.json); empty = placeholder only. */
   faces?: { file: string; name: string }[];
+  /** Race or Battle (P11.6), and the battle rules to show; absent = race. */
+  mode?: string;
+  battle?: { lives: number; minutes: number };
   /** The track raced next, and the ones the host may pick (P10.0). */
   track?: string;
   tracks?: readonly { id: string; name: string }[];
@@ -57,6 +60,8 @@ export interface LobbyHandlers {
   setCar(slot: number, car: string): void;
   /** Host: race this track next. */
   setTrack(id: string): void;
+  /** Host: Race or Battle next (P11.6). */
+  setMode(mode: 'race' | 'battle'): void;
 }
 
 export interface LobbyLimits {
@@ -148,18 +153,28 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
     html.push(`<button class="watch" data-action="watch">${t('lobby.watch')}</button>`);
   }
   if (iAmHost) {
-    html.push(`<div class="host-controls"><span class="host-badge">${t('lobby.host')}</span>
-      <span class="laps">${t('lobby.laps')} <button data-action="laps-down" ${v.laps <= limits.minLaps ? 'disabled' : ''}>−</button>
+    const battle = v.mode === 'battle';
+    // Battle: no laps (lives and a time limit instead) and items are always on.
+    const lapsOrRules = battle
+      ? `<span class="battle-rules">${t('lobby.battleRules', { lives: v.battle?.lives ?? 3, minutes: v.battle?.minutes ?? 2.5 })}</span>`
+      : `<span class="laps">${t('lobby.laps')} <button data-action="laps-down" ${v.laps <= limits.minLaps ? 'disabled' : ''}>−</button>
       <strong>${v.laps}</strong>
-      <button data-action="laps-up" ${v.laps >= limits.maxLaps ? 'disabled' : ''}>+</button></span>
+      <button data-action="laps-up" ${v.laps >= limits.maxLaps ? 'disabled' : ''}>+</button></span>`;
+    const chaosBtn = battle
+      ? ''
+      : `<button data-action="chaos" class="${chaos ? 'on' : ''}" title="${t('lobby.chaosTitle')}">${chaos ? t('lobby.chaosOn') : t('lobby.chaosOff')}</button>`;
+    html.push(`<div class="host-controls"><span class="host-badge">${t('lobby.host')}</span>
+      <button data-action="mode" class="mode${battle ? ' on' : ''}" title="${t('mode.title')}">${battle ? t('mode.battle') : t('mode.race')}</button>
+      ${lapsOrRules}
       <button data-action="shuffle">${t('lobby.shuffle')}</button>
       <button data-action="bots" class="${v.bots ? 'on' : ''}">${v.bots ? t('lobby.botsOn') : t('lobby.botsOff')}</button>
-      <button data-action="chaos" class="${chaos ? 'on' : ''}" title="${t('lobby.chaosTitle')}">${chaos ? t('lobby.chaosOn') : t('lobby.chaosOff')}</button>
+      ${chaosBtn}
       <button class="big start" data-action="start">${v.phase === 'results' ? t('lobby.rematch') : t('lobby.start')}</button>
     </div>`);
   } else {
     const host = v.players.find((p) => p.id === v.host);
-    html.push(`<p class="waiting">${t('lobby.waiting', { laps: laps(v.laps), host: escapeHtml(host?.name ?? t('lobby.theHost')) })}</p>`);
+    const hostName = escapeHtml(host?.name ?? t('lobby.theHost'));
+    html.push(`<p class="waiting">${v.mode === 'battle' ? t('lobby.waitingBattle', { host: hostName }) : t('lobby.waiting', { laps: laps(v.laps), host: hostName })}</p>`);
   }
   html.push('</div>');
   return html.join('');
@@ -290,6 +305,7 @@ export class LobbyScreen {
       case 'shuffle': return this.handlers.shuffle();
       case 'bots': return this.handlers.setBots(!v.bots);
       case 'chaos': return this.handlers.setChaos(!(v.chaos ?? true));
+      case 'mode': return this.handlers.setMode(v.mode === 'battle' ? 'race' : 'battle');
       case 'car-prev':
       case 'car-next': {
         const slot = Number(btn.dataset['slot']);

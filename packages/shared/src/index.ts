@@ -64,6 +64,7 @@ export {
   SetNameSchema,
   BotsSchema,
   ChaosSchema,
+  ModeSchema,
   SetCarSchema,
   HeadSchema,
   parseHead,
@@ -132,6 +133,18 @@ export {
   type RaceRun,
   type ResultRow,
 } from './race/rules';
+export {
+  RACE_MODES,
+  applyBattleEvents,
+  battleOver,
+  battleResults,
+  battleStandings,
+  dropBattleCar,
+  isOut,
+  newBattle,
+  type BattleRun,
+  type RaceMode,
+} from './race/battle';
 export {
   emptyLeague,
   LEAGUE_VERSION,

@@ -249,6 +249,20 @@ export const AR: Record<StringKey, string> = {
   'pad.honk': 'بوق',
   'pad.respawn': 'رجوع',
   'pad.speed': '{n} كم/س',
+
+  'mode.race': '🏁 سباق',
+  'mode.battle': '💥 معركة',
+  'mode.title': 'سباق (لفات) أو معركة (أرواح: آخر سيارة صامدة تفوز)',
+  'lobby.battleRules': '❤ ×{lives} · {minutes} دقيقة · كل إصابة بأداة تأخذ روحًا',
+  'lobby.waitingBattle': 'معركة · في انتظار <strong>{host}</strong> لبدء المعركة',
+  'hud.lives': 'الأرواح {hearts}',
+  'hud.out': '💥 خرجت! تفرّج على الباقي',
+  'hud.lastStanding': '🏆 آخر سيارة صامدة!',
+  'board.lives': 'الأرواح',
+  'board.out': 'خرج',
+  'toast.out': '💥 <b>{team}</b> خرج من المعركة!',
+  'toast.youOut': '💥 خرجت من المعركة! تفرّج على الباقي.',
+  'results.battleTitle': 'نتائج المعركة — آخر سيارة صامدة!',
 };
 
 /** Names that come from config files, by id (missing = the config's English name). */
@@ -268,6 +282,7 @@ export const AR_NAMES: Record<string, string> = {
   'track.smart-oasis': 'Smart Oasis',
   'track.motherboard': 'اللوحة الأم',
   'track.test-loop': 'حلبة التجربة',
+  'track.break-room': 'غرفة الاستراحة',
   // Seasons
   'season.ramadan': 'رمضان',
   'season.eid': 'العيد',

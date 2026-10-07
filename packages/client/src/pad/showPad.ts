@@ -61,7 +61,8 @@ export async function showPad(container: HTMLElement, tuning: Tuning): Promise<v
       hud: hudText({
         phase: state.phase, tick: state.tick, phaseTick: state.phaseTick, dt: tuning.sim.dt,
         countdownSeconds: tuning.race.countdownSeconds, laps: state.laps, cars: state.cars.size,
-        me: car ? { lapsDone: car.lapsDone, place: car.place, finished: car.finished, dnf: car.dnf, wrongWay: car.wrongWay } : null,
+        me: car ? { lapsDone: car.lapsDone, place: car.place, finished: car.finished, dnf: car.dnf, wrongWay: car.wrongWay, lives: car.lives, out: car.out } : null,
+        mode: state.mode,
       }),
       car: car ? { speed: car.speed, heat: car.heat, nitro: car.nitro, item: car.item, stalled: car.stallLeft > 0 } : null,
     };

@@ -192,6 +192,9 @@ Lap target 40–55 s.
    event that lowers visibility for a lap.
 5. **Motherboard** (built in P10.3: `motherboard.json`, ~1.4 km, ~52 s): tiny cars on a circuit board, driving on traces, jumps over capacitors,
    a loop around the CPU fan.
+6. **The Break Room** (P11.6: `break-room.json`, ~0.6 km, ~22 s, `battle: true`): a small arena for
+   battle mode — a wide loop with a chicane, a coffee slick, a little jump and four item rows; the
+   office kitchen in the infield. Fine for short races too.
 
 ## 10. League and awards
 
@@ -233,4 +236,8 @@ Lap target 40–55 s.
 - **Seasonal decorations**: holiday props beside the tracks on their dates. Settings → Decorations.
 - **Arabic UI**: every screen in English or Arabic (right-to-left). Settings → Language.
 - **Phones as controllers**: a phone can take a seat and drive with touch buttons.
-- **Battle mode**: 3 lives per car, item hits take one, last car standing wins.
+- **Battle mode**: the host switches 🏁 Race / 💥 Battle in the lobby. Every car has 3 lives
+  (`battle.lives`); an item hit a Firewall does not block takes one, then 2 s of grace. Out =
+  the car rolls to a stop, see-through, and its players watch. Last car standing wins; after
+  `battle.timeLimitSeconds` (2.5 min) the most lives win. Items are always on, laps and wrong-way
+  do not count, and a battle is not a league race. Best on The Break Room, works on any track.

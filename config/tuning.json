@@ -127,6 +127,11 @@
     "maxSpectators": 8,
     "maxCars": 8
   },
+  "battle": {
+    "lives": 3,
+    "hitGraceSeconds": 2,
+    "timeLimitSeconds": 150
+  },
   "net": {
     "port": 2567,
     "patchRateMs": 33,

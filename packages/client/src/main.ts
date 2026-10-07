@@ -267,7 +267,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     const noop = (): void => {};
     const handlers: LobbyHandlers = {
       setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
-      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop, setTrack: noop,
+      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop, setTrack: noop, setMode: noop,
     };
     const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
@@ -387,6 +387,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     start: () => room.send(MSG.hostStart, {}),
     setLaps: (laps) => room.send(MSG.hostLaps, { laps }),
     setTrack: (id) => room.send(MSG.hostTrack, { id }),
+    setMode: (mode) => room.send(MSG.hostMode, { mode }),
     shuffle: () => room.send(MSG.hostShuffle, {}),
     setBots: (on) => room.send(MSG.hostBots, { on }),
     setChaos: (on) => room.send(MSG.hostChaos, { on }),
@@ -441,6 +442,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   /** The ghost racing you this lap (null = none) and when its lap began (client ms). */
   let ghostRun: GhostLap | null = null;
   let ghostLapStart = 0;
+  /** Battle (P11.6): the mode, your car being out, and cars already announced as out. */
+  let battleMode = false;
+  let myOut = false;
+  const outCars = new Set<string>();
   const ghostDraw: { look: CarLook; pose: GhostPose } = { look: loadCars().cars[0]!.look, pose: { x: 0, y: 0, z: 0, yaw: 0 } };
   // Photo finish (P11.2): the last seconds of every car as drawn, replayed when 1st and 2nd are close.
   const replayRec = new ReplayRecorder(race.maxCars, PHOTO.hz, PHOTO.bufferSeconds);
@@ -505,7 +510,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       const lead = liveStats.inputDelayMs ?? liveStats.pingMs ?? 0;
       if (keyboard) keyboard.readInto(localInput);
       // While the server ignores controls (countdown), predicting would make the car creep.
-      predictor.predict(now, localInput, inputsAllowed(phase) ? myRole : null, lead, latestTuning, mine);
+      // Out of a battle the server ignores your keys: predict nothing either.
+      predictor.predict(now, localInput, inputsAllowed(phase) && !myOut ? myRole : null, lead, latestTuning, mine);
       if (ghostRecorder.recording) ghostRecorder.add(now, mine.x, mine.y, mine.z, mine.yaw);
       // Your engine: your own gas key, or your partner's as the server last applied it.
       const gas = (myRole !== null && mayUse(myRole, 'gas') && localInput.gas) || serverGas;
@@ -625,10 +631,18 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       }
       boardCars.push({
         slot: Number(id.slice('car'.length)), place: c.place, lapsDone: c.lapsDone, finished: c.finished,
-        dnf: c.dnf, gapMs: c.gapMs, finishMs: c.finishMs, bestLapMs: c.bestLapMs, bot: c.bot,
+        dnf: c.dnf, gapMs: c.gapMs, finishMs: c.finishMs, bestLapMs: c.bestLapMs, bot: c.bot, lives: c.lives, out: c.out,
       });
+      // Battle: a car just went out (everyone hears it; your own car says so).
+      if (state.phase === 'racing' && c.out && !outCars.has(id)) {
+        outCars.add(id);
+        toasts.show(id === myCarId ? t('toast.youOut') : t('toast.out', { team: escapeHtml(teamNames[Number(id.slice('car'.length))] ?? id) }), id === myCarId ? 'bad' : 'info');
+      }
     });
-    board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase));
+    if (state.phase === 'countdown') outCars.clear();
+    battleMode = state.mode === 'battle';
+    myOut = myCar?.out ?? false;
+    board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase, state.mode), state.mode);
     // Photo finish: 1st and 2nd close together, both seen racing on this page. The runner-up's
     // finish may also end the race (results), so it is checked then too.
     if (state.phase === 'lobby' || state.phase === 'countdown') {
@@ -651,6 +665,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     stormOn = storm;
     if (state.phase === 'countdown') lastRecord = null;
     resultsScreen.update(state.phase === 'results' && !photoHold, {
+      mode: state.mode,
       record: lastRecord,
       league: latestTuning.league,
       cars: boardCars,
@@ -662,7 +677,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     });
     // Watching (not in a car): cycle through the cars, leader first during a race.
     const byPlace = [...boardCars].sort((a, b) => (a.place || 99) - (b.place || 99) || a.slot - b.slot);
-    spectator.update(mySlot < 0, byPlace.map((c) => carIdForSlot(c.slot)), now);
+    spectator.update(mySlot < 0, byPlace.map((c) => carIdForSlot(c.slot)), now, join.visible || state.phase === 'results');
     const hudNow = hudText({
         phase: state.phase,
         tick: state.tick,
@@ -671,7 +686,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
         countdownSeconds: latestTuning.race.countdownSeconds,
         laps: state.laps,
         cars: state.cars.size,
-        me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay } : null,
+        me: myCar ? { lapsDone: myCar.lapsDone, place: myCar.place, finished: myCar.finished, dnf: myCar.dnf, wrongWay: myCar.wrongWay, lives: myCar.lives, out: myCar.out } : null,
+        mode: state.mode,
       });
     hud.set(hudNow);
     const firstCountdown = state.phase === 'countdown' && !onboarding.has('roleCard') && myRole !== null;
@@ -710,6 +726,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       faces,
       track: state.track,
       tracks: trackChoices,
+      mode: state.mode,
+      battle: { lives: latestTuning.battle.lives, minutes: Math.round((latestTuning.battle.timeLimitSeconds / 60) * 10) / 10 },
     });
   });
 
@@ -735,7 +753,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     lookOf: (carId) => carDefOf(carId).look,
     recordCars: (now, cars) => replayRec.record(now, cars),
     lapGhost: (now) => {
-      if (!ghostOn || ghostRun === null || phase !== 'racing' || myCarId === null) return null;
+      if (!ghostOn || ghostRun === null || phase !== 'racing' || myCarId === null || battleMode) return null;
       if (!ghostPoseAt(ghostRun, now - ghostLapStart, ghostDraw.pose)) return null;
       const run = ghostRun;
       ghostDraw.look = (roster.find((d) => d.id === run.car) ?? roster[0]!).look;

@@ -678,3 +678,66 @@ describe('RaceSim car picker', () => {
     expect(sim.pickCar('p', 0, 'cabbie')).toMatch(/not during a race/);
   });
 });
+
+describe('RaceSim battle mode (P11.6)', () => {
+  const items = loadItemsFile();
+  const battleSim = (): RaceSim => {
+    const sim = new RaceSim(track, cfg, stats, undefined, items);
+    for (const [id, slot] of [['a', 0], ['b', 1], ['c', 2]] as const) {
+      sim.addPlayer(id);
+      sim.setSeat(id, slot, 'solo');
+    }
+    return sim;
+  };
+  const toRacing = (sim: RaceSim): void => {
+    for (let i = 0; i < 10_000 && sim.flow.phase !== 'racing'; i++) sim.tick();
+  };
+
+  it('only the host switches the mode, between races; a battle always has items', () => {
+    const sim = battleSim();
+    expect(sim.setMode('b', 'battle')).toMatch(/only the host/);
+    expect(sim.hostSetChaos('a', false)).toBeNull();
+    expect(sim.chaos).toBe(false);
+    expect(sim.setMode('a', 'battle')).toBeNull();
+    expect(sim.chaos).toBe(true);
+    expect(sim.startRace('a')).toBeNull();
+    toRacing(sim);
+    expect(sim.setMode('a', 'race')).toMatch(/not during/);
+    expect(new RaceSim(track, cfg, stats).setMode('x', 'battle')).not.toBeNull();
+  });
+
+  it('every car starts with its lives; an out car stops, is see-through, and the last one standing wins', () => {
+    const sim = battleSim();
+    sim.setMode('a', 'battle');
+    sim.startRace('a');
+    toRacing(sim);
+    expect(sim.carBattle('car1')).toEqual({ lives: cfg.battle.lives, out: false });
+    // car1 and car2 are knocked out (the hit rules themselves are tested in shared).
+    const battle = sim.battle!;
+    for (const id of ['car1', 'car2']) {
+      battle.lives.set(id, 0);
+      battle.outTick.set(id, sim.world.tick);
+    }
+    sim.handleInput('b', { seq: 1, gas: true, steer: 0 });
+    sim.tick();
+    expect(sim.lastInputs['car1']?.gas).toBe(false); // out: controls ignored
+    expect(car(sim, 'car1').ghostUntilTick).toBeGreaterThan(sim.world.tick - 1);
+    expect(sim.flow.phase).toBe('results');
+    expect(sim.lastResults?.map((r) => r.id)[0]).toBe('car0');
+    expect(sim.lastResults?.find((r) => r.id === 'car1')?.dnf).toBe(true);
+    // Laps never counted in a battle.
+    expect(sim.carRace('car0')?.run.lapsDone).toBe(0);
+  });
+
+  it('time runs out: most lives wins', () => {
+    const sim = battleSim();
+    sim.setMode('a', 'battle');
+    sim.startRace('a');
+    toRacing(sim);
+    sim.battle!.lives.set('car0', 1);
+    sim.battle!.lives.set('car2', 2);
+    for (let i = 0; i < Math.round(cfg.battle.timeLimitSeconds / cfg.sim.dt) + 1 && sim.flow.phase === 'racing'; i++) sim.tick();
+    expect(sim.flow.phase).toBe('results');
+    expect(sim.lastResults?.map((r) => r.id)).toEqual(['car1', 'car2', 'car0']);
+  });
+});

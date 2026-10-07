@@ -18,6 +18,9 @@ export interface CarViewState {
   progress: number;
   respawning: boolean;
   ghost: boolean;
+  /** Battle (P11.6): lives left, and out of the battle. */
+  lives: number;
+  out: boolean;
   heat: number;
   stallLeft: number;
   drift: number;
@@ -85,6 +88,8 @@ export interface RaceStateView {
   carModels: ArrayLike<string> & Iterable<string>;
   bots: boolean;
   chaos: boolean;
+  /** 'race' or 'battle' (P11.6). */
+  mode: string;
   boxesUp: string;
   shots: { forEach(cb: (s: { kind: string; x: number; z: number; vx: number; vz: number }, id: string) => void): void };
 }
