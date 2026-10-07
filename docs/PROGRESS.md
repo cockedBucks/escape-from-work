@@ -52,6 +52,14 @@ roll old "Last sessions" lines into one summary line per finished phase.
      the phone screen lock mid-race (raise the screen timeout)? Does it buzz on hits (Android)?
   6. Battle: host presses 🏁 Race → 💥 Battle, picks The Break Room, 3+ cars (bots ok).
      Reply: fun? too long/short (battle.* in tuning.json)? is "out" clear?
+- P12 host/join, real-life cars, garage (built in the cloud 2026-10-07):
+  1. Host and join: laptop A presses HOST, names the game, picks a track, Create; laptop B presses
+     JOIN, sees it in the list, joins. Try a second hosted game at the same time, and Leave game.
+     Reply: is it clear which game is which? anything missing in the HOST window?
+  2. Real-life cars: look at all eight on the turntable and in a race (chase and cockpit view).
+     Reply: do they read as real car types? any you dislike? (shapes: CAR_BODIES in look.ts)
+  3. Garage and seats: click your car's picture in the lobby, Honk a few, pick one; sit as Pilot,
+     Engineer and Solo. Reply: clear and fun? does the lobby fit your screen without scrolling?
 
 ## Cloud session (read me first, local Claude)
 - 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
