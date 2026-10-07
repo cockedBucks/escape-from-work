@@ -1,6 +1,7 @@
 // Spectator cam (P3.5): when you are not in a car, the camera follows one car and moves to
 // the next every few seconds; A/D or ←/→ switch by hand (then it waits longer before
 // cycling again). A label says whom you are watching.
+import { t } from '../i18n';
 
 /** Auto-cycle to the next car this often (ms). */
 const CYCLE_MS = 8000;
@@ -23,6 +24,7 @@ export class Spectator {
   private cars: string[] = [];
   private watched: string | null = null;
   private active = false;
+  private covered = false;
   private lastSwitch = 0;
   private holdUntil = 0;
 
@@ -48,11 +50,13 @@ export class Spectator {
 
   /**
    * Call on every state update. `active` = you are not in a car. `cars` = car ids in the
-   * order to cycle through (by place during a race).
+   * order to cycle through (by place during a race). `covered`: a panel (lobby, results) is
+   * open over the view, so the "Watching…" line stays hidden (it would sit on its buttons).
    */
-  update(active: boolean, cars: string[], now: number): void {
+  update(active: boolean, cars: string[], now: number, covered = false): void {
     this.active = active;
     this.cars = cars;
+    this.covered = covered;
     if (!active) {
       this.label.hidden = true;
       return;
@@ -68,9 +72,9 @@ export class Spectator {
   }
 
   private showLabel(): void {
-    const text = this.watched ? `👀 Watching ${this.nameOf(this.watched)} · A/D to switch` : '';
+    const text = this.watched ? t('hud.watching', { name: this.nameOf(this.watched) }) : '';
     if (this.label.textContent !== text) this.label.textContent = text;
-    this.label.hidden = !this.active || this.watched === null;
+    this.label.hidden = !this.active || this.watched === null || this.covered;
   }
 
   /** Car the camera should follow while spectating. */

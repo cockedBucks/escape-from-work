@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { hashWorld } from '@escape/shared';
 import { loadTrack, loadTuning, trackIds } from './content';
 import { followAlpha } from './render/cameras';
-import { frozenBotRace, isRaceScenario } from './scenarios';
+import { frozenBotRace, isRaceScenario, propHalfWidth, propsShowroom } from './scenarios';
 
 const tuning = loadTuning();
 
@@ -41,5 +41,19 @@ describe('camera smoothing', () => {
     const half = followAlpha(8, 1 / 60);
     expect(1 - (1 - half) * (1 - half)).toBeCloseTo(one, 10);
     expect(followAlpha(8, 0)).toBe(0);
+  });
+});
+
+describe('props showroom (P10.6)', () => {
+  it('lines up the kits the track uses, spaced so the big ones do not overlap', () => {
+    const oasis = loadTrack('smart-oasis', tuning);
+    const { track } = propsShowroom(oasis);
+    const kits = track.def.props.map((p) => p.kit);
+    expect(new Set(kits)).toEqual(new Set(oasis.def.props.map((p) => p.kit)));
+    for (let i = 1; i < track.def.props.length; i++) {
+      const a = track.def.props[i - 1]!;
+      const b = track.def.props[i]!;
+      expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeGreaterThanOrEqual(propHalfWidth(a.kit) + propHalfWidth(b.kit));
+    }
   });
 });

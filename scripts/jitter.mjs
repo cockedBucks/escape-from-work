@@ -7,7 +7,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright-core';
+import { launchBrowser } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 2599;
@@ -17,13 +17,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 spawnSync(process.execPath, [path.join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), 'build', '--logLevel', 'error'], {
   cwd: path.join(ROOT, 'packages', 'client'), stdio: 'inherit',
 });
-const srv = spawn(process.execPath, ['--import', 'tsx', path.join('packages', 'server', 'src', 'index.ts'), '--prod', '--port', String(PORT)], { cwd: ROOT, stdio: 'ignore' });
+const srv = spawn(process.execPath, ['--import', 'tsx', path.join('packages', 'server', 'src', 'index.ts'), '--prod', '--port', String(PORT)], {
+  cwd: ROOT,
+  stdio: 'ignore',
+  env: { ...process.env, EFW_NO_LEAGUE: '1' }, // a test race must never land in the host's league
+});
 let browser;
 try {
   for (let i = 0; i < 60; i++) { try { if ((await fetch(`http://localhost:${PORT}/`)).ok) break; } catch {} await sleep(500); }
-  browser = await chromium.launch({ channel: 'chrome', headless: true });
+  ({ browser } = await launchBrowser());
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-  await page.goto(`http://localhost:${PORT}/`);
+  // `?play` joins the server's always-open game without the menu (P12.1).
+  await page.goto(`http://localhost:${PORT}/?play`);
   await page.waitForSelector('button.seat[data-slot="0"][data-seat="solo"]', { timeout: 20000 });
   await page.click('button.seat[data-slot="0"][data-seat="solo"]', { delay: 50 });
   await sleep(500);

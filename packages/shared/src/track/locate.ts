@@ -1,11 +1,16 @@
 import type { TrackZone } from '../config/track';
 import { closestOnSegment, distSq, dot, lerp, normalize, sub, wrap01, type Vec2 } from '../util/math';
-import type { Track, TrackSample } from './build';
+import { segmentOf, type Track } from './build';
 
 /** Where a point is relative to the track. */
 export interface TrackLocation {
-  /** Centerline segment index (from sample `segment` to `segment + 1`). */
+  /**
+   * Main-loop segment index (from sample `segment` to `segment + 1`). On a branch: the main
+   * segment at the same progress (so bots, gates and hints keep working).
+   */
   segment: number;
+  /** 0 = main loop, b + 1 = branch (shortcut) b. */
+  road: number;
   /** Meters from control point 0 along the centerline. */
   dist: number;
   /** `dist / length`, 0–1 (same scale as zones and `start.at`). */
@@ -14,6 +19,8 @@ export interface TrackLocation {
   lateral: number;
   /** Half the road width here. */
   halfWidth: number;
+  /** Unit direction of travel of the road segment here (on a branch: the branch's). */
+  dir: Vec2;
   /** Inside the road edges. */
   onTrack: boolean;
 }
@@ -30,8 +37,8 @@ export function locateOnTrack(track: Track, p: Vec2, hint?: number): TrackLocati
 
   if (hint !== undefined) {
     const window = n / 4;
-    const near = candidates.filter((i) => {
-      const d = Math.abs(i - hint) % n;
+    const near = candidates.filter((id) => {
+      const d = Math.abs(mainSegment(track, id) - hint) % n;
       return Math.min(d, n - d) <= window;
     });
     if (near.length > 0) candidates = near;
@@ -41,33 +48,42 @@ export function locateOnTrack(track: Track, p: Vec2, hint?: number): TrackLocati
   let bestD2 = Infinity;
   let bestT = 0;
   let bestPoint: Vec2 = p;
-  for (const i of candidates) {
-    const a = track.samples[i] as TrackSample;
-    const b = track.samples[(i + 1) % n] as TrackSample;
-    const { point, t } = closestOnSegment(p, a.pos, b.pos);
+  for (const id of candidates) {
+    const seg = segmentOf(track, id);
+    const { point, t } = closestOnSegment(p, seg.a.pos, seg.b.pos);
     const d2 = distSq(p, point);
     if (d2 < bestD2) {
       bestD2 = d2;
-      best = i;
+      best = id;
       bestT = t;
       bestPoint = point;
     }
   }
 
-  const a = track.samples[best] as TrackSample;
-  const b = track.samples[(best + 1) % n] as TrackSample;
+  const { road, a, b } = segmentOf(track, best);
   const d = normalize(sub(b.pos, a.pos));
   const lateral = dot(sub(p, bestPoint), { x: -d.z, z: d.x });
   const halfWidth = lerp(a.width, b.width, bestT) * 0.5;
-  const dist = a.dist + bestT * track.spacing;
+  const dist = road === 0 ? a.dist + bestT * track.spacing : lerp(a.dist, b.dist, bestT);
+  const progress = wrap01(dist / track.length);
   return {
-    segment: best,
+    segment: road === 0 ? best : Math.min(Math.floor(progress * n), n - 1),
+    road,
     dist,
-    progress: wrap01(dist / track.length),
+    progress,
     lateral,
     halfWidth,
+    dir: d,
     onTrack: Math.abs(lateral) <= halfWidth,
   };
+}
+
+/** The main-loop segment at the same progress as segment id `id`. */
+function mainSegment(track: Track, id: number): number {
+  const n = track.samples.length;
+  if (id < n) return id;
+  const { a } = segmentOf(track, id);
+  return Math.min(Math.floor(a.progress * n), n - 1);
 }
 
 /** Progress since the start line, 0–1 (0 = on the start/finish line). */
@@ -77,10 +93,10 @@ export function lapProgress(track: Track, progress: number): number {
 
 /** Ranged zones (ramp, slick, swap) that contain this location. */
 export function zonesAt(track: Track, loc: TrackLocation): Extract<TrackZone, { from: number }>[] {
-  if (!loc.onTrack) return [];
+  if (!loc.onTrack || loc.road !== 0) return []; // main-loop zones only
   return track.rangedZones.filter((z) => {
     if (loc.progress < z.from || loc.progress >= z.to) return false;
-    if (z.type === 'ramp' || z.side === 'both') return true;
+    if (z.type === 'ramp' || z.type === 'push' || z.side === 'both') return true;
     return z.side === 'right' ? loc.lateral >= 0 : loc.lateral <= 0;
   });
 }

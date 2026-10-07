@@ -7,6 +7,7 @@ import {
   step,
   createChaos,
   PROP_KITS,
+  type PropKit,
   type CarInput,
   type ItemsConfig,
   type Track,
@@ -16,10 +17,13 @@ import {
 import type { CarSource } from './game';
 import type { CarSnap } from './net/snapshots';
 import type { ItemsView } from './render/itemProps';
+import { PROP_SHAPES } from './render/look';
+import { clearOfRoads, shapeHalfWidth } from './render/propKit';
+import { ReplayRecorder, photoCamera, type ReplayClip } from './replay/photoFinish';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
 const SCENARIO_CARS = 4;
-const SCENARIO_SECONDS = { chase: 6, cockpit: 6, stall: 6, drift: 6, nitro: 6, items: 2.2, garage: 0, props: 0, 'track-overview': 0 } as const;
+const SCENARIO_SECONDS = { chase: 6, ghost: 6, cockpit: 6, juice: 6, stall: 6, drift: 6, nitro: 6, sandstorm: 6, items: 2.2, garage: 0, photo: 0, props: 0, shortcut: 0, 'track-overview': 0 } as const;
 /** Each bot starts this many ticks after the previous one, so they spread out. */
 const STAGGER_TICKS = 20;
 
@@ -153,28 +157,96 @@ export function garageWorld(track: Track): { world: World; camera: { from: [numb
   };
 }
 
-/** Props showroom: one of each office prop in a row beside the start straight (spacing m). */
-const PROP_ROW = { gap: 4.6, side: 14, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2 };
+/** `photo` scenario: cars around the finish line at the crossing moment (m ahead of the line, m to the right). */
+const PHOTO_SCENE = { speed: 25, crossMs: 1500, clipMs: 3000, frameMs: 1000 / 30, cars: [[-1.6, -2.2], [-1.9, 2.2], [-8, 0], [-13, -2.5]] as const };
 
 /**
- * The `props` scenario: the track with one of every office prop lined up beside the start
- * straight (no cars), and a fixed camera looking at them.
+ * The `photo` scenario: a recorded clip of four cars driving through the finish line (built
+ * here, as the page would record it), to play through the real replay at the crossing moment.
+ */
+export function photoFinishClip(track: Track): { clip: ReplayClip; at: number; camera: { from: [number, number, number]; at: [number, number, number] } } {
+  const gate = track.gates[0]!;
+  const f = { x: Math.sin(gate.yaw), z: Math.cos(gate.yaw) };
+  const r = { x: gate.right.x - gate.pos.x, z: gate.right.z - gate.pos.z };
+  const len = Math.hypot(r.x, r.z) || 1;
+  const rec = new ReplayRecorder(PHOTO_SCENE.cars.length, 1000 / PHOTO_SCENE.frameMs, PHOTO_SCENE.clipMs / 1000);
+  const snaps = new Map<string, CarSnap>();
+  for (let t = 0; t <= PHOTO_SCENE.clipMs; t += PHOTO_SCENE.frameMs) {
+    const along = ((t - PHOTO_SCENE.crossMs) / 1000) * PHOTO_SCENE.speed;
+    PHOTO_SCENE.cars.forEach(([ahead, side], i) => {
+      snaps.set(`car${i}`, {
+        x: gate.pos.x + f.x * (ahead + along) + (r.x / len) * side,
+        y: 0,
+        z: gate.pos.z + f.z * (ahead + along) + (r.z / len) * side,
+        yaw: gate.yaw, speed: PHOTO_SCENE.speed, steer: 0, respawning: false, ghost: false, stalled: false,
+        drift: 0, driftLevel: 0, boosting: false, nitroOn: false, shielded: false,
+      });
+    });
+    rec.record(t, snaps);
+  }
+  return { clip: rec.clip(), at: PHOTO_SCENE.crossMs, camera: photoCamera(gate) };
+}
+
+/** Props showroom: one of each office prop in a row beside the start straight (spacing m). */
+const PROP_ROW = { pad: 1.6, side: 14, sideStep: 1, maxSide: 200, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2, viewWidthPerMeter: 1.5 };
+
+/** Half the widest extent of a prop kit piece as drawn (m, `officeScale` included). */
+export function propHalfWidth(kit: PropKit): number {
+  return shapeHalfWidth(PROP_SHAPES[kit]);
+}
+
+/**
+ * The `props` scenario: one of every prop the track uses (every kit when it has none) lined up
+ * beside the start line, spaced by size, and a fixed camera far enough back to see the row.
  */
 export function propsShowroom(track: Track): { track: Track; camera: { from: [number, number, number]; at: [number, number, number] } } {
   const gate = track.gates[0]!;
   const f = { x: Math.sin(gate.yaw), z: Math.cos(gate.yaw) };
   const r = { x: f.z, z: -f.x };
-  const n = PROP_KITS.length;
-  const props = PROP_KITS.map((kit, i) => {
-    const along = (i - (n - 1) / 2) * PROP_ROW.gap;
-    return { kit, x: gate.pos.x + f.x * along - r.x * PROP_ROW.side, z: gate.pos.z + f.z * along - r.z * PROP_ROW.side, rot: gate.yaw - Math.PI / 2 };
-  });
-  const mid = { x: gate.pos.x - r.x * PROP_ROW.side, z: gate.pos.z - r.z * PROP_ROW.side };
+  const used = new Set(track.def.props.map((p) => p.kit));
+  const kits = PROP_KITS.filter((k) => used.size === 0 || used.has(k));
+  const halves = kits.map(propHalfWidth);
+  const length = halves.reduce((sum, h) => sum + 2 * h + PROP_ROW.pad, -PROP_ROW.pad);
+  const rowAt = (side: number): { kit: PropKit; x: number; z: number; rot: number }[] => {
+    let cursor = -length / 2;
+    return kits.map((kit, i) => {
+      const along = cursor + halves[i]!;
+      cursor += 2 * halves[i]! + PROP_ROW.pad;
+      return { kit, x: gate.pos.x + f.x * along - r.x * side, z: gate.pos.z + f.z * along - r.z * side, rot: gate.yaw - Math.PI / 2 };
+    });
+  };
+  // Move the row out from the road until no prop (as a square of its drawn half width) touches any road.
+  let side = PROP_ROW.side;
+  let props = rowAt(side);
+  while (side < PROP_ROW.maxSide && !props.every((p, i) => clearOfRoads(track, p.x, p.z, halves[i]!))) {
+    side += PROP_ROW.sideStep;
+    props = rowAt(side);
+  }
+  const mid = { x: gate.pos.x - r.x * side, z: gate.pos.z - r.z * side };
+  // Far enough to see the whole row, and in front of the deepest prop (the CPU cooler is huge).
+  const back = Math.max(PROP_ROW.camBack, length / PROP_ROW.viewWidthPerMeter - side, Math.max(...halves) + PROP_ROW.camBack / 2);
   return {
     track: { ...track, def: { ...track.def, props } },
     camera: {
-      from: [mid.x + r.x * PROP_ROW.camBack + f.x * PROP_ROW.camSide, PROP_ROW.camHeight, mid.z + r.z * PROP_ROW.camBack + f.z * PROP_ROW.camSide],
+      from: [mid.x + r.x * back + f.x * PROP_ROW.camSide, PROP_ROW.camHeight, mid.z + r.z * back + f.z * PROP_ROW.camSide],
       at: [mid.x, PROP_ROW.lookHeight, mid.z],
     },
+  };
+}
+
+/** `shortcut` camera: above the main road `back` m before the first shortcut's fork, looking at the fork. */
+const SHORTCUT_CAM = { back: 28, side: 0, height: 34, lookAlong: 0.2 };
+
+/**
+ * The `shortcut` scenario: a fixed camera over where the track's first shortcut leaves the
+ * main road (no cars), to check the junction walls and the opening. Falls back to the start line.
+ */
+export function shortcutCamera(track: Track): { from: [number, number, number]; at: [number, number, number] } {
+  const br = track.branches[0];
+  const fork = br?.samples[0] ?? track.samples[track.gates[0]?.sample ?? 0]!;
+  const look = br?.samples[Math.floor((br.samples.length - 1) * SHORTCUT_CAM.lookAlong)] ?? fork;
+  return {
+    from: [fork.pos.x - fork.dir.x * SHORTCUT_CAM.back, SHORTCUT_CAM.height, fork.pos.z - fork.dir.z * SHORTCUT_CAM.back],
+    at: [look.pos.x, 0, look.pos.z],
   };
 }

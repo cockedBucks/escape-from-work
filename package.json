@@ -16,6 +16,7 @@
     "start": "npm run build && tsx packages/server/src/index.ts --prod",
     "test": "vitest run --project shared --project server --project client --project integration",
     "test:load": "vitest run --project load",
+    "soak": "node --expose-gc scripts/soak.mjs",
     "typecheck": "node scripts/verify.mjs --types-only",
     "verify": "node scripts/verify.mjs",
     "shots": "node scripts/shots.mjs",

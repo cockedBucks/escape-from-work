@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AWARD_STATS } from '../league/awards';
 import { parseConfig } from './parse';
 
 // Strict objects: an unknown key (usually a typo) is an error, not silently ignored.
@@ -84,6 +85,11 @@ const TrackBuildSchema = z.strictObject({
   gridCellSize: pos(),
   /** Narrowest road `track:check` accepts (m). */
   minWidth: pos(),
+  /** Narrowest shortcut (branch) `track:check` accepts (m): shortcuts are meant to be tight. */
+  branchMinWidth: pos(),
+  /** Median bot lap time window for real (non-dev) tracks (s), GAME_DESIGN §9. */
+  lapTargetMin: pos(),
+  lapTargetMax: pos(),
 });
 
 /** Bot driver (also used by golden tests, so changing it moves the golden lap window). */
@@ -105,17 +111,36 @@ const BotSchema = z.strictObject({
   /** Below this speed (m/s) for `stuckSeconds`, the bot presses respawn. */
   stuckSpeed: nonNeg(),
   stuckSeconds: pos(),
+  /** Stuck this long (s): first back up (reverse) for `backUpSeconds`, up to `maxBackUps` times. */
+  backUpAfter: pos(),
+  backUpSeconds: pos(),
+  maxBackUps: z.number().int().min(0),
+  /** Making this much progress along the track (m) counts as unstuck again (back-ups allowed again). */
+  backUpResetDistance: pos(),
+  /** Slower than `turnAroundSpeed` (m/s) with the road ahead more than `turnAroundAngle` (rad) off
+   * the nose: reverse with the wheel turned (three-point turn) for up to `turnAroundSeconds`,
+   * until it is within `turnAroundDone` (rad). */
+  turnAroundAngle: z.number().positive().max(Math.PI),
+  turnAroundDone: z.number().positive().max(Math.PI),
+  turnAroundSpeed: pos(),
+  turnAroundSeconds: pos(),
   /** Engineer: lets go of the gas at this engine heat (0–1) so the engine never stalls. */
   heatLiftAt: z.number().min(0).max(1),
   /** Skill 1+: while drifting it stays on the gas up to this heat, so letting go still boosts. */
   driftHeatLiftAt: z.number().min(0).max(1),
   /** Skill of server and network bots: 0 = plain driving, 1 = also drifts, 2 = drifts + nitro. */
   skill: z.number().int().min(0).max(2),
+  /** Bots with at least this skill take shortcuts (track branches). */
+  shortcutSkill: z.number().int().min(0).max(3),
+  /** Look-ahead distance multiplier while aiming into a shortcut (narrow: aim closer). */
+  shortcutLookAhead: z.number().min(0.1).max(1),
   /** Skill 1+: tap for a drift when a corner this tight (1/m) is within `driftLookAhead` m... */
   driftMinCurvature: pos(),
   driftLookAhead: pos(),
   /** ...and hold it only while the road within `driftHoldAhead` m still turns that way that tightly. */
   driftHoldAhead: pos(),
+  /** No drift start when a tight corner the other way comes within this many meters (S-bends). */
+  driftClearAhead: pos(),
   /** Skill 1+: steer this much past the drift entry / release thresholds (0–1), to be sure. */
   driftSteerMargin: fraction(),
   /** Skill 2: burn nitro on a clear straight while the engine is below this heat (0–1). */
@@ -228,6 +253,16 @@ const RaceSchema = z.strictObject({
   maxCars: z.number().int().min(1).max(8),
 });
 
+/** Battle mode (P11.6, GAME_DESIGN §13): lives instead of laps, last car standing wins. */
+const BattleSchema = z.strictObject({
+  /** Lives per car; an item hit that a Firewall does not block takes one. */
+  lives: z.number().int().min(1).max(9),
+  /** After losing a life a car cannot lose another for this long (s). */
+  hitGraceSeconds: nonNeg(),
+  /** The battle ends after this long (s): most lives left wins. */
+  timeLimitSeconds: pos(),
+});
+
 /** Chase camera feel (client only, but tuned live like everything else). */
 const CameraSchema = z.strictObject({
   /** Vertical field of view (degrees). */
@@ -318,6 +353,42 @@ const NetSchema = z.strictObject({
   predictCorrectionRate: pos(),
   /** Clients resend their held controls this often (ms), so a lost message never leaves a key stuck. */
   inputResendMs: z.number().int().min(50),
+  /** Games players may host at the same time on one server (P12.1), on top of the always-open one. */
+  maxGames: z.number().int().min(1).max(32),
+});
+
+/** Days of the week, Sunday first (the same order as `Date.getUTCDay()`). */
+export const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+
+/** One award (GAME_DESIGN §10): the one car with the most / fewest of a stat, past `limit`. */
+const AwardRuleSchema = z.strictObject({
+  id: z.string().regex(/^[a-zA-Z]+$/),
+  title: z.string().min(1),
+  /** A trophy emoji shown with the title. */
+  icon: z.string().min(1).max(8),
+  /** Shown under the title; `{n}` = the number. */
+  line: z.string().min(1),
+  stat: z.enum(AWARD_STATS),
+  pick: z.enum(['most', 'fewest']),
+  limit: z.number().min(0),
+  finishedOnly: z.boolean(),
+});
+
+/** League (GAME_DESIGN §10). */
+const LeagueTuningSchema = z.strictObject({
+  /** Points for 1st, 2nd, …; every human in the car gets them, bots none; places past the list score 0. */
+  pointsByPlace: z.array(z.number().int().min(0)).min(1),
+  /** The weekly cup starts on this day (the host PC's local date). */
+  weekStartsOn: z.enum(WEEKDAYS),
+  /** Braking counts toward the Brake Abuser award only above this speed (m/s). */
+  brakeMinSpeed: z.number().min(0),
+  /** Awards after each race: at most this many (rules in order), plus the duck. */
+  maxAwards: z.number().int().min(0),
+  awards: z.array(AwardRuleSchema),
+  /** The Rubber Duck of Shame, always for last place. */
+  duck: z.strictObject({ title: z.string().min(1), icon: z.string().min(1).max(8), line: z.string().min(1) }),
+  /** `npm start` copies data/league.json to data/backups/ once a day and keeps this many copies. */
+  backupKeep: z.number().int().min(1),
 });
 
 export const TuningSchema = z.strictObject({
@@ -330,15 +401,19 @@ export const TuningSchema = z.strictObject({
   nitro: NitroSchema,
   solo: SoloSchema,
   race: RaceSchema,
+  battle: BattleSchema,
   net: NetSchema,
   camera: CameraSchema,
   quality: QualitySchema,
+  league: LeagueTuningSchema,
 });
 
 export type Tuning = z.infer<typeof TuningSchema>;
 export type CarTuning = Tuning['car'];
 export type DriftTuning = Tuning['drift'];
 export type QualityLevel = Tuning['quality']['default'];
+export type LeagueTuning = Tuning['league'];
+export type Weekday = (typeof WEEKDAYS)[number];
 export type QualityPreset = Tuning['quality']['presets'][QualityLevel];
 
 /** Validate the contents of `config/tuning.json`. Throws `ConfigError` listing every problem. */

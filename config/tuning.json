@@ -34,7 +34,10 @@
   "track": {
     "sampleSpacing": 2,
     "gridCellSize": 16,
-    "minWidth": 10
+    "minWidth": 10,
+    "branchMinWidth": 6,
+    "lapTargetMin": 40,
+    "lapTargetMax": 55
   },
   "bot": {
     "lookAheadBase": 6,
@@ -46,13 +49,24 @@
     "speedMargin": 1,
     "stuckSpeed": 1,
     "stuckSeconds": 2,
+    "backUpAfter": 0.7,
+    "backUpSeconds": 0.9,
+    "maxBackUps": 2,
+    "backUpResetDistance": 15,
+    "turnAroundAngle": 1.9,
+    "turnAroundDone": 1,
+    "turnAroundSpeed": 6,
+    "turnAroundSeconds": 2.5,
     "heatLiftAt": 0.9,
     "driftHeatLiftAt": 0.97,
     "skill": 2,
+    "shortcutSkill": 2,
+    "shortcutLookAhead": 0.5,
     "driftMinCurvature": 0.025,
     "driftLookAhead": 12,
     "driftHoldAhead": 6,
     "driftSteerMargin": 0.05,
+    "driftClearAhead": 40,
     "nitroMaxHeat": 0.45,
     "itemAimCone": 0.15,
     "itemAimRange": 70,
@@ -113,6 +127,11 @@
     "maxSpectators": 8,
     "maxCars": 8
   },
+  "battle": {
+    "lives": 3,
+    "hitGraceSeconds": 2,
+    "timeLimitSeconds": 150
+  },
   "net": {
     "port": 2567,
     "patchRateMs": 33,
@@ -127,7 +146,8 @@
     "lobbyBurst": 5,
     "predictMaxMs": 200,
     "predictCorrectionRate": 8,
-    "inputResendMs": 250
+    "inputResendMs": 250,
+    "maxGames": 8
   },
   "camera": {
     "fov": 70,
@@ -180,5 +200,21 @@
     "carMaxTriangles": 1500,
     "propMaxTriangles": 600,
     "carMaxDrawCalls": 6
+  },
+  "league": {
+    "pointsByPlace": [10, 8, 6, 5, 4, 3, 2, 1],
+    "weekStartsOn": "sunday",
+    "brakeMinSpeed": 2,
+    "maxAwards": 3,
+    "awards": [
+      { "id": "wallHugger", "icon": "🧱", "title": "Wall Hugger", "line": "bounced off {n} walls", "stat": "wallHits", "pick": "most", "limit": 4, "finishedOnly": false },
+      { "id": "itemSniper", "icon": "🎯", "title": "Item Sniper", "line": "{n} direct hits", "stat": "itemHits", "pick": "most", "limit": 2, "finishedOnly": false },
+      { "id": "driftKing", "icon": "👑", "title": "Drift King", "line": "{n} drift boosts", "stat": "driftBoosts", "pick": "most", "limit": 3, "finishedOnly": false },
+      { "id": "brakeAbuser", "icon": "🛑", "title": "Brake Abuser", "line": "{n} s on the brake", "stat": "brakeSeconds", "pick": "most", "limit": 8, "finishedOnly": false },
+      { "id": "honkChampion", "icon": "📯", "title": "Honk Champion", "line": "honked {n} times", "stat": "honks", "pick": "most", "limit": 6, "finishedOnly": false },
+      { "id": "cleanDriver", "icon": "✨", "title": "Clean Driver", "line": "{n} wall hits. Respect.", "stat": "wallHits", "pick": "fewest", "limit": 0, "finishedOnly": true }
+    ],
+    "duck": { "title": "Rubber Duck of Shame", "icon": "🦆", "line": "last place. Quack." },
+    "backupKeep": 30
   }
 }

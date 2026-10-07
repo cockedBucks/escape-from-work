@@ -15,6 +15,12 @@ export default defineConfig({
       '/dev': `http://localhost:${tuning.net.port}`,
       // Bobblehead faces live on the host PC and are served by the game server.
       '/faces': `http://localhost:${tuning.net.port}`,
+      // So are the main menu's company images.
+      '/menu': `http://localhost:${tuning.net.port}`,
+      // League tables (the host PC's data/league.json).
+      '/league': `http://localhost:${tuning.net.port}`,
+      // The games to join (P12.1).
+      '/games.json': `http://localhost:${tuning.net.port}`,
     },
   },
   preview: { host: true },

@@ -2,6 +2,8 @@
 // error screen, a Forced Update progress bar ("mash any key!"), and warning banners for Control
 // Swap and Lag Spike. DOM + CSS; the DOM is touched only when an effect starts or ends (and
 // the progress bar's width while updating).
+import { t as tr } from '../i18n';
+
 
 /** The synced effect timers of your car (seconds left; 0 = none). */
 export interface EffectTimers {
@@ -25,12 +27,10 @@ export class ItemEffectsOverlay {
   constructor(parent: HTMLElement) {
     this.blue.className = 'fx-bluescreen';
     this.blue.hidden = true;
-    this.blue.innerHTML =
-      '<div class="face">:(</div><p>Your PC ran into a problem and needs to restart. We’re just collecting some error info, and then we’ll restart for you.</p>' +
-      '<p class="stop">STOP CODE: TOO_MUCH_YELLING</p>';
+    this.blue.innerHTML = tr('effect.blueScreen');
     this.update.className = 'fx-update';
     this.update.hidden = true;
-    this.update.innerHTML = '<strong>Installing update 1 of 1…</strong><span>Do not turn off your car. MASH ANY KEY to go faster!</span><div class="bar"></div>';
+    this.update.innerHTML = tr('effect.update');
     this.update.querySelector('.bar')!.appendChild(this.bar);
     this.banner.className = 'fx-banner';
     this.banner.hidden = true;
@@ -51,8 +51,8 @@ export class ItemEffectsOverlay {
       }
     }
     const lines: string[] = [];
-    if (t && t.swapLeft > 0) lines.push('CONTROL SWAP! Pilot keys = pedals, Engineer keys = steering');
-    if (t && t.lagLeft > 0) lines.push('LAG SPIKE! Your controls arrive late');
+    if (t && t.swapLeft > 0) lines.push(tr('effect.controlSwap'));
+    if (t && t.lagLeft > 0) lines.push(tr('effect.lagSpike'));
     const text = lines.join(' · ');
     if (text !== this.bannerText) {
       this.bannerText = text;

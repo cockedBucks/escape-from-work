@@ -2,6 +2,9 @@ import {
   NO_INPUT,
   Rng,
   createChaos,
+  countTick,
+  newCounts,
+  type CarCounts,
   type CarDef,
   type ItemsConfig,
   applyEvents,
@@ -54,6 +57,15 @@ import {
   type Track,
   type Tuning,
   type World,
+  applyBattleEvents,
+  battleOver,
+  battleResults,
+  battleStandings,
+  dropBattleCar,
+  isOut,
+  newBattle,
+  type BattleRun,
+  type RaceMode,
 } from '@escape/shared';
 
 /** Refusal while a race is on (seat changes would teleport a car back to the grid). */
@@ -106,6 +118,10 @@ export class RaceSim {
   run: RaceRun | null = null;
   /** Results of the last finished race (grid order for the next one). */
   lastResults: ResultRow[] | null = null;
+  /** Award counters of the race running now, by car id (league, P9.3). */
+  private counts = new Map<string, CarCounts>();
+  /** The counters of the race that just ended, by car slot (for the league record). */
+  lastCounts: ReadonlyMap<number, CarCounts> = new Map();
   /** Host asked to end the race (applied on the next tick). */
   private endRequested = false;
   /** Car in first place (racing). */
@@ -114,21 +130,44 @@ export class RaceSim {
   private readonly places = new Map<string, number>();
   /** Host switch: chaos mode (item boxes and items). Needs an items config. */
   private chaosEnabled = true;
+  /** Race or Battle (P11.6), the host's choice between races. */
+  mode: RaceMode = 'race';
+  /** The battle running now (or the last one, until the next start); null in race mode. */
+  battle: BattleRun | null = null;
 
+  /** Items are on: the host's chaos switch, and always in a battle (items are the weapons). */
   get chaos(): boolean {
-    return this.chaosEnabled && this.items !== undefined;
+    return (this.chaosEnabled || this.mode === 'battle') && this.items !== undefined;
   }
 
   /** Switch chaos mode on or off (boxes come back fresh; held items are dropped when off). */
   setChaos(on: boolean): void {
     this.chaosEnabled = on;
-    if (!on) for (const car of this.world.cars) car.item = '';
+    if (!this.chaos) for (const car of this.world.cars) car.item = '';
     this.resetChaos();
   }
 
   /** Fresh item boxes (race start, new track, chaos switched); no items config = chaos off. */
   private resetChaos(): void {
-    this.world.chaos = this.items && this.chaosEnabled ? createChaos(this.world.track, this.items, this.world.tick + CHAOS_SEED) : undefined;
+    this.world.chaos = this.items && this.chaos ? createChaos(this.world.track, this.items, this.world.tick + CHAOS_SEED) : undefined;
+  }
+
+  /** Host: Race or Battle for the next race. */
+  setMode(by: string, mode: RaceMode): string | null {
+    if (by !== this.flow.host) return 'only the host can change the mode';
+    // Not on the results screen either: it still shows the last race in its own mode.
+    if (this.flow.phase !== 'lobby') return 'change the mode in the lobby';
+    if (mode === 'battle' && !this.items) return 'battle needs items (config/items.json)';
+    this.mode = mode;
+    this.battle = null;
+    this.setChaos(this.chaosEnabled); // a battle always has items
+    return null;
+  }
+
+  /** Lives left and out, for one car in the battle (null outside one). */
+  carBattle(id: string): { lives: number; out: boolean } | null {
+    const lives = this.battle?.lives.get(id);
+    return lives === undefined || !this.battle ? null : { lives, out: isOut(this.battle, id) };
   }
 
   /** Host switch: bots drive empty cars up to `race.botFillCars` cars. */
@@ -153,8 +192,28 @@ export class RaceSim {
     );
   }
 
+  /** The host before a track switch reloaded every page: keeps host while their seat is held. */
+  private reloadHost: string | null = null;
+
   private updateHost(): void {
+    if (this.reloadHost !== null) {
+      const p = this.players.get(this.reloadHost);
+      if (p) {
+        this.flow.host = this.reloadHost;
+        if (p.connected) this.reloadHost = null; // back: normal rules again
+        return;
+      }
+      this.reloadHost = null; // their seat expired
+    }
     this.flow.host = chooseHost(this.joinOrder, (id) => this.players.get(id)?.connected === true, this.flow.host);
+  }
+
+  /**
+   * Every page is about to reload (track switch): the current host stays host while they
+   * reconnect, instead of whoever reloads fastest (or a bot client that never reloads).
+   */
+  keepHostThroughReload(): void {
+    this.reloadHost = this.flow.host;
   }
 
   /**
@@ -282,6 +341,7 @@ export class RaceSim {
     }
     this.resetChaos();
     this.run = null;
+    this.battle = null;
     return null;
   }
 
@@ -387,6 +447,19 @@ export class RaceSim {
     return null;
   }
 
+  /**
+   * A hosted game's settings (P12.1), applied when it is created, before anyone is in it: no
+   * host checks. Laps must already be inside the config's range.
+   */
+  configure(s: { mode: RaceMode; laps: number; bots: boolean; chaos: boolean }): void {
+    this.flow.laps = s.laps;
+    this.mode = s.mode;
+    this.battle = null;
+    this.botsEnabled = s.bots;
+    this.setChaos(s.chaos);
+    this.syncCars();
+  }
+
   /** Is this car driven by a server bot? */
   isBot(carId: string): boolean {
     return this.botSlots.has(slotOfCar(carId));
@@ -456,6 +529,7 @@ export class RaceSim {
       if (keepForResults) continue;
       this.world.cars.splice(i, 1);
       if (this.run && this.flow.phase === 'racing') dropCar(this.run, id);
+      if (this.battle && this.flow.phase === 'racing') dropBattleCar(this.battle, id);
     }
     for (const id of wanted) {
       if (this.world.cars.some((c) => c.id === id)) continue;
@@ -562,14 +636,39 @@ export class RaceSim {
       p.firePending = false;
       p.mashPending = 0;
     }
+    // Out of the battle: the car rolls to a stop, see-through, and nothing touches it.
+    const battle = this.flow.phase === 'racing' ? this.battle : null;
+    if (battle) {
+      for (const car of this.world.cars) {
+        car.out = isOut(battle, car.id);
+        if (!car.out) continue;
+        inputs[car.id] = NO_INPUT;
+        car.ghostUntilTick = this.world.tick + 2;
+      }
+    } else {
+      for (const car of this.world.cars) car.out = false; // between battles everyone drives again
+    }
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);
     for (const e of events) if (e.type === 'swap') this.swapSeats(slotOfCar(e.car));
     const { race, sim } = this.cfg;
     const tick = this.world.tick;
     let over = false;
-    if (this.flow.phase === 'racing' && this.run) {
+    if (this.flow.phase === 'racing' && this.run && battle) {
+      // Battle: no laps and no wrong way (ambush from any side); item hits take lives.
+      countTick(this.counts, events, this.brakingCars(inputs), sim.dt);
+      for (const id of applyBattleEvents(battle, events, tick, this.cfg.battle, sim.dt)) {
+        const car = this.world.cars.find((c) => c.id === id);
+        if (car) {
+          car.item = '';
+          car.out = true;
+        }
+      }
+      over = this.endRequested || battleOver(battle, tick, this.cfg.battle, sim.dt);
+      this.endRequested = false;
+    } else if (this.flow.phase === 'racing' && this.run) {
       applyEvents(this.run, events, tick);
+      countTick(this.counts, events, this.brakingCars(inputs), sim.dt);
       updateWrongWay(this.run, this.world, race);
       if (this.endRequested) {
         for (const c of this.run.cars.values()) if (c.finishTick === null) c.dnf = true;
@@ -581,16 +680,32 @@ export class RaceSim {
     if (changed === 'racing') {
       // GO: the race clock starts now.
       this.run = newRun(this.world.cars.map((c) => c.id), this.flow.laps, tick);
+      this.battle = this.mode === 'battle' ? newBattle(this.world.cars.map((c) => c.id), this.cfg.battle, tick) : null;
+      this.counts = newCounts(this.world.cars.map((c) => c.id));
     } else if (changed === 'results' && this.run) {
-      this.lastResults = results(this.run, this.world);
+      this.lastResults = this.battle ? battleResults(this.battle, tick) : results(this.run, this.world);
+      this.lastCounts = new Map([...this.counts].map(([id, c]) => [slotOfCar(id), { ...c }]));
     }
-    // Places after any phase change, so the first racing tick already has them.
-    if (this.run && this.flow.phase === 'racing') {
+    // Places after any phase change, so the first racing tick already has them, and once more
+    // from the final results on the tick the race ends (the last finish or knockout may be in it).
+    if (this.run && (this.flow.phase === 'racing' || changed === 'results')) {
       this.places.clear();
-      const order = standings(this.run, this.world);
+      const order = changed === 'results' && this.lastResults
+        ? this.lastResults.map((r) => r.id)
+        : this.battle ? battleStandings(this.battle) : standings(this.run, this.world);
       order.forEach((id, i) => this.places.set(id, i + 1));
       this.leaderId = order[0];
     }
     return events;
   }
+
+  /** Cars whose applied input brakes while moving (the Brake Abuser counter). */
+  private brakingCars(inputs: Readonly<Record<string, CarInput>>): Set<string> {
+    const out = new Set<string>();
+    for (const car of this.world.cars) {
+      if (inputs[car.id]?.brake && Math.hypot(car.vx, car.vz) >= this.cfg.league.brakeMinSpeed) out.add(car.id);
+    }
+    return out;
+  }
 }
+

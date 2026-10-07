@@ -32,8 +32,9 @@ escape-from-work/
   vitest.config.ts (test projects)  .npmrc (exact versions)  .gitattributes (LF)
   config/
     tuning.json        car, sim, track, bot, heat, drift, nitro, solo, race, net, league, quality
-    cars.json          roster: stats, visual spec, horn preset
+    cars.json          roster: stats, visual spec, horn and engine presets
     teams.json         default team names (IT puns), one per car slot
+    seasons.json       holiday decorations: date ranges, decoration kits, snow (P11.3)
     items.json         item params + roll weights
     tracks/<id>.json   track data
   assets/
@@ -69,6 +70,9 @@ escape-from-work/
                        props/ (prop kit), effects/
       cameras/         chase, cockpit, spectator, showroom
       ui/              menu, lobby, hud, results, settings, overlays (blue screen…)
+      i18n/            UI strings: en.ts (every string), ar.ts (Arabic, type-checked complete), t() (P11.4)
+      pad/             phone controller page (?pad): seat list, touch buttons → the same input messages (P11.5)
+      ghost/ replay/   ghost of your best lap (P11.1), photo-finish recorder and replay (P11.2)
       audio/           procedural Web Audio: engine, horns, sfx
       debug/           F3 overlay, F2 tuning panel (dev)
       test-hooks.ts    ?scenario= handling + window.__game
@@ -130,13 +134,18 @@ installed types for the API. Anything not on this list → ask the human first.
   "points": [ { "x": 0, "z": 0, "width": 16 }, { "x": 40, "z": 5, "width": 14 } ],
   "sectors": 6,
   "zones": [
-    { "type": "ramp",  "from": 0.31, "to": 0.33, "launch": 1.0 },
-    { "type": "slick", "from": 0.42, "to": 0.45, "side": "both" },
+    { "type": "ramp",  "from": 0.31, "to": 0.33, "launch": 1.0, "look": "wood" },
+    { "type": "slick", "from": 0.42, "to": 0.45, "side": "both", "look": "coffee" },
+    { "type": "push",  "from": 0.50, "to": 0.55, "toward": "right", "strength": 22 },
     { "type": "swap",  "from": 0.80, "to": 0.86, "side": "right", "minLap": 2 },
     { "type": "itemRow", "at": 0.20, "count": 4 }
   ],
   "props": [ { "kit": "desk", "x": 12, "z": 30, "rot": 1.57 } ],
-  "start": { "at": 0.0 }
+  "start": { "at": 0.0 },
+  "branches": [ { "name": "Server Closet", "from": 0.69, "to": 0.83,
+                  "points": [ { "x": -32, "z": 204, "width": 7 } ] } ],
+  "sandstorm": { "lap": 2, "fogNear": 4, "fogFar": 75 },
+  "dev": false
 }
 ```
 
@@ -148,15 +157,38 @@ installed types for the API. Anything not on this list → ask the human first.
   wall segments, sector gates (gate 0 = start line) and spatial grids (`track.gridCellSize`) for
   fast "where am I on the track" and "which walls are near" lookups. `locateOnTrack` takes last
   tick's segment as a hint so a car stays on its own part of the track where it passes close.
-- Shortcuts (later tracks) are extra branch splines that rejoin the main loop; progress on a
-  branch maps to the main loop.
-- `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, no curve
-  tighter than half the road width, no crossing walls); bot laps join in P1.4.
+- Shortcuts are `branches`: open splines that leave the main centerline at `from`, pass their
+  own `points` and rejoin at `to` (phantom end points keep both ends tangent to the main road).
+  Progress on a branch maps linearly onto from..to, so laps, sectors, places and respawn work
+  unchanged; `locateOnTrack` returns `road` (0 = main, b + 1 = branch b) and, as `segment`, the
+  main segment at the same progress. Main-loop zones do not apply on a branch. Walls: a wall
+  piece with both ends inside the other road is dropped and one that straddles its edge is cut
+  there, so the roads open into each other at the junctions; a car behind a wall whose back
+  is another road is not pushed through it. Bots with `bot.shortcutSkill` follow branches.
+- Optional `sandstorm` (Smart Oasis): thick fog (`fogNear`..`fogFar` m) for one whole lap, while
+  the race leader is on lap `lap` (shared `sandstormOn`; drawn only, the sim is unchanged).
+  Ramps may look like sand dunes or black chips (`look: "dune"` / `"chip"`), slicks like ice
+  (`look: "ice"`). The road color follows the track `theme` (copper traces on `motherboard`).
+- `dev: true` marks a greybox track (Test Loop): `track:check` skips its lap-time target.
+  `battle: true` marks a small battle arena (The Break Room): offered in the picker, no lap target.
+- `npm run track:check -- <id>` validates schema and geometry (width ≥ `track.minWidth`, branches
+  ≥ `track.branchMinWidth`, no curve tighter than half the road width, no crossing walls, each
+  branch shorter than what it skips and off the main road between its junctions), then bot laps:
+  no respawns, median lap inside `track.lapTargetMin`–`lapTargetMax` (not for dev tracks), and
+  shortcut bots through every branch.
 
 ## 6. Networking
 
 ### Room and timing
-- One Colyseus room type `race`. The server auto-creates it at startup; everyone joins it.
+- One Colyseus room type `race`; each room is a **game** (P12.1). The server creates the always-open
+  game at startup (`SERVER_ROOM_KEY`, never disposed); players host more with
+  `client.create('race', CreateGame)` — `{name, track, mode, laps, bots, chaos}`, zod-checked,
+  laps in range, a pickable track, at most `net.maxGames` at once — and such a game disposes
+  itself when the last player is gone (after a held seat expires). Each game has its own track
+  (`LiveConfig.trackById`, built once and cached; a dev edit of a track file reloads the games on
+  it). Rooms publish their listing as matchmaker metadata (name, host, track, mode, phase,
+  isDefault); `GET /games.json` returns them with player counts for the JOIN window, which joins
+  with `joinById`. `?play` joins the always-open game without the menu (tools).
 - Sim at 60 Hz. State patches every `cfg.net.patchRateMs` (start: 33 ms).
 - Clients render about `cfg.net.interpDelayMs` (start: 50 ms) in the past and interpolate
   between snapshots. On a LAN this keeps total input-to-screen delay under ~100 ms.
@@ -225,6 +257,11 @@ Honk (P4.6): `input.honk` (anyone in the car, once per press) → the sim emits 
 `race.honkCooldownSeconds`; cosmetic, not in the replay hash) → every client shows a "HONK!" bubble
 and plays the car's `horn` preset from cars.json, synthesized with Web Audio (`audio/horn.ts`), quieter
 with distance.
+Audio (P7.7): everything is synthesized (no files). `audio/mixer.ts` routes sounds into engine, effects
+and music channels under a master volume (levels per browser, `efw.volumes`; the top-right speaker
+button). Your car's engine (`audio/engine.ts`) uses the car's `engine` voice from cars.json; tires squeal
+while drifting or braking hard. Wall hits, bumps and landings thud (any car, by distance and impact),
+countdown beeps follow the HUD text (`audio/cues.ts`), and `audio/music.ts` loops in the lobby/results.
 Mirror (P4.5): `render/mirror.ts` — a backward camera above/behind your car renders into a 256×64
 texture shown (flipped) under your windshield roof in the cockpit; `quality.presets.*.mirror`: off
 (Low), every 2nd frame (Medium), every frame (High).
@@ -247,7 +284,11 @@ lobby / rematch. The server owns a `RaceFlow` (phase, phaseTick, host, laps) and
 earliest-joined connected player, passed on automatically. `host:start` (host, between races, ≥1
 seated car) puts cars on the grid and starts the countdown, during which controls are ignored
 (clients also pause prediction). Seats lock from countdown to results. `host:laps {laps}`,
-`host:lobby` (after results). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
+`host:lobby` (after results), `host:track {id}` (P10.0: a valid non-dev track; the server loads
+it, syncs `state.track` and sends `reload {reason:'track'}`; pages reload into it with their seats
+held, the host keeps host over the reload, and a page whose track differs from `state.track`
+reloads itself), `host:mode {mode}` (P11.6: `'race' | 'battle'`, between races; synced as
+`state.mode`, with per-car `lives` / `out` in a battle). Refusals come back as `lobby:error`. `maxClients` = 2 × maxCars +
 `race.maxSpectators`.
 Disconnects (P2.4): an unplanned drop (`onDrop`: Wi-Fi blip, closed or reloaded tab) keeps the
 seat for `net.reconnectSeconds`; the player shows as away and their partner drives solo. The
@@ -313,6 +354,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | too few / too many bot cars | `race.botFillCars` (bots fill empty cars up to this many cars) |
 | stragglers wait too long / get cut off | `race.finishWindowSeconds` |
 | a race nobody finishes ends too soon / late | `race.maxRaceSeconds` (host can also press End race) |
+| battles too short / too long | `battle.lives`, `battle.hitGraceSeconds`, `battle.timeLimitSeconds` (P11.6) |
 | wrong-way warning too eager / too late | `race.wrongWaySeconds`, `race.wrongWayMinSpeed` |
 | races too long / short | `race.defaultLaps`, `race.minLaps`, `race.maxLaps` (host picks in the lobby) |
 | name or seat clicks ignored | `net.lobbyRatePerSec`, `net.lobbyBurst` |
@@ -361,12 +403,22 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | bots too slow / crash in corners (moves golden lap windows!) | `bot.cornerAccel`, `bot.brakePlanDecel`, `bot.planDistance`, `bot.speedMargin` |
 | bots weave / cut corners | `bot.lookAheadBase`, `bot.lookAheadTime`, `bot.steerGain` |
 | bots respawn too eagerly when stuck | `bot.stuckSpeed`, `bot.stuckSeconds` |
+| league points per place / the weekly cup's first day | `league.pointsByPlace`, `league.weekStartsOn` |
+| awards too easy / too rare / not funny | `league.awards` (stat, most/fewest, `limit`, title, line), `league.maxAwards`, `league.duck` |
 
 ## 8. Persistence
 
 - League: `data/league.json` with a `version` field, written atomically (temp file + rename).
+  It holds the race history (`LeagueSchema` in `packages/shared/src/league/schema.ts`: per race the
+  time, track, cars with team, roster car, players and seats, place, times, award counters and the
+  awards); every table is computed from it. A file that fails validation is renamed to
+  `league.corrupt-<time>.json` and the league starts empty (`packages/server/src/league/store.ts`).
+  At race end the room builds the record (award counters from sim events, awards by the
+  `league.awards` rules), broadcasts it (`race:record`, for the results screen) and saves it.
   No database server and no native modules, so it installs on Windows without build tools.
 - Player name and settings: browser `localStorage` (wrapped in try/catch).
+- Ghost of your best lap (P11.1): browser `localStorage` `efw.ghost.<track>` (`packages/client/src/ghost/`):
+  the drawn path of your fastest lap there at 20 Hz (~30 KB). Client only; the server never sees it.
 
 ## 9. Test hooks (for agents)
 

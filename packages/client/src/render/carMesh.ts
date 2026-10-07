@@ -1,13 +1,24 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Bobblehead, makeDuck } from './bobblehead';
-import type { SeatSide } from './cockpitCam';
+import type { CockpitLift, SeatSide } from './cockpitCam';
 import type { CarLook } from '@escape/shared';
-import { buildCarShape, type CarShape } from './carKit';
+import { buildCarShape, buildWheel, type CarShape } from './carKit';
+import { headKick, Squash } from './juice';
 import { BOX_CAR, CAR_KIT, COCKPIT, DUCK, HEAD, MIRROR, PALETTE, TEAM_COLORS } from './look';
 
 /** A string that changes when a car's look does. */
-export const lookKeyOf = (look: CarLook): string => `${look.body}|${look.wheelScale}|${look.parts.join(',')}`;
+const lookKeys = new WeakMap<CarLook, string>();
+
+/** A key that changes when the car must be rebuilt; cached per look object (asked every frame). */
+export function lookKeyOf(look: CarLook): string {
+  let key = lookKeys.get(look);
+  if (key === undefined) {
+    key = `${look.body}|${look.wheelScale}|${look.parts.join(',')}`;
+    lookKeys.set(look, key);
+  }
+  return key;
+}
 
 /** What a seat shows: a player's bobblehead (hidden = it is you, in the cockpit), a duck, or nobody. */
 export type SeatContent =
@@ -17,13 +28,8 @@ export type SeatContent =
 
 /** Shared by every car (built once). */
 interface CarAssets {
-  body: THREE.BufferGeometry;
-  /** Both rear wheels in one mesh: they share an axle, so they spin together (one draw call). */
-  rearAxle: THREE.BufferGeometry;
   dash: THREE.BufferGeometry;
   dashMat: THREE.Material;
-  wheel: THREE.BufferGeometry;
-  shadow: THREE.BufferGeometry;
   wheelMat: THREE.Material;
   shadowMat: THREE.Material;
 }
@@ -33,18 +39,6 @@ let assets: CarAssets | null = null;
 function getAssets(): CarAssets {
   if (assets) return assets;
   const C = BOX_CAR;
-  const body = new THREE.BoxGeometry(C.width, C.bodyHeight, C.length);
-  body.translate(0, C.ride + C.bodyHeight / 2, 0);
-  const cabin = new THREE.BoxGeometry(C.width * 0.86, C.cabinHeight, C.cabinLength);
-  cabin.translate(0, C.ride + C.bodyHeight + C.cabinHeight / 2, -C.cabinBack);
-  const merged = mergeGeometries([body, cabin]);
-  body.dispose();
-  cabin.dispose();
-  if (!merged) throw new Error('could not merge the box car body');
-
-  const wheel = new THREE.CylinderGeometry(C.wheelRadius, C.wheelRadius, C.wheelWidth, 14);
-  wheel.rotateZ(Math.PI / 2); // axle along X
-
   // Cockpit pieces (seen from inside): a low dashboard and the windshield frame (two
   // pillars and a roof bar), merged into one mesh = one extra draw call for your car only.
   const cabinW = C.width * 0.86;
@@ -67,24 +61,11 @@ function getAssets(): CarAssets {
   for (const p of parts) p.dispose();
   if (!dash) throw new Error('could not merge the cockpit');
 
-  const rearL = wheel.clone().translate(C.wheelTrack, 0, 0);
-  const rearR = wheel.clone().translate(-C.wheelTrack, 0, 0);
-  const rearAxle = mergeGeometries([rearL, rearR]);
-  rearL.dispose();
-  rearR.dispose();
-  if (!rearAxle) throw new Error('could not merge the rear wheels');
-
-  const shadow = new THREE.CircleGeometry(C.shadowRadius, 20);
-  shadow.rotateX(-Math.PI / 2);
-
   assets = {
-    body: merged,
-    rearAxle,
     dash,
     dashMat: new THREE.MeshLambertMaterial({ color: COCKPIT.dashColor, flatShading: true }),
-    wheel,
-    shadow,
-    wheelMat: new THREE.MeshLambertMaterial({ color: PALETTE.tire, flatShading: true }),
+    // Kit wheels are vertex-colored (tire + rim).
+    wheelMat: new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }),
     shadowMat: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: C.shadowOpacity, depthWrite: false }),
   };
   return assets;
@@ -98,8 +79,7 @@ const axleCache = new Map<string, THREE.BufferGeometry>();
 function wheelGeo(radius: number): THREE.BufferGeometry {
   let g = wheelCache.get(radius);
   if (!g) {
-    g = new THREE.CylinderGeometry(radius, radius, CAR_KIT.wheelWidth, CAR_KIT.wheelSegments);
-    g.rotateZ(Math.PI / 2); // axle along X
+    g = buildWheel(radius);
     wheelCache.set(radius, g);
   }
   return g;
@@ -179,6 +159,9 @@ export class CarMesh {
   private readonly wheels: THREE.Mesh[] = [];
   private readonly frontWheels: THREE.Mesh[] = [];
   private spin = 0;
+  private readonly squash = new Squash();
+  /** Your eye in this car (your own head's place) vs the box car's eye; the dash moves with it. */
+  readonly cockpitLift: CockpitLift;
   /** Dashboard block, only for your own car while you sit in the cockpit cam. */
   private dash: THREE.Mesh | null = null;
   /** What sits in the left and right seat. */
@@ -193,6 +176,10 @@ export class CarMesh {
     this.lookKey = lookKeyOf(look);
     this.shape = buildCarShape(look, teamColor);
     const s = this.shape;
+    this.cockpitLift = {
+      y: s.headY + COCKPIT.eyeAboveHead - (BOX_CAR.ride + BOX_CAR.bodyHeight + COCKPIT.eyeAboveBody),
+      z: s.seatZ + COCKPIT.seatBack,
+    };
     this.bodyMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
     this.body = new THREE.Mesh(s.body, this.bodyMat);
     this.body.castShadow = true;
@@ -229,6 +216,9 @@ export class CarMesh {
     this.root.position.set(x, 0, z);
     this.root.rotation.y = yaw;
     this.body.position.y = y;
+    // Landing squash and stretch (the body is built standing on y = 0, so it squashes onto its wheels).
+    this.squash.step(dt);
+    this.body.scale.set(this.squash.scaleXZ, this.squash.scaleY, this.squash.scaleXZ);
     this.spin += (speed * dt) / r;
     for (const w of this.wheels) {
       w.rotation.x = this.spin;
@@ -272,6 +262,14 @@ export class CarMesh {
     }
   }
 
+  /** A hit or landing at `impact` m/s: heads bob; a landing also squashes the body. */
+  jolt(impact: number, landing: boolean): void {
+    if (landing) this.squash.land(impact);
+    for (const seat of [this.seats.left, this.seats.right]) {
+      if (seat?.kind === 'head') seat.head.kick(headKick(impact));
+    }
+  }
+
   /** Show the inside (dashboard) when you look from this car's seat. */
   setCockpit(on: boolean): void {
     if (on && !this.dash) {
@@ -282,7 +280,7 @@ export class CarMesh {
       this.dash.removeFromParent();
       this.dash = null;
     }
-    if (this.dash) this.dash.position.y = this.body.position.y;
+    if (this.dash) this.dash.position.set(0, this.body.position.y + this.cockpitLift.y, this.cockpitLift.z);
   }
 
   dispose(): void {

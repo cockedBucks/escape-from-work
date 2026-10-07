@@ -24,18 +24,18 @@ track (The Office), juice, procedural audio, and a performance pass on real hard
   the median lap time. Tune stats to pass.
 - [x] **P7.4 Prop kit (office).** All office props from the art style list, instanced where
   repeated.
-- [ ] **P7.5 The Office track.** Layout, zones, swap lane, item rows, server-closet shortcut
+- [x] **P7.5 The Office track.** Layout, zones, swap lane, item rows, server-closet shortcut
   (branch spline), props. Use `/add-track`. `npm run track:check -- office`.
-  Add the 40–55 s lap-target check to `track:check` (needs a per-track target or a
-  "dev" flag so the Test Loop is exempt — ask the human; see D034).
-- [ ] **P7.6 Juice.** Dust, spark levels, nitro flames, stall smoke, landing squash, hit shake,
+  Add the 40–55 s lap-target check to `track:check` (human chose a `dev` flag that exempts
+  the Test Loop; D091).
+- [x] **P7.6 Juice.** Dust, spark levels, nitro flames, stall smoke, landing squash, hit shake,
   finish confetti, head wobble, honk bubble polish.
-- [ ] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,
+- [x] **P7.7 Procedural audio.** Engine synth per car (pitch by speed, timbre per car), skids,
   bumps, landings, item sounds, countdown beeps, a light menu loop. Volume settings.
-- [ ] **P7.8 Performance pass.** Shots stats at Low and High for chase, cockpit and overview on
+- [x] **P7.8 Performance pass.** Shots stats at Low and High for chase, cockpit and overview on
   The Office; fix anything over budget.
-- [ ] **HUMAN GATE — looks, sound, real FPS.**
+- [~] **HUMAN GATE — looks, sound, real FPS.** (deferred)
   1. On a normal work laptop: race The Office with F3 open, on Medium.
   2. Reply: the FPS you saw (min and typical), your favorite and least favorite car,
      anything ugly or confusing on the track, too loud/quiet sounds.
-- [ ] **P7.9 Phase end.** Reviewer, fixes, `git tag p7-done`, report.
+- [x] **P7.9 Phase end.** Reviewer, fixes, `git tag p7-done`, report.

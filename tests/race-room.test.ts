@@ -1,6 +1,6 @@
 import { Client, type EndpointSettings } from '@colyseus/sdk';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { MSG, ROOM_NAME, carIdForSlot, type LobbyError } from '@escape/shared';
+import { DEFAULT_TRACK, MSG, ROOM_NAME, carIdForSlot, type LobbyError } from '@escape/shared';
 import { startServer, type GameServer } from '../packages/server/src/app';
 import { waitForState } from './helpers';
 
@@ -10,6 +10,7 @@ interface PlayerView {
   seat: string;
   role: string;
   ackSeq: number;
+  connected: boolean;
 }
 
 interface StateView {
@@ -18,6 +19,8 @@ interface StateView {
   cars?: { get(id: string): { x: number } | undefined; size: number };
   phase?: string;
   host?: string;
+  track?: string;
+  mode?: string;
 }
 
 describe('race room (real server, real clients)', () => {
@@ -32,6 +35,11 @@ describe('race room (real server, real clients)', () => {
 
   // `?.`: if startup failed, don't hide that error behind a TypeError here.
   afterAll(() => game?.close());
+
+  it('a client cannot make a game without proper settings, nor pose as the server (P12.1)', async () => {
+    await expect(new Client(endpoint).create(ROOM_NAME)).rejects.toThrow(/bad game settings/);
+    await expect(new Client(endpoint).create(ROOM_NAME, { key: 'guess' })).rejects.toThrow(/bad game settings/);
+  });
 
   it('counts 2 players when two join, then 1 when one leaves', async () => {
     const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
@@ -84,6 +92,62 @@ describe('race room (real server, real clients)', () => {
     await waitForState(room, (s) => s.players?.get(room.sessionId)?.ackSeq === 2, 'input seq 2 echoed');
 
     await room.leave();
+  });
+
+  it('only the host switches Race ↔ Battle, and everyone sees it (P11.6)', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId && s.mode === 'race', 'A is host, race mode');
+    const byB = new Promise<LobbyError>((resolve) => b.onMessage(MSG.lobbyError, resolve));
+    b.send(MSG.hostMode, { mode: 'battle' });
+    expect((await byB).reason).toMatch(/only the host/);
+    a.send(MSG.hostMode, { mode: 'battle' });
+    await waitForState(b, (s) => s.mode === 'battle', 'B sees battle mode');
+    a.send(MSG.hostMode, { mode: 'race' });
+    await waitForState(b, (s) => s.mode === 'race', 'back to race mode');
+    await b.leave();
+    await a.leave();
+  });
+
+  it('tells everyone the track; only the host may pick one, and only a real one (P10.0)', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId && s.track === DEFAULT_TRACK, 'A is host, the default track');
+    const byB = new Promise<LobbyError>((resolve) => b.onMessage(MSG.lobbyError, resolve));
+    b.send(MSG.hostTrack, { id: DEFAULT_TRACK });
+    expect((await byB).reason).toMatch(/only the host/);
+    const devTrack = new Promise<LobbyError>((resolve) => a.onMessage(MSG.lobbyError, resolve));
+    a.send(MSG.hostTrack, { id: 'test-loop' });
+    expect((await devTrack).reason).toMatch(/no such track/);
+    await b.leave();
+    await a.leave();
+  });
+
+  it('a track switch: everyone reloads into it, and the host stays host over the reload (P10.7)', async () => {
+    const a = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    const b = await new Client(endpoint).join<StateView>(ROOM_NAME);
+    await waitForState(a, (s) => s.host === a.sessionId && s.track === DEFAULT_TRACK, 'A is host, the default track');
+    const reloadOf = (r: typeof a) => new Promise<{ reason?: string }>((resolve) => r.onMessage(MSG.reload, resolve));
+    const [ra, rb] = [reloadOf(a), reloadOf(b)];
+    a.send(MSG.hostTrack, { id: 'server-room' });
+    expect((await ra).reason).toBe('track');
+    expect((await rb).reason).toBe('track');
+    await waitForState(b, (s) => s.track === 'server-room', 'B sees the new track');
+
+    // A's page reloads (the connection drops, the seat is held); B has not reloaded yet.
+    const aId = a.sessionId;
+    const token = a.reconnectionToken;
+    await a.leave(false);
+    await waitForState(b, (s) => s.players?.get(aId)?.connected === false, 'A away');
+    expect(b.state.host).toBe(aId);
+    const back = await new Client(endpoint).reconnect<StateView>(token);
+    await waitForState(back, (s) => s.host === aId && s.track === 'server-room', 'A back as host on the new track');
+
+    // Put the process-wide config back on the default track for the other tests.
+    back.send(MSG.hostTrack, { id: DEFAULT_TRACK });
+    await waitForState(back, (s) => s.track === DEFAULT_TRACK, 'back on the default track');
+    await b.leave();
+    await back.leave();
   });
 
   it('only the host starts the race; the phase goes countdown → racing', async () => {

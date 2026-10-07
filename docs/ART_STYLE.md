@@ -2,8 +2,9 @@
 
 ## 1. The look in one line
 
-**Chunky toy-box low-poly**: flat-shaded, bright, rounded-feeling shapes, oversized wheels
-and heads, like office supplies and toy cars came to life. Goofy but clean.
+**Chunky toy-box low-poly**: flat-shaded, bright, rounded-feeling shapes, oversized heads,
+like office supplies came to life. The cars are real-life car types (P12.2), low-poly and
+unbranded, with goofy bobbleheads poking out of the sunroof. Goofy but clean.
 
 ## 2. Rules
 
@@ -41,14 +42,23 @@ Team colors (slot order), each car also shows its team number on the roof:
 
 ## 4. Car kit
 
-Cars are built in code from data in `config/cars.json`: a body preset (hatch, sedan, pickup,
-van, mini, round, muscle) with proportions, plus parts (spoiler, roof sign, speaker stack,
-roof box, dish, ladder, wind-up key, hood scoop). The kit merges parts per material.
+Cars are built in code from data in `config/cars.json`: a body type and parts. Body types are
+real-life car types (P12.2): hatchback, sedan, pickup, muscle car, SUV, city car, sports car and
+van. Each type is drawn as a side outline (hood, shoulders, deck, with wheel arches cut around
+the wheels) and a cabin outline, extruded across the car (`render/sideProfile.ts`, shapes in
+`render/look.ts` `CAR_BODIES`). Real-life details: tinted side windows split by pillars,
+windshield and rear window, side mirrors, headlights, grille, taillights, dark bumpers with
+plates, dark sills, rims. Parts: spoiler, taxi roof sign, speaker stack, hood scoop, roof box
+with rails, spare wheel, satellite dish, ladder, racing stripes. No real brands, badges, logos
+or recognizable model designs. The kit merges the body into one vertex-colored mesh.
 
-- Wheels: oversized (about 1.3× realistic), visible from the chase cam, spin and steer.
-- Body panels: team color. Trim, glass and tires: palette colors.
-- Two bobblehead drivers per car (left seat Pilot, right seat Engineer; solo = one head
-  plus an empty seat with a rubber duck). Heads are about 1.6× scale on a spring and wobble.
+- Wheels: about 1.15× realistic, tire + rim, flush with the body sides; they spin and steer.
+- Body panels and pillars: team color. Trim, glass, lights and tires: kit colors.
+- Two bobblehead drivers per car poking out of an open sunroof (left seat Pilot, right seat
+  Engineer; solo = one head plus an empty seat with a rubber duck). Heads are about 1.6× scale
+  on a spring and wobble.
+- The team number sits on the roof behind the heads, or on the hood when the roof is short or
+  carries a part.
 - Face textures from `assets/faces/` mapped on the front of the head sphere; placeholder is a
   drawn smiley with glasses.
 
@@ -56,13 +66,13 @@ roof box, dish, ladder, wind-up key, hood scoop). The kit merges parts per mater
 
 | id | Name | Type | Signature feature | Stat lean |
 |---|---|---|---|---|
-| spoiler-alert | Spoiler Alert | hatchback | a 3-tier spoiler taller than the car | balanced |
-| cabbie | Cabbie | taxi sedan | huge wobbling roof sign | balanced, slight grip |
-| bass-drop | Bass Drop | pickup | speaker stack in the bed that thumps with the engine | heavy |
-| hot-fix | Hot Fix | muscle car | hood twice as long as normal, big scoop | speed |
-| packet-loss | Packet Loss | minivan | giant roof box that rattles | heavy, grip |
-| pocket-rocket | Pocket Rocket | tiny city car | enormous wheels | light, grip |
-| bug-report | Bug Report | round beetle-style car | big wind-up key on the back | light |
+| spoiler-alert | Spoiler Alert | hot hatchback | a big rear wing on posts | balanced |
+| cabbie | Cabbie | taxi sedan | yellow taxi sign on the roof | balanced, slight grip |
+| bass-drop | Bass Drop | double-cab pickup | speaker stack in the open bed | heavy |
+| hot-fix | Hot Fix | muscle car | long hood with a scoop, fastback | speed |
+| packet-loss | Packet Loss | family SUV | roof box on rails, spare wheel on the tailgate | heavy, grip |
+| pocket-rocket | Pocket Rocket | tall city car | short and boxy on big wheels | light, grip |
+| bug-report | Bug Report | low sports car | racing stripes over hood, roof and deck | light |
 | help-desk | Help Desk | IT support van | satellite dish and ladder on the roof | heavy |
 
 ## 5. Prop kit

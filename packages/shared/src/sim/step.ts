@@ -116,6 +116,13 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     events.push({ type: 'jump', car: car.id });
   }
   car.onRamp = ramp !== undefined;
+  // Cooling fans: a sideways shove along the road's right (+) or left (-) while on the ground.
+  const push = grounded ? zones.find((z) => z.type === 'push') : undefined;
+  if (push) {
+    const k = (push.toward === 'right' ? 1 : -1) * push.strength * dt;
+    car.vx += -loc.dir.z * k;
+    car.vz += loc.dir.x * k;
+  }
 
   // Gates count only in order, so driving backwards over one does not move the respawn point.
   const sectors = track.gates.length;

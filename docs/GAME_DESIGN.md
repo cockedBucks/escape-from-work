@@ -25,9 +25,12 @@ first. Use it for flavor everywhere:
 
 ## 3. Players, teams and roles
 
-- 4–16 players, 2–8 cars. One server on the LAN hosts one lobby. Everyone who opens the
-  URL lands in that lobby. The first player is the **host** (can start races, change
-  settings). Host passes to the next player if they leave.
+- 4–16 players per game, 2–8 cars. One server on the LAN runs several **games** (P12.1): the menu's
+  **HOST** opens a window to set one up (name, track, Race/Battle, laps, bots, chaos) and puts you
+  in its lobby as the host; **JOIN** lists every game (the server's always-open "Office game" plus
+  the hosted ones, live) to jump into. A hosted game closes when everyone has left. In a game the
+  first player is the **host** (can start races, change settings); host passes to the next player
+  if they leave. "Leave game" in the lobby goes back to the menu.
 - A **team** = one car = up to two players.
   - **Pilot**: steering, aiming items.
   - **Engineer**: gas, brake/reverse, nitro, firing items, managing engine heat.
@@ -186,12 +189,15 @@ Lap target 40–55 s.
      **server-closet shortcut** → **swap lane** through the IT help desk → reception.
    - Props: desks, rolling chairs, cubicle walls, monitors, plants, water cooler,
      coffee machine, printer, whiteboards with doodles.
-3. **Server Room**: cable-tray lanes, giant cooling fans that push you sideways,
+3. **Server Room** (built in P10.1: `server-room.json`, ~1.3 km, ~48 s): cable-tray lanes, giant cooling fans that push you sideways,
    an icy cold aisle, blinking racks.
-4. **Smart Oasis**: desert dunes (gentle jumps), a palm-tree oasis shortcut, a sandstorm
+4. **Smart Oasis** (built in P10.2: `smart-oasis.json`, ~1.2 km, ~44 s): desert dunes (gentle jumps), a palm-tree oasis shortcut, a sandstorm
    event that lowers visibility for a lap.
-5. **Motherboard**: tiny cars on a circuit board, driving on traces, jumps over capacitors,
+5. **Motherboard** (built in P10.3: `motherboard.json`, ~1.4 km, ~52 s): tiny cars on a circuit board, driving on traces, jumps over capacitors,
    a loop around the CPU fan.
+6. **The Break Room** (P11.6: `break-room.json`, ~0.6 km, ~22 s, `battle: true`): a small arena for
+   battle mode — a wide loop with a chicane, a coffee slick, a little jump and four item rows; the
+   office kitchen in the infield. Fine for short races too.
 
 ## 10. League and awards
 
@@ -211,10 +217,13 @@ Lap target 40–55 s.
 - **Main menu**: cars spinning on a turntable, wobbly buttons, a big HONK button, fake IT
   loading messages ("Waiting for IT to approve your ticket…", "Rebooting the coffee
   machine…"), and company images from `assets/menu/` in a slideshow.
-- **Lobby**: name, team list with colors, a car picker per team (either player of the car can
-  change it; two teams may pick the same car), seat picker (Pilot / Engineer), solo indicator,
-  Shuffle (host), bots toggle, chaos toggle, track and laps (host), Ready, Start (host).
-  A short "how to play" card for each role.
+- **Lobby**: name, team cards in team colors, each with a picture of its car (in the team's
+  color), the car's name and real-life type; either player of the car flips it with ◀ ▶ or
+  opens the **garage** (every car with its type, speed / grip / weight bars and a Honk button;
+  two teams may pick the same car). Big seat buttons: 🕹️ Pilot and 🔧 Engineer side by side
+  with what each does and who sits there (face + name, or "Sit here"), and "or drive Solo"
+  under them. Shuffle (host), bots toggle, chaos toggle, track and laps (host), Ready, Start
+  (host). A short "how to play" card for each role (hidden on short screens).
 - **HUD**: chase cam uses a DOM HUD; cockpit cam puts speed, heat, nitro, item and lap/place
   on the dashboard, plus a small rear-view mirror.
 - **Results**: podium with bobbleheads, times, awards, points, Rematch / Lobby.
@@ -224,3 +233,17 @@ Lap target 40–55 s.
 
 - Fixed teams vs shuffled teams for the league (both supported; decide the default).
 - Prediction on the client (Phase 2 fun gate decides if steering feels laggy without it).
+
+## 13. Extras (P11, after v1.0; each can be turned off)
+
+- **Ghost of your best lap**: a see-through copy of your best lap on this track (kept in this
+  browser) drives with you. Settings → Ghost.
+- **Photo finish**: a close finish between 1st and 2nd replays in slow motion at the finish line.
+- **Seasonal decorations**: holiday props beside the tracks on their dates. Settings → Decorations.
+- **Arabic UI**: every screen in English or Arabic (right-to-left). Settings → Language.
+- **Phones as controllers**: a phone can take a seat and drive with touch buttons.
+- **Battle mode**: the host switches 🏁 Race / 💥 Battle in the lobby. Every car has 3 lives
+  (`battle.lives`); an item hit a Firewall does not block takes one, then 2 s of grace. Out =
+  the car rolls to a stop, see-through, and its players watch. Last car standing wins; after
+  `battle.timeLimitSeconds` (2.5 min) the most lives win. Items are always on, laps and wrong-way
+  do not count, and a battle is not a league race. Best on The Break Room, works on any track.

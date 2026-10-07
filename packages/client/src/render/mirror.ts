@@ -36,12 +36,12 @@ export class RearMirror {
   }
 
   /** Render the view behind the car (x, y, z, yaw = your car) when this frame is due. */
-  render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, x: number, y: number, z: number, yaw: number): void {
+  render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, x: number, y: number, z: number, yaw: number, liftY = 0): void {
     this.frame++;
     if (!mirrorDue(this.mode, this.frame)) return;
     const fx = Math.sin(yaw);
     const fz = Math.cos(yaw);
-    const eyeY = y + BOX_CAR.ride + BOX_CAR.bodyHeight + BOX_CAR.cabinHeight + MIRROR.cameraAbove;
+    const eyeY = y + BOX_CAR.ride + BOX_CAR.bodyHeight + BOX_CAR.cabinHeight + MIRROR.cameraAbove + liftY;
     this.camera.position.set(x - fx * MIRROR.cameraBack, eyeY, z - fz * MIRROR.cameraBack);
     this.camera.lookAt(this.tmp.set(x - fx * MIRROR.far, eyeY, z - fz * MIRROR.far));
     this.mesh.visible = false; // never show the mirror in itself

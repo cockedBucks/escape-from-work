@@ -1,130 +1,126 @@
 # Escape from Work
 
-A goofy office racing game for the Smart Oasis LAN. Teams of two share one car: one person
-steers, the other runs the pedals, nitro and items, each on their own laptop.
+A goofy office racing game for the Smart Oasis LAN. Teams of two share one car: the **Pilot**
+steers, the **Engineer** runs the pedals, nitro and items, each on their own laptop, sitting
+next to each other. Up to 16 players (8 cars); bots can fill the empty cars. A player without a
+partner drives **solo** with all the controls.
 
-This folder starts as a **starter kit**: design docs, a phased plan, and rules and skills
-for Claude Code. Claude Code builds the whole game from it, task by task. Your job is to
-playtest, give feedback, and say yes or no at the decision points.
+Runs in Chrome or Edge. One PC hosts; nobody else installs anything. No internet needed.
 
 ---
 
-## 1. One-time setup
+## 1. Play it in the office
 
-1. Install **Node.js LTS** (22 or newer) from nodejs.org, and **Git** from git-scm.com.
-2. Make sure **Chrome or Edge** is installed (used for automatic screenshots).
-3. Install **Claude Code** and sign in with your Claude Pro account
-   (instructions: https://code.claude.com/docs/en/setup).
-4. Unzip this kit into an empty folder, for example `escape-from-work`.
-   Check that the hidden `.claude` folder came along (enable "show hidden items").
+1. **Host PC, once:** install Node.js LTS (22.12+) and Git, clone this repo, add the firewall
+   rule. Step by step: [`docs/LAN.md`](docs/LAN.md).
+2. **Host PC, every day:** double-click **`start-server.bat`** (Windows) or run
+   `./start-server.sh` (macOS/Linux). It installs what is missing, builds and starts the game,
+   then prints the address, for example `http://192.168.1.23:2567`.
+3. **One player presses HOST:** name the game, pick the track, Race or Battle, laps, bots and
+   chaos, then **CREATE GAME**. You are in its lobby as the host.
+4. **Everyone else presses JOIN:** the list shows every game on the server (and the always-open
+   "Office game"); press **JOIN** on one. Type your name, pick a car and a seat (Pilot, Engineer or
+   Solo), press **Ready**.
+5. **The host** presses **Start**. "⬅ Leave game" in the lobby goes back to the menu.
 
-## 2. Start building
+Stop the server with **Ctrl+C**. The league is saved on the host PC (`data/league.json`) with
+a daily backup in `data/backups/`.
 
-1. Open the folder in Antigravity.
-2. Open a terminal in that folder and run `claude`.
-3. When Claude Code asks whether you trust this folder, say yes. That turns on the project
-   permissions in `.claude/settings.json` (npm scripts, tests and git commits run without
-   asking; `git push` is blocked; file edits are accepted automatically).
-4. Type `/next`. That is it.
+## 2. Controls
 
-## 3. The daily loop
+Keys are physical positions, so they work with any keyboard layout (Arabic too).
 
-| You type | What happens |
+| Who | Keys |
 |---|---|
-| `/next` | Claude does the next task: builds it, tests it, commits it, updates progress |
-| `/next phase` | keeps going through the current phase until a test gate or the phase ends |
-| `/next P2.4` | does a specific task |
-| `/feedback <what felt wrong>` | turns your playtest notes into tuning changes |
-| `/handoff` | saves exactly where things stand before you stop |
-| `/clear` | fresh conversation (do this between phases, saves your usage) |
-| `/usage` | see how much of your Pro limit is used |
+| **Pilot** | **A / D** (or ← / →) steer · steer hard while the partner taps **S** = **DRIFT** · hold **Q** to aim an item backward |
+| **Engineer** | **W** gas · **S** brake / reverse (tap while turning = DRIFT) · **Shift** nitro (heats the engine) · **Space** use the item |
+| **Solo** | everything above, by yourself |
+| **Everyone** | **H** honk · **R** respawn · **C** chase ↔ cockpit view (mouse to look) · hold **Tab** scoreboard · **Esc** lobby · **?** key help · **F3** FPS and ping |
 
-When Claude reaches a **HUMAN GATE**, it stops and shows you a short checklist
-(for example: "open the game on two laptops and drive together"). Do it, reply with what
-you saw, and it continues.
+The duo loop: drift → fills nitro → nitro heats the engine → the purple **swap lane** (from
+lap 2) trades seats and cools it. Too much nitro and the engine stalls for 2 s.
 
-If you hit your usage limit mid-task, nothing is lost: next time just type `/next`. It reads
-`docs/PROGRESS.md` and the uncommitted changes and carries on.
+**No second laptop?** Open the same address on a phone and press **📱 Use this phone as a
+controller** (or add `?pad` to the address). Pick your seat: you get big touch buttons for your
+role (Pilot: ◀ ▶; Engineer: gas, brake, nitro, item) and watch the race on your teammate's laptop.
 
-## 3b. Game commands
+**Extras** (Settings ⚙): race the see-through **ghost** of your best lap, holiday **decorations**
+(Ramadan, Eid, Halloween, winter snow), and the whole game in **العربية** (Language). A close
+finish gets a slow-motion **photo finish** replay.
 
-Run these in a terminal in the project folder. After cloning on a new PC, run `npm install`
-once first.
+## 3. Tracks
+
+| Track | What is special |
+|---|---|
+| **The Office** (default) | desk-row straight, Printer Island hairpin, coffee slicks, a jump over the boardroom table, the narrow Server Closet shortcut |
+| **Server Room** | giant cooling fans that shove you sideways, an icy cold aisle, blinking racks |
+| **Smart Oasis** | desert dune jumps, the Palm Oasis shortcut past the pond, a sandstorm on lap 2 |
+| **Motherboard** | tiny cars on copper traces, jumps over chips between capacitors, a loop around the CPU fan |
+| **The Break Room** | a small arena for **Battle** mode (host: 🏁 Race / 💥 Battle in the lobby): 3 lives, item hits take one, last car standing wins |
+| Test Loop | the greybox test track (dev only, not in the picker) |
+
+Chaos items (host toggle): Reply-All, Firewall, Coffee Spill, Ctrl+Z, Blue Screen, Lag Spike,
+Control Swap, Forced Update. The league: points per race, a weekly cup, duo records, lap
+records and silly awards (menu → 🏆 League).
+
+## 4. Commands
+
+Run in a terminal in the game folder (`npm install` once after cloning, or just use the start
+script).
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | game server + Vite page with hot reload. Open Vite's **Network** URL (port 5173) |
-| `npm start` | builds the page and starts one server for the office; open the printed **LAN** URL (port 2567) |
-| `npm run verify` | typecheck + all tests + a short headless bot race, one summary line (Claude runs this before every commit) |
+| `start-server.bat` / `./start-server.sh` | office start: install if needed, build, start, print the LAN address |
+| `npm start` | build the page and start one server for the office (port 2567) |
+| `npm run dev` | server + Vite page with hot reload; open Vite's **Network** URL (port 5173); **F2** tuning panel |
+| `npm run verify` | typecheck + all tests + a short headless bot race, one summary line |
 | `npm test` | tests only |
-| `npm run test:load` | load test: 8 bot cars (16 clients) race 3 laps, prints server tick times (~2 min) |
-| `npm run shots -- hello` | screenshots in your Chrome/Edge → `artifacts/shots/` |
-| `npm run track:check` | checks every track file (or `-- test-loop` for one): shape, width, tight curves, crossing walls |
-| `npm run bots -- --cars 4 --seconds 60` | bot players join your running game: per car a Pilot bot and an Engineer bot (`--url http://<ip>:<port>` for another PC) |
-| `npm run faces` | lists the face photos in `assets/faces/` for the lobby's face picker (run after adding/removing photos) |
+| `npm run test:load` | 8 bot cars (16 clients) race 3 laps through the real server, prints tick times (~2 min) |
+| `npm run soak` | 16 bot clients race back to back for 10 min: memory growth and tick times |
+| `npm run shots -- chase --track motherboard` | screenshots of a scenario → `artifacts/shots/` |
+| `npm run track:check -- smart-oasis` | check a track file and run bot laps on it |
+| `npm run bots -- --cars 4 --seconds 60` | bot players join a running server's always-open game (`--url http://<ip>:<port>` for another PC, `--game "<name>"` for a hosted game) |
+| `npm run faces` | list the face photos in `assets/faces/` for the face picker (after adding photos) |
+| `npm run jitter` | how smoothly your car is drawn (stutter check, real browser) |
 
-Driving (from P1.6): open the page and you join the race at once. **W/S** or **↑/↓** gas and
-brake (hold S when stopped to reverse), **A/D** or **←/→** steer, **R** respawn, **H** honk, **F3** debug overlay
-(fps, ping, draw calls), **C** chase ↔ cockpit cam (click the game to look around with the mouse,
-Esc to let go), **F2** tuning panel (dev only: sliders change the feel live,
-**Save** writes `config/tuning.json`, **Revert** goes back to the file). Add `?quality=low` to
-the URL on a slow laptop.
+All tuning (car feel, items, league points, awards) lives in `config/` as JSON, checked on load.
+Add `?quality=low` to the URL on a slow laptop, or pick a quality in Settings.
 
-Stop a running server with **Ctrl+C**. The game port is `net.port` in `config/tuning.json`.
+## 5. Your own content
 
-## 4. The plan (11 phases)
+- Coworker faces (bobbleheads): photos in `assets/faces/` (only people who agreed), then
+  `npm run faces`. Company images for the menu slideshow: `assets/menu/`. Both folders stay on
+  the host PC and are never committed.
+- New tracks, cars and items are data files in `config/` (see `docs/ARCHITECTURE.md`).
 
-P0 skeleton → P1 driving feel → **P2 two laptops, one car (fun gate)** → P3 lobby and races →
-P4 cockpit cam and bobbleheads → P5 heat, drift, nitro, swap lane → P6 chaos items →
-P7 cars, The Office track, sound → P8 goofy menu → P9 league and awards →
-P10 more tracks and v1.0. Details: `docs/ROADMAP.md`.
+## 6. Building it further with Claude Code
 
-## 5. Your jobs
+The game was built by Claude Code from the docs in this repo, phase by phase
+(`docs/ROADMAP.md`). To continue: open a terminal here, run `claude`, type `/next`.
 
-- Playtest at each HUMAN GATE and reply honestly (funny? laggy? confusing?).
-- Tune feel live: in dev builds, **F2** opens the tuning panel, **F3** shows FPS and lag.
-- Add coworker faces to `assets/faces/` (only people who agreed) and company images to
-  `assets/menu/`. Both folders stay on your PC and are never committed.
-- Answer the open questions when Claude asks (for example fixed vs shuffled teams).
+| You type | What happens |
+|---|---|
+| `/next` | the next task: build it, test it, commit it, update `docs/PROGRESS.md` |
+| `/feedback <what felt wrong>` | turns playtest notes into tuning changes |
+| `/add-track`, `/add-car`, `/add-item` | new content, validated with bot laps |
+| `/handoff` | saves exactly where things stand before you stop |
 
-## 6. Saving your usage (Pro plan)
+Tips for a Pro plan: one phase per conversation (`/clear` between), specific feedback
+("the car slides too much after the jump"), **Esc** at once if it heads the wrong way.
 
-- One phase per conversation, `/clear` between phases.
-- Keep the default model (Sonnet is the right fit for this on Pro). Check `/model` and
-  `/usage` now and then.
-- If Claude heads the wrong way, press **Esc** right away and say what you want instead.
-  `/rewind` restores code and conversation to an earlier point.
-- Be specific in feedback ("the car slides too much after the jump" beats "make it better").
-
-## 7. Optional add-ons (later, your call)
-
-Claude will not install these on its own. Ideas worth trying once the matching phase starts:
-- Anthropic's example skills (for menu and UI design ideas):
-  `/plugin marketplace add anthropics/skills`, then install `example-skills`.
-- A Three.js skill pack for Claude Code, around Phase 7 (art pass). Read its files before
-  installing; third-party packs are not reviewed by Anthropic.
-
-## 8. Where things are
+## 7. Where things are
 
 | Path | What |
 |---|---|
-| `CLAUDE.md` | the rules Claude Code reads every session |
-| `.claude/rules/` | extra rules that load only for matching folders |
-| `.claude/skills/` | `/next`, `/handoff`, `/verify`, `/shots`, `/feedback`, `/add-car`, `/add-item`, `/add-track` |
-| `.claude/agents/reviewer.md` | a fresh-eyes reviewer used at the end of each phase |
-| `docs/PROGRESS.md` | where we are right now |
-| `docs/phases/` | task lists and test gates for each phase |
-| `docs/GAME_DESIGN.md` | the game: roles, mechanics, items, tracks, league |
-| `docs/ARCHITECTURE.md` | how it is built |
-| `docs/ART_STYLE.md` | the look, cars, colors, performance budget |
-| `docs/TESTING.md` | how Claude proves things work |
-| `docs/DECISIONS.md` | why things are the way they are |
+| `config/` | all tunable data: `tuning.json`, `cars.json`, `items.json`, `tracks/*.json` |
+| `packages/shared/` | deterministic sim, track math, race rules, items, bots, league scoring |
+| `packages/server/` | the authoritative game server (Colyseus), lobby, league store |
+| `packages/client/` | Three.js page: rendering, input, cameras, UI, audio |
+| `scripts/` | start, shots, bots, soak, track check, faces |
+| `docs/` | design (`GAME_DESIGN.md`), tech (`ARCHITECTURE.md`), look (`ART_STYLE.md`), tests (`TESTING.md`), LAN guide (`LAN.md`), decisions, progress |
+| `CLAUDE.md`, `.claude/` | the rules, skills and reviewer agent Claude Code uses |
 
-## 9. If something goes wrong
+## 8. Known issues
 
-- **Claude seems confused**: `/clear`, then `/next`. Progress lives in the docs and git, not
-  in the conversation.
-- **A change broke the game**: ask Claude to revert the last task's commit with `git revert`
-  (history is never rewritten), or use `/rewind` inside the session.
-- **Other laptops cannot open the game**: see `docs/LAN.md`; usually the
-  Windows firewall needs a rule for the game port.
+See "Known issues" in [`docs/PROGRESS.md`](docs/PROGRESS.md). If other laptops cannot open the
+game, it is almost always the Windows firewall: [`docs/LAN.md`](docs/LAN.md) section 2.

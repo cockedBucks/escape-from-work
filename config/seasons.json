@@ -1,0 +1,48 @@
+{
+  "decorations": {
+    "perTrack": 60,
+    "edgeGap": 1.5,
+    "propGap": 2
+  },
+  "seasons": [
+    {
+      "id": "ramadan",
+      "name": "Ramadan",
+      "dates": [
+        { "from": "2027-02-07", "to": "2027-03-08" },
+        { "from": "2028-01-27", "to": "2028-02-25" },
+        { "from": "2029-01-15", "to": "2029-02-13" },
+        { "from": "2030-01-05", "to": "2030-02-03" }
+      ],
+      "kits": ["lantern", "crescent", "lantern", "candle"]
+    },
+    {
+      "id": "eid",
+      "name": "Eid",
+      "dates": [
+        { "from": "2027-03-09", "to": "2027-03-12" },
+        { "from": "2027-05-15", "to": "2027-05-19" },
+        { "from": "2028-02-26", "to": "2028-02-29" },
+        { "from": "2028-05-04", "to": "2028-05-08" },
+        { "from": "2029-02-14", "to": "2029-02-17" },
+        { "from": "2029-04-23", "to": "2029-04-27" },
+        { "from": "2030-02-04", "to": "2030-02-07" },
+        { "from": "2030-04-12", "to": "2030-04-16" }
+      ],
+      "kits": ["balloons", "giftBox", "lantern", "balloons"]
+    },
+    {
+      "id": "halloween",
+      "name": "Halloween",
+      "dates": [{ "from": "10-20", "to": "11-02" }],
+      "kits": ["pumpkin", "sheetGhost", "pumpkin", "candle"]
+    },
+    {
+      "id": "winter",
+      "name": "Winter holidays",
+      "dates": [{ "from": "12-15", "to": "01-07" }],
+      "kits": ["pineTree", "snowman", "giftBox", "snowman"],
+      "snow": true
+    }
+  ]
+}

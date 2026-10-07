@@ -4,21 +4,93 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P7 — Cars and The Office (`docs/phases/P07-cars-and-office.md`)
-- Next task: P7.5 The Office track
-- Status: P6 done, tagged `p6-done`. `npm run verify` passes (400 tests + bot race, best lap 35.52 s);
-  `npm run test:load` passes with chaos on. Shots: items 18 draw calls.
+- Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
+  the human's request of 2026-10-07 (cloud).
+- Next task: none planned. P12 done; waiting for the human's playtest (see "Deferred human tests").
+- Status: P12 done (host/join, real-life cars, garage), reviewed and fixed (D128). `npm run verify` passes.
+
+## P12 phase report (cloud, 2026-10-07)
+- Works: HOST (name, track, mode, laps, bots, chaos) and JOIN (live list of every game on the
+  server, the office game always first), several games at once each on its own track, Leave game;
+  eight real-life car types (unbranded); lobby cards with car pictures in team colors, a garage
+  window (types, stat bars, Honk), big Pilot / Engineer / Solo buttons with faces.
+- Try: `start-server.bat`, open the printed address on two laptops: HOST on one, JOIN on the other.
+- Known issues: none new. Not checked on real hardware yet (FPS of the car pictures, LAN).
 
 ## Half-done
-- (nothing)
+- (none)
+
+## v1.0 phase report (P10)
+- Works: four tracks the host picks in the lobby (Track drop-down; everyone reloads into it,
+  seats and host kept), office start = double-click `start-server.bat` (or `./start-server.sh`),
+  daily league backups, 10-minute 16-bot soak with no leak, one lobby per server.
+- Try: `npm start` (or the start script), open the printed URL on 2+ laptops, pick each track.
+- Known issues: see below (bots and the sandstorm, real-hardware checks not done yet).
+- Next: the deferred human tests, then "Later ideas" in docs/ROADMAP.md.
 
 ## Deferred human tests (run all after the last phase; human's request 2026-10-06)
 - P2 FUN GATE step 3: close a tab mid-lap and reopen it (reconnect keeps your seat).
 - P5 duo mechanics (re-test after P5.6a–c): duo race, chain drifts into nitro without
   overheating, swap lane once from lap 2. Ask: drifting understandable/fun? heat (nitro only)
   better? any stutter left (`npm run jitter`)? feels fast now?
+- P7 looks, sound, real FPS: on a normal work laptop race The Office with F3 open, on Medium. Reply:
+  FPS (min and typical), favorite and least favorite car, anything ugly or confusing on the track,
+  too loud/quiet sounds (volume sliders: speaker button top right).
+- P8 first-time players: find 2 coworkers who never saw the game, give them only the URL, watch,
+  do not help. Reply: where they got stuck, what made them laugh, what they asked.
+- P9 a league week: play normally for a few days, look at the League screen (menu → 🏆 League).
+  Reply: anything unfair, missing or not funny enough? Which awards should change?
+- P10 launch party: host on the office PC with `start-server.bat` (double-click). Get as many
+  people as possible and race all four tracks (lobby: the Track drop-down): The Office, Server Room, Smart
+  Oasis (sandstorm on lap 2), Motherboard. Reply: anything broken, plus the next features you want
+  (see "Later ideas" in docs/ROADMAP.md).
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
+- P11 extras (built in the cloud 2026-10-07; each can be turned off):
+  1. Ghost: race 2+ laps on one track; from your next lap a see-through car drives your best lap.
+     Reply: helpful or distracting? (Settings → Screen → ghost checkbox.)
+  2. Photo finish: finish close behind/ahead of another car (or watch bots: many cars, 1 lap).
+     Reply: is the slow-motion replay fun, too long, or confusing?
+  3. Decorations: Settings → Decorations → try Ramadan, Eid, Halloween, Winter on a track.
+     Reply: which look good, which are tacky? Are the Ramadan/Eid dates right (config/seasons.json)?
+  4. Arabic: Settings → Language → العربية, then menu, lobby, a race, results, League, Settings.
+     Reply: wrong or awkward Arabic, anything not translated, layout problems?
+  5. Phone controller: on a phone open the game address → "📱 Use this phone as a controller",
+     sit as Engineer next to a laptop Pilot and race. Reply: buttons comfortable? any lag? does
+     the phone screen lock mid-race (raise the screen timeout)? Does it buzz on hits (Android)?
+  6. Battle: host presses 🏁 Race → 💥 Battle, picks The Break Room, 3+ cars (bots ok).
+     Reply: fun? too long/short (battle.* in tuning.json)? is "out" clear?
+- P12 host/join, real-life cars, garage (built in the cloud 2026-10-07):
+  1. Host and join: laptop A presses HOST, names the game, picks a track, Create; laptop B presses
+     JOIN, sees it in the list, joins. Try a second hosted game at the same time, and Leave game.
+     Reply: is it clear which game is which? anything missing in the HOST window?
+  2. Real-life cars: look at all eight on the turntable and in a race (chase and cockpit view).
+     Reply: do they read as real car types? any you dislike? (shapes: CAR_BODIES in look.ts)
+  3. Garage and seats: click your car's picture in the lobby, Honk a few, pick one; sit as Pilot,
+     Engineer and Solo. Reply: clear and fun? does the lobby fit your screen without scrolling?
+
+## Cloud session (read me first, local Claude)
+- 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
+  session (Linux container, Node 22, no GPU, no speakers, no LAN) on the session's branch, now
+  `claude/keen-edison-iupozz` (it contains `cloud-work`, D093), pushed after each task (never `main`; D090).
+- **When back local (after P10.7 is done in the cloud)** — local Claude, walk the human through this:
+  1. `git status` must be clean on `main` (commit or stash local changes first).
+  2. `git fetch origin` then `git log --oneline main..origin/claude/keen-edison-iupozz` (what is new).
+  3. `git checkout -b cloud-review origin/claude/keen-edison-iupozz`, then `npm install`,
+     `npm run verify`, `npm run shots -- menu lobby chase`, and `npm start` for a quick look (Windows).
+  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P12)"`
+     (no rebase, no reset). If a conflict appears, stop and ask the human.
+  5. `npm run verify` again on `main`, then the HUMAN pushes `main` (`git push origin main`).
+  6. Tags (cloud tags were never pushed): `git tag p7-done <hash of "P7.9">`, the same for
+     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the "P10.7" commit), `p11-done` ("P11.7"),
+     `p12-done` ("P12.4");
+     find hashes with `git log --oneline --grep "^P9.5"`. The human may `git push origin --tags`.
+  7. Delete the review branch (`git branch -d cloud-review`), remove this "Cloud session" section,
+     commit "docs: back local", then run the "Deferred human tests" with the human (LOCAL: lines too).
+- Works in the cloud: `verify`, `track:check`, `test:load`, `bots`, `shots` (Playwright Chromium,
+  software WebGL: images are fine, the fps number is NOT real).
+- Cannot be done in the cloud (do on the Windows laptop): real FPS, listening to audio,
+  LAN/firewall, real `npm run jitter` numbers. Look for "LOCAL:" lines in this file.
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
@@ -28,15 +100,16 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Public network; firewall rule D030 opens 2567 + 5173. See docs/LAN.md.
 
 ## Known issues
-- Load test (server + 17 clients in one process): average tick 0.40 ms, but rare GC pauses make 1–2
-  ticks per race overrun (max seen 24 ms). Measure the standalone server under `npm run bots` in
-  the P7 performance pass.
-- In dev, anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite). Accepted for
-  playtests; it never exists with `npm start`.
-- A client could call `create('race')` and make a second room. Lock this down when the
-  lobby is built (one lobby per server, D004).
-- A busy port prints Colyseus' own EADDRINUSE stack before our friendly message (exit code 1);
-  cosmetic, left as is.
+- Not checked on real hardware yet (the cloud has no GPU, speakers or LAN): real FPS on office
+  laptops, audio levels, `npm run jitter` numbers, `start-server.bat` on Windows. All are in the
+  launch-party gate.
+- In dev (`npm run dev`), anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite).
+  Accepted for playtests; it never exists with `npm start`.
+- The sandstorm is drawn only (fog on every screen); bots do not slow down in it (by design, D110).
+- Battle: when time runs out with equal lives, the lower car number wins the tie. The server's lobby
+  refusal messages ("only the host…") stay English in the Arabic UI (D121).
+- Phone controller: the screen can lock mid-race on the office LAN (wake lock needs HTTPS); players
+  raise their screen timeout (the seat page says so).
 
 ## Last sessions
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
@@ -79,23 +152,49 @@ roll old "Last sessions" lines into one summary line per finished phase.
   sounds, host chaos toggle, bots use items (skill ≥ 1). Chaos gate deferred. Review fixes D083.
   Decisions D077–D083.
 
-- 2026-10-06: P7.1 car kit — cars.json `look` (body preset, wheelScale, parts); one vertex-colored
-  merged body per car (+ wheels, roof number atlas, shadow = 6 draw calls, < 1,500 triangles);
-  7 body presets and 8 parts with dims in look tables; heads per body; `garage` scenario. D085.
+- 2026-10-06: **P7 done** (P7.5–P7.9 in the cloud) — car kit + 8-car roster with looks, horns and
+  engine voices, car picker, roster balance (±3%), office prop kit; The Office (default track, Server
+  Closet shortcut on branch splines, lap target 40–55 s with a `dev` flag); juice (squash, hit shake,
+  head kicks, confetti, honk bubble) + cockpit eye fix; procedural audio + volume sliders; perf within
+  budget (standalone tick max 5 ms). Two parallel P7.5s merged (D093). Gate deferred. Review fixes
+  D097. Decisions D085–D097. Tag `p7-done` was made in the cloud on commit "P7.9" (re-tag locally).
 
-- 2026-10-06: P7.2 roster — the 8 ART_STYLE cars in cars.json (looks, stat leans inside
-  0.92–1.08, horns incl. new `siren` and `squeak`); garage camera behind the rows. D086.
+- 2026-10-06: **P8 done** (cloud) — main menu (turntable, HONK, IT jokes, assets/menu slideshow,
+  held seat skips it), settings + key help window (quality, volumes, camera, FPS), first-race
+  onboarding (role card, "?", swap/item hints), UI polish (one button/panel style, podium with faces,
+  fits 1366×768). Gate deferred. Review fixes D102. Decisions D098–D102. Tag `p8-done` made in the
+  cloud on commit "P8.6" (re-tag locally).
 
-- 2026-10-06: P7.2b car picker — ◀ name ▶ on your team card's header (lobby:setCar, either
-  player, between races), state `carModels` (slot N = roster car N by default), server stats per
-  slot, client look/horn per car, prediction with your car's stats. D087.
+- 2026-10-06: **P9 done** (cloud) — league on the host PC (data/league.json: race history, atomic +
+  fsync, corrupt-file backup), points by place from config (people only, once per race), weekly cup
+  by the host-local date, duos, lap records, award counters + 6 config awards + the Rubber Duck of
+  Shame, results points/awards, League screen (/league/tables.json). Gate deferred. Review fixes
+  D107. Decisions D103–D107. Tag `p9-done` made in the cloud (re-tag locally).
 
-- 2026-10-06: P7.3 balance — roster balance test (every car's 3-lap bot time within `lapSpread`
-  ±3% of the median; Test Loop now, The Office in P7.5). Hot Fix speed 1.05 → 1.03 (was −3.4%). D088.
+- 2026-10-06/07: **P10 done** (cloud) — track picker (host, lobby drop-down, pages reload with seats
+  and host held), Server Room (fan push zones, icy aisle), Smart Oasis (dune jumps, Palm Oasis
+  shortcut, lap-2 sandstorm), Motherboard (chip jumps, CPU-fan loop), `start-server.bat/.sh` + daily
+  league backups, `npm run soak` (no leak), final pass (props off roads, one lobby per server,
+  README). Launch-party gate deferred. Review fixes D115. Decisions D108–D115. **v1.0.**
+  LOCAL: double-click `start-server.bat` once on the Windows host to confirm it.
+- 2026-10-07 (cloud): P10.8 known-issue fixes — network bots follow the server's track, busy port
+  prints only the friendly line, `props` showroom off the roads. D116.
+- 2026-10-07: **P11 done** (cloud, human's request: build the Later ideas, D117) — ghost of your best lap,
+  photo-finish replay, seasonal decorations (Ramadan/Eid/Halloween/winter + snow), Arabic UI (RTL),
+  phone controller (`?pad`), battle mode (lives, last car standing) + The Break Room arena. Every extra
+  has an off switch. Review fixes D124. Decisions D117–D124. Not built: a public internet server.
 
-- 2026-10-06: P7.4 office prop kit — 12 props as data (`PROP_SHAPES`, real sizes ×
-  `officeScale` 2), built by the shared kit builder, one InstancedMesh per kind (track `props`
-  now drawn), `props` scenario; track schema validates prop kinds. D089.
+- 2026-10-07 (cloud): P12.1 Host and join — HOST window (name, track cards with mini maps, Race/Battle,
+  laps, bots, chaos), JOIN list (live, every game), per-game tracks, `GET /games.json`, Leave game,
+  the pad picks its game; checked with two real browsers. D125.
+- 2026-10-07 (cloud): P12.2 Real-life cars — eight unbranded real-life types (hatchback, taxi sedan,
+  pickup, muscle car, SUV, city car, sports car, van) from side outlines with wheel arches, windows,
+  lights, plates, rims; type shown under the pun name. D126.
+- 2026-10-07 (cloud): P12.3 Visual garage and seats — rendered car pictures in team colors on the
+  lobby cards, a garage window (types, stat bars, Honk), big Pilot / Engineer / Solo buttons with
+  faces; checked in a real browser. D127.
+- 2026-10-07 (cloud): **P12 done** — review (no Critical) and fixes D128: Leave never hangs, cached
+  JOIN mini maps, wheels capped to their arches, bots stay in one game (`--game`), clean names.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

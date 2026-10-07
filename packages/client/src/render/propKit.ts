@@ -1,12 +1,40 @@
 import * as THREE from 'three';
-import { PROP_KITS, type PropKit, type Track } from '@escape/shared';
+import { PROP_KITS, insideOtherRoad, locateOnTrack, type PropKit, type Track } from '@escape/shared';
 import { Builder } from './kitBuilder';
-import { PROP_COLORS, PROP_LOOK, PROP_SHAPES } from './look';
+import { PROP_COLORS, PROP_LOOK, PROP_SHAPES, type PropPrim } from './look';
 
 /** One prop as a single vertex-colored geometry, `officeScale` times its real size. */
 export function buildProp(kind: PropKit): THREE.BufferGeometry {
+  return buildShape(PROP_SHAPES[kind]);
+}
+
+/** Half the widest extent of a shape as drawn (m, `officeScale` included). */
+export function shapeHalfWidth(prims: readonly PropPrim[]): number {
+  let half = 0;
+  for (const p of prims) {
+    const sx = p.s === 'box' ? p.size[0]! / 2 : p.size[0]!;
+    const sz = p.s === 'box' ? p.size[2]! / 2 : p.s === 'cyl' ? p.size[0]! : p.size[2]!;
+    half = Math.max(half, Math.abs(p.at[0]) + sx, Math.abs(p.at[2]) + sz);
+  }
+  return half * PROP_LOOK.officeScale;
+}
+
+/** Is a square of half size `half` around (x, z) clear of every road (main road and shortcuts)? */
+export function clearOfRoads(track: Track, x: number, z: number, half: number): boolean {
+  for (const u of [-1, 0, 1]) {
+    for (const v of [-1, 0, 1]) {
+      const q = { x: x + u * half, z: z + v * half };
+      const loc = locateOnTrack(track, q);
+      if (Math.abs(loc.lateral) < loc.halfWidth || insideOtherRoad(track, q, loc.road)) return false;
+    }
+  }
+  return true;
+}
+
+/** Primitives as one vertex-colored geometry, `officeScale` times their real size. */
+export function buildShape(prims: readonly PropPrim[]): THREE.BufferGeometry {
   const b = new Builder(PROP_LOOK.roundSegments);
-  for (const p of PROP_SHAPES[kind]) {
+  for (const p of prims) {
     const [x, y, z] = p.at;
     const color = PROP_COLORS[p.color];
     if (p.s === 'box') b.box(p.size[0]!, p.size[1]!, p.size[2]!, color, x, y, z);

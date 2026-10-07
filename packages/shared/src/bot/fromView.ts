@@ -11,6 +11,9 @@ export interface CarViewLike {
   yaw: number;
   /** Ground speed (m/s, never negative). */
   speed: number;
+  /** Velocity (m/s): tells a bot it is rolling backward (backing up, turning round). */
+  vx: number;
+  vz: number;
   respawning: boolean;
   /** Engine heat 0–1, and seconds until a stalled engine restarts (0 = running). */
   heat: number;
@@ -29,8 +32,8 @@ export interface CarViewLike {
 
 /**
  * Rebuild enough of a `CarState` from synced data for the bot halves (`botSteer`,
- * `botPedals`) to work over the network. Speed is assumed to point forward (bots rarely
- * reverse); `hintSegment` keeps the track lookup on the right part of the loop.
+ * `botPedals`) to work over the network. `hintSegment` keeps the track lookup on the right
+ * part of the loop.
  */
 export function carStateFromView(id: string, view: CarViewLike, track: Track, stats: CarStats, hintSegment?: number): CarState {
   const car = createCar(id, stats, track);
@@ -38,8 +41,8 @@ export function carStateFromView(id: string, view: CarViewLike, track: Track, st
   car.z = view.z;
   car.y = view.y;
   car.yaw = view.yaw;
-  car.vx = Math.sin(view.yaw) * view.speed;
-  car.vz = Math.cos(view.yaw) * view.speed;
+  car.vx = view.vx;
+  car.vz = view.vz;
   car.respawnAtTick = view.respawning ? 1 : -1;
   car.heat = view.heat;
   car.stallUntilTick = view.stallLeft > 0 ? 1 : -1;

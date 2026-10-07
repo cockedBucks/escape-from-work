@@ -7,6 +7,10 @@ import { GAME_TITLE } from '@escape/shared';
 import { startServer } from './app';
 import { REPO_ROOT, loadTuningFile } from './config';
 import { lanUrls } from './lan';
+import { dailyBackup } from './league/backup';
+import { localIso } from './league/record';
+import { LEAGUE_FILE } from './league/store';
+import { portFree } from './net/portFree';
 
 const isProd = process.argv.includes('--prod') || process.env['NODE_ENV'] === 'production';
 if (isProd) process.env['NODE_ENV'] = 'production';
@@ -31,6 +35,25 @@ if (isProd && !existsSync(path.join(clientDir, 'index.html'))) {
   process.exit(1);
 }
 
+const BUSY_PORT = `Port ${requestedPort} is busy. Is the game already running? Or change net.port in config/tuning.json.`;
+if (!(await portFree(requestedPort, '0.0.0.0'))) {
+  console.error(BUSY_PORT);
+  process.exit(1);
+}
+
+// The real league (npm start): one safety copy per day in data/backups/, at start and then
+// checked every hour (a no-op until the date changes), so a server left running keeps making them.
+const BACKUP_CHECK_MS = 60 * 60 * 1000;
+function backupLeague(): void {
+  const backup = dailyBackup(LEAGUE_FILE, path.join(path.dirname(LEAGUE_FILE), 'backups'), localIso(new Date()).slice(0, 10), tuning.league.backupKeep);
+  if (backup instanceof Error) console.warn(`League backup failed (the game still runs): ${backup.message}`);
+  else if (backup) console.log(`League backup: ${path.relative(REPO_ROOT, backup)}`);
+}
+if (isProd && !process.env['EFW_NO_LEAGUE']) {
+  backupLeague();
+  setInterval(backupLeague, BACKUP_CHECK_MS).unref();
+}
+
 let port: number;
 try {
   ({ port } = await startServer({
@@ -40,10 +63,12 @@ try {
     handleSignals: true,
     dev: !isProd,
     watchConfig: !isProd,
+    // EFW_NO_LEAGUE=1: tools (shots, jitter) run the real server without the host's league.
+    leagueFile: process.env['EFW_NO_LEAGUE'] ? undefined : LEAGUE_FILE,
   }));
 } catch (err) {
   if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
-    console.error(`Port ${requestedPort} is busy. Is the game already running? Or change net.port in config/tuning.json.`);
+    console.error(BUSY_PORT); // taken in the moment between the check and the start
     process.exit(1);
   }
   throw err;

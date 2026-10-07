@@ -2,6 +2,7 @@
 // place, and slots for heat, nitro and the item (filled in by P5 and P6).
 import { itemIcon } from './itemIcons';
 import { itemName } from './items';
+import { t as tr } from '../i18n';
 
 export interface GaugeValues {
   /** Ground speed (m/s). */
@@ -32,7 +33,7 @@ export function gaugeText(v: GaugeValues): { speed: string; lap: string; place: 
     speed: String(kmh(v.speed)),
     lap: v.lap ?? '',
     place: v.place ?? '',
-    heatLabel: v.stalled ? 'STALL!' : 'HEAT',
+    heatLabel: v.stalled ? tr('gauge.stall') : tr('gauge.heat'),
     heat: bar(v.heat),
     nitro: bar(v.nitro),
     item: v.item ? itemName(v.item) : '—',
@@ -58,10 +59,10 @@ export class GaugePanel {
     if (key === this.last) return;
     this.last = key;
     this.el.innerHTML =
-      `<div class="g-speed"><strong>${t.speed}</strong> km/h</div>` +
+      `<div class="g-speed"><strong>${t.speed}</strong> ${tr('gauge.kmh')}</div>` +
       `<div class="g-bar${v.stalled ? ' stalled' : ''}"><span>${t.heatLabel}</span><i style="width:${Math.round(t.heat * 100)}%"></i></div>` +
-      `<div class="g-bar nitro"><span>NITRO</span><i style="width:${Math.round(t.nitro * 100)}%"></i></div>` +
-      `<div class="g-item">ITEM ${v.item ? itemIcon(v.item) : ''}<b>${t.item}</b></div>`;
+      `<div class="g-bar nitro"><span>${tr('gauge.nitro')}</span><i style="width:${Math.round(t.nitro * 100)}%"></i></div>` +
+      `<div class="g-item">${tr('gauge.item')} ${v.item ? itemIcon(v.item) : ''}<b>${t.item}</b></div>`;
   }
 
   dispose(): void {

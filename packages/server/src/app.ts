@@ -3,12 +3,16 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { Server, matchMaker } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
-import { ROOM_NAME } from '@escape/shared';
+import { leagueTables, ROOM_NAME, type GameListing } from '@escape/shared';
 import { watchConfig } from './dev/configWatcher';
 import { FACES_DIR } from './faces';
+import { league, setLeague } from './league/league';
+import { localIso } from './league/record';
+import { LeagueStore } from './league/store';
+import { listMenuImages, MENU_DIR } from './menuImages';
 import { installTuningRoutes } from './dev/tuningRoutes';
 import { LiveConfig, setLiveConfig } from './liveConfig';
-import { RaceRoom } from './rooms/RaceRoom';
+import { RaceRoom, SERVER_ROOM_KEY, type GameMeta } from './rooms/RaceRoom';
 
 export interface StartOptions {
   port: number;
@@ -24,6 +28,8 @@ export interface StartOptions {
   watchConfig?: boolean;
   /** Config folder (tests use a temporary copy). Default: the repo's config/. */
   configDir?: string | undefined;
+  /** League file to record races into (the real server: data/league.json). Omit = no league (tests). */
+  leagueFile?: string | undefined;
 }
 
 export interface GameServer {
@@ -51,6 +57,7 @@ function listenOrFail(server: Server, transport: WebSocketTransport, opts: Start
 export async function startServer(opts: StartOptions): Promise<GameServer> {
   const live = new LiveConfig(opts.configDir);
   setLiveConfig(live);
+  setLeague(opts.leagueFile === undefined ? null : new LeagueStore(opts.leagueFile));
   const dev = (opts.dev ?? false) && process.env['NODE_ENV'] !== 'production';
   const transport = new WebSocketTransport();
   const server = new Server({
@@ -63,6 +70,39 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
       // A short 404/403, never Express's default error page (it shows local paths in dev).
       app.use('/faces', (_req, res) => {
         res.status(404).type('text').send('no such face');
+      });
+      // League tables for the League screen (P9.4), computed from the history on each request.
+      app.get('/league/tables.json', (_req, res) => {
+        const store = league();
+        res.set('Cache-Control', 'no-store');
+        res.json(store ? { enabled: true, ...leagueTables(store.data, live.tuning.league, localIso(new Date())) } : { enabled: false });
+      });
+      // The games to join (P12.1): the always-open one first, then hosted ones, oldest first.
+      app.get('/games.json', (_req, res) => {
+        res.set('Cache-Control', 'no-store');
+        matchMaker.query({ name: ROOM_NAME }, { createdAt: 1 }).then(
+          (rooms) => {
+            const games: GameListing[] = rooms
+              .map((r) => {
+                const m = (r.metadata ?? {}) as Partial<GameMeta>;
+                return {
+                  id: r.roomId, name: m.name ?? '', host: m.host ?? '', track: m.track ?? '', mode: m.mode ?? 'race',
+                  phase: m.phase ?? 'lobby', players: r.clients, maxPlayers: r.maxClients, isDefault: m.isDefault ?? false,
+                };
+              })
+              .sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
+            res.json({ games });
+          },
+          () => res.status(500).json({ games: [] }),
+        );
+      });
+      // Main menu slideshow (P8.1): the list is read on every request, so new images just appear.
+      app.get('/menu/menu.json', (_req, res) => {
+        res.json({ images: listMenuImages() });
+      });
+      app.use('/menu', express.static(MENU_DIR, { index: false }));
+      app.use('/menu', (_req, res) => {
+        res.status(404).type('text').send('no such image');
       });
       if (dev) installTuningRoutes(app, live);
       const dir = opts.clientDir;
@@ -77,7 +117,7 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
   });
   server.define(ROOM_NAME, RaceRoom);
   await listenOrFail(server, transport, opts);
-  await matchMaker.createRoom(ROOM_NAME, {});
+  await matchMaker.createRoom(ROOM_NAME, { key: SERVER_ROOM_KEY });
   const watcher = dev && opts.watchConfig ? watchConfig(live) : null;
 
   const address = transport.server?.address() as AddressInfo | null;

@@ -43,3 +43,15 @@ describe('head message', () => {
     }
   });
 });
+
+describe('typed names (P12.4)', () => {
+  it('player, team and game names: trimmed, any script, no control characters', async () => {
+    const { CreateGameSchema, SetNameSchema, SetTeamNameSchema } = await import('./messages');
+    expect(SetNameSchema.parse({ name: '  دينا ' }).name).toBe('دينا');
+    expect(SetNameSchema.safeParse({ name: 'a\nb' }).success).toBe(false);
+    expect(SetTeamNameSchema.safeParse({ slot: 0, name: 'x\u0007' }).success).toBe(false);
+    const game = { track: 'office', mode: 'race', laps: 3, bots: true, chaos: true };
+    expect(CreateGameSchema.safeParse({ ...game, name: 'Lunch Cup 🏁' }).success).toBe(true);
+    expect(CreateGameSchema.safeParse({ ...game, name: 'ok\r\n[server] fake line' }).success).toBe(false);
+  });
+});

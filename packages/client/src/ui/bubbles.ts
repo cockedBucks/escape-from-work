@@ -3,11 +3,15 @@ import * as THREE from 'three';
 /** How long a speech bubble stays up (ms), and how high above the car it floats (m). */
 const BUBBLE_MS = 900;
 const BUBBLE_HEIGHT = 2.7;
+/** It drifts up this far (px) over its life, fades out over the last share of it, and tilts up to ± this (deg). */
+const BUBBLE_RISE_PX = 26;
+const BUBBLE_FADE_SHARE = 0.3;
+const BUBBLE_TILT_DEG = 9;
 
 /** "HONK!" (and later other shouts) floating over a car, for everyone. DOM over the canvas. */
 export class Bubbles {
   private readonly layer = document.createElement('div');
-  private readonly active = new Map<string, { el: HTMLDivElement; until: number }>();
+  private readonly active = new Map<string, { el: HTMLDivElement; text: HTMLSpanElement; until: number }>();
   private readonly v = new THREE.Vector3();
 
   constructor(parent: HTMLElement) {
@@ -19,16 +23,21 @@ export class Bubbles {
   say(carId: string, text: string, now: number): void {
     let b = this.active.get(carId);
     if (!b) {
+      // The outer box is placed over the car (its transform); the inner one pops, tilts and fades.
       const el = document.createElement('div');
       el.className = 'bubble';
+      const span = document.createElement('span');
+      span.className = 'bubble-text';
+      el.appendChild(span);
       this.layer.appendChild(el);
-      b = { el, until: 0 };
+      b = { el, text: span, until: 0 };
       this.active.set(carId, b);
     }
-    b.el.textContent = text;
-    b.el.classList.remove('pop');
-    void b.el.offsetWidth; // restart the pop animation
-    b.el.classList.add('pop');
+    b.text.textContent = text;
+    b.text.style.setProperty('--tilt', `${((Math.random() * 2 - 1) * BUBBLE_TILT_DEG).toFixed(1)}deg`);
+    b.text.classList.remove('pop');
+    void b.text.offsetWidth; // restart the pop animation
+    b.text.classList.add('pop');
     b.until = now + BUBBLE_MS;
   }
 
@@ -44,7 +53,10 @@ export class Bubbles {
       this.v.set(p.x, p.y + BUBBLE_HEIGHT, p.z).project(camera);
       const behind = this.v.z > 1;
       b.el.style.display = behind ? 'none' : '';
-      b.el.style.transform = `translate(${((this.v.x + 1) / 2) * width}px, ${((1 - this.v.y) / 2) * height}px) translate(-50%, -100%)`;
+      const left = Math.max(0, (b.until - now) / BUBBLE_MS); // 1 → 0 over its life
+      const rise = (1 - left) * BUBBLE_RISE_PX;
+      b.el.style.opacity = left < BUBBLE_FADE_SHARE ? (left / BUBBLE_FADE_SHARE).toFixed(2) : '1';
+      b.el.style.transform = `translate(${((this.v.x + 1) / 2) * width}px, ${((1 - this.v.y) / 2) * height - rise}px) translate(-50%, -100%)`;
     }
   }
 

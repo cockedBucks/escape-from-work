@@ -20,6 +20,8 @@ const RampZoneSchema = z.strictObject({
   to: progress(),
   /** Multiplies `car.rampLaunch`. */
   launch: z.number().positive(),
+  /** What it looks like (the jump is the same): a wooden ramp, a sand dune or a black chip. */
+  look: z.enum(['wood', 'dune', 'chip']).default('wood'),
 });
 
 const SlickZoneSchema = z.strictObject({
@@ -27,6 +29,19 @@ const SlickZoneSchema = z.strictObject({
   from: progress(),
   to: progress(),
   side: z.enum(['left', 'right', 'both']),
+  /** What it looks like (the grip loss is the same): a coffee spill or an icy floor. */
+  look: z.enum(['coffee', 'ice']).default('coffee'),
+});
+
+/** A giant cooling fan: shoves every car on this stretch sideways (the whole road width). */
+const PushZoneSchema = z.strictObject({
+  type: z.literal('push'),
+  from: progress(),
+  to: progress(),
+  /** The way it blows, relative to the direction of travel. */
+  toward: z.enum(['left', 'right']),
+  /** Sideways acceleration while inside (m/s²). */
+  strength: z.number().positive().max(40),
 });
 
 const SwapZoneSchema = z.strictObject({
@@ -47,16 +62,33 @@ const ItemRowZoneSchema = z.strictObject({
 const ZoneSchema = z.discriminatedUnion('type', [
   RampZoneSchema,
   SlickZoneSchema,
+  PushZoneSchema,
   SwapZoneSchema,
   ItemRowZoneSchema,
 ]);
 
-/** Prop kit pieces (ART_STYLE §5); the client builds them. Office set for now. */
+/** Prop kit pieces (ART_STYLE §5); the client builds them. Office, server room, oasis, then motherboard sets. */
 export const PROP_KITS = [
   'desk', 'chair', 'cubicle', 'monitor', 'keyboard', 'printer', 'waterCooler', 'coffeeMachine',
   'plant', 'whiteboard', 'filingCabinet', 'reception',
+  'serverRack', 'cableTray', 'coolingFan', 'acUnit',
+  'palm', 'dune', 'rock', 'tent', 'pond',
+  'chip', 'capacitor', 'resistor', 'cpuFan', 'trace',
 ] as const;
 export type PropKit = (typeof PROP_KITS)[number];
+
+/**
+ * A shortcut: an open spline that leaves the main loop at progress `from` and rejoins it at
+ * `to`, through its own control points. Its progress maps linearly onto from..to, so laps,
+ * sectors and places work unchanged. Walls open where the two roads overlap.
+ */
+const BranchSchema = z.strictObject({
+  name: z.string().min(1),
+  from: progress(),
+  to: progress(),
+  /** Control points between the two junctions (the junction ends come from the main loop). */
+  points: z.array(PointSchema).min(1),
+});
 
 const PropSchema = z.strictObject({
   /** Prop kit piece (ART_STYLE §5). */
@@ -80,6 +112,22 @@ export const TrackSchema = z
     zones: z.array(ZoneSchema),
     props: z.array(PropSchema),
     start: z.strictObject({ at: progress() }),
+    /** Shortcuts (branch splines); see BranchSchema. */
+    branches: z.array(BranchSchema).default([]),
+    /** Dev-only track (greybox): `track:check` skips the lap-time target. */
+    dev: z.boolean().default(false),
+    /** A small arena made for battle mode (P11.6): short laps, so `track:check` skips the lap-time target. */
+    battle: z.boolean().default(false),
+    /** A sandstorm (thick fog) for one whole lap: while the race leader is on lap `lap`. */
+    sandstorm: z
+      .strictObject({
+        lap: z.number().int().min(1),
+        /** Fog start and full-fog distances while it blows (m). */
+        fogNear: z.number().min(0),
+        fogFar: z.number().positive(),
+      })
+      .refine((s) => s.fogNear < s.fogFar, { message: 'fogNear must be less than fogFar', path: ['fogFar'] })
+      .optional(),
   })
   .superRefine((track, ctx) => {
     track.zones.forEach((zone, i) => {
@@ -91,11 +139,21 @@ export const TrackSchema = z
         });
       }
     });
+    track.branches.forEach((b, i) => {
+      if (b.from >= b.to) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['branches', i, 'to'],
+          message: `"to" (${b.to}) must be greater than "from" (${b.from})`,
+        });
+      }
+    });
   });
 
 export type TrackDef = z.infer<typeof TrackSchema>;
 export type TrackPoint = TrackDef['points'][number];
 export type TrackZone = TrackDef['zones'][number];
+export type TrackBranchDef = TrackDef['branches'][number];
 
 /** Validate the contents of a `config/tracks/<id>.json` file. */
 export function parseTrack(raw: unknown, source: string): TrackDef {

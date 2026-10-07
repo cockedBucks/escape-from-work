@@ -67,6 +67,9 @@ export const CarView = schema(
     respawning: t.boolean().default(false),
     /** Ghosted after a respawn (drawn see-through). */
     ghost: t.boolean().default(false),
+    /** Battle (P11.6): lives left, and out of the battle. */
+    lives: t.uint8().default(0),
+    out: t.boolean().default(false),
     /** Engine heat 0–1, and seconds until a stalled engine restarts (0 = running). */
     heat: t.float32().default(0),
     stallLeft: t.float32().default(0),
@@ -127,6 +130,10 @@ export const RaceState = schema(
     host: t.string().default(''),
     /** Laps for the next / current race. */
     laps: t.uint8().default(3),
+    /** The track raced (config/tracks/<id>.json); clients load the same file (P10.0). */
+    track: t.string().default(''),
+    /** The game's name as its host typed it ('' = the server's always-open game), P12.1. */
+    game: t.string().default(''),
     /** Team name per car slot. */
     teams: t.array('string'),
     /** The car (cars.json id) each slot drives. */
@@ -135,6 +142,8 @@ export const RaceState = schema(
     bots: t.boolean().default(false),
     /** Host switch: chaos mode (item boxes and items). */
     chaos: t.boolean().default(true),
+    /** 'race' or 'battle' (P11.6): lives instead of laps. */
+    mode: t.string().default('race'),
     /** Item boxes in track order: '1' = there, '0' = broken (respawning). Empty = chaos off. */
     boxesUp: t.string().default(''),
     /** Envelopes and puddles by id ('m12', 'c13'). */

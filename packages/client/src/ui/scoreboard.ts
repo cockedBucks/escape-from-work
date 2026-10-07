@@ -1,7 +1,10 @@
 // Scoreboard (P3.5): hold Tab. Place, team, players, lap and gap to the leader.
+import { isTyping } from '../input/keyboard';
 import type { RacePhase } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
 import { escapeHtml } from './html';
+import { t } from '../i18n';
+import { hearts } from './raceHud';
 
 export interface BoardCar {
   slot: number;
@@ -13,6 +16,9 @@ export interface BoardCar {
   finishMs: number;
   bestLapMs: number;
   bot: boolean;
+  /** Battle (P11.6): lives left and out. */
+  lives?: number;
+  out?: boolean;
 }
 
 export interface BoardPlayer {
@@ -40,7 +46,7 @@ export function raceTime(ms: number): string {
   return `${min}:${sec.toFixed(1).padStart(4, '0')}`;
 }
 
-export function boardRows(cars: BoardCar[], players: BoardPlayer[], teams: readonly string[], laps: number, phase: RacePhase): BoardRow[] {
+export function boardRows(cars: BoardCar[], players: BoardPlayer[], teams: readonly string[], laps: number, phase: RacePhase, mode = 'race'): BoardRow[] {
   const racing = phase === 'racing' || phase === 'results';
   const sorted = [...cars].sort((a, b) =>
     racing && a.place > 0 && b.place > 0 ? a.place - b.place : a.slot - b.slot,
@@ -49,16 +55,18 @@ export function boardRows(cars: BoardCar[], players: BoardPlayer[], teams: reado
     const inCar = players.filter((p) => p.slot === c.slot && p.seat !== '');
     const pilot = inCar.find((p) => p.seat === 'pilot' || p.seat === 'solo');
     const engineer = inCar.find((p) => p.seat === 'engineer');
-    const names = c.bot ? '🤖 Bot' : [pilot?.name, engineer?.name].filter(Boolean).join(' & ') || '—';
+    const names = c.bot ? t('board.bot') : [pilot?.name, engineer?.name].filter(Boolean).join(' & ') || '—';
     let lap = '';
     let gap = '';
-    if (racing) {
-      lap = c.dnf ? 'DNF' : c.finished ? 'FIN' : `${Math.min(c.lapsDone + 1, laps)}/${laps}`;
-      gap = c.finished ? raceTime(c.finishMs) : c.place === 1 ? 'leader' : c.dnf || c.gapMs === 0 ? '' : `+${(c.gapMs / 1000).toFixed(1)}s`;
+    if (racing && mode === 'battle') {
+      lap = c.out ? t('board.out') : hearts(c.lives ?? 0);
+    } else if (racing) {
+      lap = c.dnf ? t('board.dnf') : c.finished ? t('board.fin') : `${Math.min(c.lapsDone + 1, laps)}/${laps}`;
+      gap = c.finished ? raceTime(c.finishMs) : c.place === 1 ? t('board.leader') : c.dnf || c.gapMs === 0 ? '' : `+${(c.gapMs / 1000).toFixed(1)}s`;
     }
     return {
       place: racing && c.place > 0 ? String(c.place) : '',
-      team: teams[c.slot] ?? `Team ${c.slot + 1}`,
+      team: teams[c.slot] ?? t('team.default', { n: c.slot + 1 }),
       color: hex(TEAM_COLORS[c.slot % TEAM_COLORS.length]!),
       players: names,
       lap,
@@ -84,7 +92,7 @@ export class Scoreboard {
 
   private readonly onDown = (e: KeyboardEvent): void => {
     // In a text field Tab keeps its normal job (next field).
-    if (e.code !== 'Tab' || e.target instanceof HTMLInputElement) return;
+    if (e.code !== 'Tab' || isTyping(e.target)) return;
     e.preventDefault(); // Tab must not move focus around the page
     this.el.hidden = false;
     this.render();
@@ -98,8 +106,12 @@ export class Scoreboard {
     this.el.hidden = true;
   };
 
-  update(rows: BoardRow[]): void {
+  /** 'battle': the lap column shows lives. */
+  private mode = 'race';
+
+  update(rows: BoardRow[], mode = 'race'): void {
     this.rows = rows;
+    this.mode = mode;
     if (!this.el.hidden) this.render();
   }
 
@@ -110,7 +122,7 @@ export class Scoreboard {
           `<td>${escapeHtml(r.players)}</td><td>${r.lap}</td><td class="sb-gap">${r.gap}</td></tr>`,
       )
       .join('');
-    const html = `<table><thead><tr><th>#</th><th>Team</th><th>Players</th><th>Lap</th><th>Gap</th></tr></thead><tbody>${body}</tbody></table>`;
+    const html = `<table><thead><tr><th>${t('board.place')}</th><th>${t('board.team')}</th><th>${t('board.players')}</th><th>${this.mode === 'battle' ? t('board.lives') : t('board.lap')}</th><th>${t('board.gap')}</th></tr></thead><tbody>${body}</tbody></table>`;
     if (html === this.lastHtml) return;
     this.lastHtml = html;
     this.el.innerHTML = html;

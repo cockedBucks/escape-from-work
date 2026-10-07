@@ -60,3 +60,10 @@ describe('scoreboard gaps before the first checkpoint', () => {
     expect(rows[1]!.gap).toBe('');
   });
 });
+
+describe('scoreboard in a battle (P11.6)', () => {
+  it('the lap column shows lives, or OUT', () => {
+    const rows = boardRows([car(0, { place: 1, lives: 3 }), car(1, { place: 2, lives: 0, out: true })], players, teams, 3, 'racing', 'battle');
+    expect(rows.map((r) => r.lap)).toEqual(['❤❤❤', 'OUT']);
+  });
+});

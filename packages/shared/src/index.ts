@@ -3,14 +3,17 @@ export { DEFAULT_TRACK, GAME_TITLE, ROOM_NAME } from './constants';
 export { ConfigError, parseConfig } from './config/parse';
 export {
   TuningSchema,
+  WEEKDAYS,
   parseTuning,
   type CarTuning,
   type DriftTuning,
   type QualityLevel,
   type QualityPreset,
+  type LeagueTuning,
   type Tuning,
+  type Weekday,
 } from './config/tuning';
-export { BODY_PRESETS, CAR_PARTS, CarsSchema, HORNS, parseCars, type BodyPreset, type CarDef, type CarLook, type CarPart, type CarsConfig, type Horn } from './config/cars';
+export { BODY_PRESETS, CAR_PARTS, CarsSchema, ENGINES, HORNS, parseCars, type BodyPreset, type CarDef, type CarLook, type CarPart, type CarsConfig, type Engine, type Horn } from './config/cars';
 export {
   PROP_KITS,
   TrackSchema,
@@ -25,9 +28,11 @@ export { RingBuffer } from './util/ringBuffer';
 export * from './util/math';
 export {
   buildTrack,
+  insideOtherRoad,
   wallsNear,
   type SectorGate,
   type Track,
+  type TrackBranch,
   type TrackBuildConfig,
   type TrackSample,
   type WallSegment,
@@ -47,7 +52,8 @@ export { ITEMS, useItems, type ItemDef } from './items/index';
 export type { Envelope } from './items/replyAll';
 export type { Puddle } from './items/coffeeSpill';
 export { botSteer, lookAheadPoint } from './bot/pilot';
-export { botPedals, cornerAhead, newBotMemory, plannedSpeed, type BotMemory } from './bot/engineer';
+export { botRoute, routeSample } from './bot/route';
+export { botPedals, cornerAhead, newBotMemory, plannedSpeed, resetStuck, type BotMemory } from './bot/engineer';
 export { botItem } from './bot/items';
 export { botInput } from './bot/driver';
 export { runBotRace, type BotCarResult, type BotRaceOptions, type BotRaceResult } from './bot/race';
@@ -58,12 +64,18 @@ export {
   SetNameSchema,
   BotsSchema,
   ChaosSchema,
+  ModeSchema,
   SetCarSchema,
   HeadSchema,
   parseHead,
   ReadySchema,
   SetFaceSchema,
   SetLapsSchema,
+  SetTrackSchema,
+  CreateGameSchema,
+  GAME_NAME_MAX_LENGTH,
+  type CreateGame,
+  type GameListing,
   SetSeatSchema,
   SetTeamNameSchema,
   TuningPostSchema,
@@ -105,7 +117,9 @@ export {
   type RaceFlow,
   type RacePhase,
 } from './race/flow';
+export { sandstormOn } from './race/sandstorm';
 export { TEAM_NAME_MAX_LENGTH, TeamsSchema, defaultTeamName, parseTeams, type TeamsConfig } from './config/teams';
+export { DECOR_KITS, SeasonsSchema, activeSeason, parseSeasons, seasonOn, type DecorKit, type Season, type SeasonsConfig } from './config/seasons';
 export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby';
 export {
   applyEvents,
@@ -123,3 +137,43 @@ export {
   type RaceRun,
   type ResultRow,
 } from './race/rules';
+export {
+  RACE_MODES,
+  applyBattleEvents,
+  battleOver,
+  battleResults,
+  battleStandings,
+  dropBattleCar,
+  isOut,
+  newBattle,
+  type BattleRun,
+  type RaceMode,
+} from './race/battle';
+export {
+  emptyLeague,
+  LEAGUE_VERSION,
+  LeagueSchema,
+  isDefaultName,
+  NO_COUNTS,
+  playerKey,
+  RaceRecordSchema,
+  type CarCounts,
+  type LeagueData,
+  type RaceCar,
+  type RacePlayer,
+  type RaceRecord,
+} from './league/schema';
+export {
+  bestLaps,
+  duoTable,
+  leagueTables,
+  localDate,
+  playerTable,
+  pointsFor,
+  weekStart,
+  type DuoRow,
+  type LapRecord,
+  type LeagueTables,
+  type PlayerRow,
+} from './league/scoring';
+export { AWARD_STATS, awardLine, countTick, DUCK_AWARD, newCounts, pickAwards, type AwardRule, type AwardStat } from './league/awards';

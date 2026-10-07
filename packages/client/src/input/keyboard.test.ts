@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { controlsFrom } from './keyboard';
+import { controlsFrom, isTyping } from './keyboard';
 
 describe('controlsFrom', () => {
   it('maps held actions to the input message', () => {
@@ -14,5 +14,29 @@ describe('controlsFrom', () => {
 
   it('left + right together cancel out', () => {
     expect(controlsFrom(new Set(['left', 'right'])).steer).toBe(0);
+  });
+});
+
+describe('isTyping', () => {
+  it('text fields take keys; sliders and buttons do not (they must not stop the car)', () => {
+    // Node has no DOM: stand-in classes for the instanceof checks.
+    class FakeInput {
+      constructor(readonly type: string) {}
+    }
+    class FakeTextArea {}
+    const g = globalThis as Record<string, unknown>;
+    const saved = { input: g.HTMLInputElement, area: g.HTMLTextAreaElement };
+    g.HTMLInputElement = FakeInput;
+    g.HTMLTextAreaElement = FakeTextArea;
+    try {
+      expect(isTyping(new FakeInput('text') as unknown as EventTarget)).toBe(true);
+      expect(isTyping(new FakeTextArea() as unknown as EventTarget)).toBe(true);
+      expect(isTyping(new FakeInput('range') as unknown as EventTarget)).toBe(false);
+      expect(isTyping(new FakeInput('checkbox') as unknown as EventTarget)).toBe(false);
+      expect(isTyping(null)).toBe(false);
+    } finally {
+      g.HTMLInputElement = saved.input;
+      g.HTMLTextAreaElement = saved.area;
+    }
   });
 });

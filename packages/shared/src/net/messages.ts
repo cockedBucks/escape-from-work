@@ -3,6 +3,7 @@ import { clamp } from '../util/math';
 import { TEAM_NAME_MAX_LENGTH } from '../config/teams';
 import { SEATS } from '../race/seats';
 import type { CarInput } from '../sim/types';
+import { RACE_MODES } from '../race/battle';
 
 /** Message type names, shared by client and server so they cannot drift apart. */
 export const MSG = {
@@ -14,6 +15,8 @@ export const MSG = {
   tuning: 'tuning',
   /** server → clients (dev): a track or car file changed; reload the page to rebuild it. */
   reload: 'reload',
+  /** server → clients: the league record of the race that just ended (`RaceRecord`: places, counters, awards). */
+  raceRecord: 'race:record',
   /** client → server: `{ yaw, pitch }` head angles (cockpit look), ~20/s. */
   head: 'head',
   /** client → server: `{ face }` pick your bobblehead face ('' = placeholder). */
@@ -36,10 +39,14 @@ export const MSG = {
   hostBots: 'host:bots',
   /** client (host) → server: `{ on }` chaos mode (item boxes and items). */
   hostChaos: 'host:chaos',
+  /** client (host) → server: `{ mode }` Race or Battle for the next race (P11.6). */
+  hostMode: 'host:mode',
   /** client (host) → server: start the race / rematch. */
   hostStart: 'host:start',
   /** client (host) → server: `{ laps }` for the next race. */
   hostLaps: 'host:laps',
+  /** client → server (host, between races): `{ id }` race this track next (P10.0). */
+  hostTrack: 'host:track',
   /** client (host) → server: stop the race now (countdown → lobby, racing → results with DNFs). */
   hostEndRace: 'host:endRace',
   /** client (host) → server: from the results back to the lobby. */
@@ -100,9 +107,14 @@ export const TuningPostSchema = z.strictObject({
 /** Longest player name shown in the join screen and HUD. */
 export const NAME_MAX_LENGTH = 16;
 
+/** A typed name (player, team, game): trimmed, not empty, no control characters (line breaks
+ * could fake lines in the server log), any script. */
+const typedName = (max: number) =>
+  z.string().trim().min(1).max(max).regex(/^\P{Cc}*$/u, 'no control characters');
+
 /** `lobby:setName` (client → server). Whitespace is trimmed; empty names are refused. */
 export const SetNameSchema = z.strictObject({
-  name: z.string().trim().min(1).max(NAME_MAX_LENGTH),
+  name: typedName(NAME_MAX_LENGTH),
 });
 
 /** `lobby:setSeat` (client → server): take a seat in a car slot (rules in race/seats.ts). */
@@ -121,13 +133,52 @@ export const SetLapsSchema = z.strictObject({
   laps: z.number().int(),
 });
 
+/** `host:track` (client → server): a track file id. */
+export const SetTrackSchema = z.strictObject({
+  id: z.string().regex(/^[a-z0-9-]{1,40}$/),
+});
+
+/** Longest name of a hosted game. */
+export const GAME_NAME_MAX_LENGTH = 32;
+
+/**
+ * Hosting a game (P12.1): the options of `client.create('race', …)`. Laps are checked against
+ * the config by the server; the track must be one the host may pick.
+ */
+export const CreateGameSchema = z.strictObject({
+  name: typedName(GAME_NAME_MAX_LENGTH),
+  track: z.string().regex(/^[a-z0-9-]{1,40}$/),
+  mode: z.enum(RACE_MODES),
+  laps: z.number().int(),
+  bots: z.boolean(),
+  chaos: z.boolean(),
+});
+export type CreateGame = z.infer<typeof CreateGameSchema>;
+
+/** A game as the server lists it (`GET /games.json`, P12.1). */
+export interface GameListing {
+  /** Colyseus room id (join with `joinById`). */
+  id: string;
+  /** '' for the server's always-open game (the page names it). */
+  name: string;
+  /** The host's player name ('' while nobody is in it). */
+  host: string;
+  track: string;
+  mode: string;
+  phase: string;
+  players: number;
+  maxPlayers: number;
+  /** The server's own game: always there, never closes. */
+  isDefault: boolean;
+}
+
 /** `lobby:setCar` (client → server): a cars.json id for your team's car slot. */
 export const SetCarSchema = z.strictObject({ slot: z.number().int().nonnegative(), car: z.string().min(1).max(40) });
 
 /** `lobby:setTeamName` (client → server). */
 export const SetTeamNameSchema = z.strictObject({
   slot: z.number().int().nonnegative(),
-  name: z.string().trim().min(1).max(TEAM_NAME_MAX_LENGTH),
+  name: typedName(TEAM_NAME_MAX_LENGTH),
 });
 
 /** `lobby:ready` (client → server). */
@@ -137,6 +188,8 @@ export const ReadySchema = z.strictObject({ ready: z.boolean() });
 export const BotsSchema = z.strictObject({ on: z.boolean() });
 /** `host:chaos` body: chaos mode on/off. */
 export const ChaosSchema = z.strictObject({ on: z.boolean() });
+/** `host:mode` body: Race or Battle. */
+export const ModeSchema = z.strictObject({ mode: z.enum(RACE_MODES) });
 
 /** `head` (client → server, ~20/s in the cockpit): where your head points, relative to the car. */
 export const HeadSchema = z.strictObject({

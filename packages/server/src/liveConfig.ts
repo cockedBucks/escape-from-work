@@ -1,12 +1,13 @@
-import { renameSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { ConfigError, DEFAULT_TRACK, checkTrack, parseTuning, type CarsConfig, type ItemsConfig, type TeamsConfig, type Track, type Tuning } from '@escape/shared';
+import { ConfigError, DEFAULT_TRACK, checkTrack, parseTrack, parseTuning, type CarsConfig, type ItemsConfig, type TeamsConfig, type Track, type Tuning } from '@escape/shared';
 import { REPO_ROOT, loadCarsFile, loadItemsFile, loadTeamsFile, loadTrackFile, loadTuningFile } from './config';
 
 export type ConfigChange =
   | { kind: 'tuning'; tuning: Tuning }
   | { kind: 'cars'; cars: CarsConfig }
-  | { kind: 'track'; track: Track };
+  /** A track file changed (dev): every game on track `id` reloads it. */
+  | { kind: 'track'; id: string; track: Track };
 
 type Listener = (change: ConfigChange) => void;
 
@@ -24,9 +25,12 @@ export class LiveConfig {
   readonly teams: TeamsConfig;
   /** Chaos items (read once at start). */
   readonly items: ItemsConfig;
+  /** The always-open game's starting track (DEFAULT_TRACK). */
   track: Track;
-  readonly trackId = DEFAULT_TRACK;
+  private currentTrackId: string = DEFAULT_TRACK;
   private readonly listeners = new Set<Listener>();
+  /** Tracks games picked, by id (built and checked once; dropped when the file changes). */
+  private readonly trackCache = new Map<string, Track>();
 
   constructor(readonly configDir = path.join(REPO_ROOT, 'config')) {
     this.tuning = loadTuningFile(this.tuningFile);
@@ -34,6 +38,52 @@ export class LiveConfig {
     this.teams = loadTeamsFile(path.join(configDir, 'teams.json'));
     this.items = loadItemsFile(path.join(configDir, 'items.json'));
     this.track = loadTrackFile(this.trackId, this.tuning, path.join(configDir, 'tracks'));
+  }
+
+  /** The track raced now (a config/tracks file id). */
+  get trackId(): string {
+    return this.currentTrackId;
+  }
+
+  /** Tracks the host may pick: every valid track file that is not a dev track, sorted. */
+  availableTracks(): string[] {
+    const dir = path.join(this.configDir, 'tracks');
+    return readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => f.slice(0, -'.json'.length))
+      .filter((id) => {
+        try {
+          return !parseTrack(JSON.parse(readFileSync(path.join(dir, `${id}.json`), 'utf8')), id).dev;
+        } catch {
+          return false; // a broken file is simply not offered
+        }
+      })
+      .sort();
+  }
+
+  /**
+   * A track a game may race (P12.1: every game has its own): built and checked, or why not
+   * (unknown / dev / broken track) as a string.
+   */
+  trackById(id: string): Track | string {
+    // Checked first: a dev edit may have cached a track no game may pick (the Test Loop).
+    if (!this.availableTracks().includes(id)) return 'there is no such track';
+    const cached = this.trackCache.get(id);
+    if (cached) return cached;
+    try {
+      const track = this.loadChecked(id);
+      this.trackCache.set(id, track);
+      return track;
+    } catch (err) {
+      return `that track does not work: ${String(err instanceof Error ? err.message : err).split('\n')[0]}`;
+    }
+  }
+
+  private loadChecked(id: string): Track {
+    const track = loadTrackFile(id, this.tuning, path.join(this.configDir, 'tracks'));
+    const { issues } = checkTrack(track, this.tuning.track.minWidth, this.tuning.track.branchMinWidth);
+    if (issues.length > 0) throw new ConfigError(`track ${id}: ${issues.join('; ')}`);
+    return track;
   }
 
   get tuningFile(): string {
@@ -73,12 +123,12 @@ export class LiveConfig {
     this.emit({ kind: 'cars', cars: this.cars });
   }
 
-  reloadTrack(): void {
-    const track = loadTrackFile(this.trackId, this.tuning, path.join(this.configDir, 'tracks'));
-    const { issues } = checkTrack(track, this.tuning.track.minWidth);
-    if (issues.length > 0) throw new ConfigError(`track ${this.trackId}: ${issues.join('; ')}`);
-    this.track = track;
-    this.emit({ kind: 'track', track: this.track });
+  /** Dev: the file of track `id` changed. Games on it reload it; a broken file throws and changes nothing. */
+  reloadTrack(id = this.trackId): void {
+    const track = this.loadChecked(id);
+    this.trackCache.set(id, track);
+    if (id === this.trackId) this.track = track;
+    this.emit({ kind: 'track', id, track });
   }
 }
 

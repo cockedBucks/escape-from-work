@@ -1,8 +1,10 @@
 export { DEFAULT_TRACK } from '@escape/shared';
-import { buildTrack, parseCars, parseItems, parseTrack, parseTuning, type CarsConfig, type ItemsConfig, type Track, type Tuning } from '@escape/shared';
+import { buildTrack, parseCars, parseItems, parseSeasons, parseTrack, parseTuning, type CarsConfig, type ItemsConfig, type SeasonsConfig, type Track, type Tuning } from '@escape/shared';
 import rawCars from '../../../config/cars.json';
 import rawItems from '../../../config/items.json';
+import rawSeasons from '../../../config/seasons.json';
 import rawTuning from '../../../config/tuning.json';
+import { nameOf } from './i18n';
 
 // Config files are bundled into the page at build time (offline, no fetches).
 const trackFiles = import.meta.glob<unknown>('../../../config/tracks/*.json', { eager: true, import: 'default' });
@@ -26,10 +28,31 @@ export function loadItems(): ItemsConfig {
   return parseItems(rawItems);
 }
 
+export function loadSeasons(): SeasonsConfig {
+  return parseSeasons(rawSeasons);
+}
+
 export function trackIds(): string[] {
   return Object.keys(trackFiles)
     .map((p) => p.slice(p.lastIndexOf('/') + 1, -'.json'.length))
     .sort();
+}
+
+/** Tracks the host may pick in the lobby (not the dev ones), with their names, by id. */
+export function pickableTracks(): { id: string; name: string }[] {
+  return trackIds()
+    .filter((id) => {
+      const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));
+      return (entry?.[1] as { dev?: unknown } | undefined)?.dev !== true;
+    })
+    .map((id) => ({ id, name: trackName(id) }));
+}
+
+/** A track's display name ("office" → "The Office", in the page's language); the id itself if unknown. */
+export function trackName(id: string): string {
+  const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));
+  const name = (entry?.[1] as { name?: unknown } | undefined)?.name;
+  return nameOf(`track.${id}`, typeof name === 'string' ? name : id);
 }
 
 /** Validate and build a bundled track. Throws for an unknown id. */

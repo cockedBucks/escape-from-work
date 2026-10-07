@@ -14,12 +14,16 @@ const StatsSchema = z.strictObject({
 export const HORNS = ['toot', 'duck', 'truck', 'clown', 'bike', 'kazoo', 'siren', 'squeak'] as const;
 export type Horn = (typeof HORNS)[number];
 
-/** Car kit body presets (ART_STYLE §4); the client has their proportions. */
-export const BODY_PRESETS = ['hatch', 'sedan', 'pickup', 'van', 'mini', 'round', 'muscle'] as const;
+/** Procedural engine voices (timbre per car; the client synthesizes them from speed). */
+export const ENGINES = ['buzz', 'hum', 'rumble', 'v8', 'rattle', 'whine', 'putt', 'diesel'] as const;
+export type Engine = (typeof ENGINES)[number];
+
+/** Car kit body presets: real-life car types (ART_STYLE §4); the client has their shapes. */
+export const BODY_PRESETS = ['hatchback', 'sedan', 'pickup', 'muscle', 'suv', 'city', 'sports', 'van'] as const;
 export type BodyPreset = (typeof BODY_PRESETS)[number];
 
 /** Car kit parts: each car's signature feature(s) (ART_STYLE car roster). */
-export const CAR_PARTS = ['spoiler', 'roofSign', 'speakers', 'hoodScoop', 'roofBox', 'windupKey', 'dish', 'ladder'] as const;
+export const CAR_PARTS = ['spoiler', 'roofSign', 'speakers', 'hoodScoop', 'roofBox', 'spareWheel', 'dish', 'ladder', 'stripes'] as const;
 export type CarPart = (typeof CAR_PARTS)[number];
 
 /** How a car looks: body preset, wheel size (1 = normal; ART_STYLE wants them big) and parts. */
@@ -37,6 +41,8 @@ const CarDefSchema = z.strictObject({
   stats: StatsSchema,
   /** Horn preset (GAME_DESIGN §8: each car has its own goofy horn). */
   horn: z.enum(HORNS),
+  /** Engine voice (P7.7): how this car's engine sounds to its own players. */
+  engine: z.enum(ENGINES),
   look: LookSchema,
 });
 

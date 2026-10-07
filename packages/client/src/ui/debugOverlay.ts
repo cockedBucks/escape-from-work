@@ -13,6 +13,8 @@ const fmt =(v: number | null, digits = 0): string => (v === null ? '–' : v.toF
 export class DebugOverlay {
   private readonly el = document.createElement('pre');
   private visible = false;
+  /** Settings "Show FPS": a small counter while the full F3 overlay is off. */
+  private fpsOnly = false;
   private lastRefresh = 0;
 
   constructor(parent: HTMLElement, private readonly stats: () => GameStats) {
@@ -26,15 +28,30 @@ export class DebugOverlay {
     if (e.code !== 'F3') return;
     e.preventDefault();
     this.visible = !this.visible;
-    this.el.hidden = !this.visible;
-    this.lastRefresh = 0;
+    this.paintMode();
   };
+
+  /** Show just the FPS when the F3 overlay is off (settings). */
+  setShowFps(on: boolean): void {
+    this.fpsOnly = on;
+    this.paintMode();
+  }
+
+  private paintMode(): void {
+    this.el.hidden = !this.visible && !this.fpsOnly;
+    this.el.classList.toggle('fps-only', !this.visible && this.fpsOnly);
+    this.lastRefresh = 0;
+  }
 
   /** Call once per frame; cheap when hidden. */
   update(now: number): void {
-    if (!this.visible || now - this.lastRefresh < REFRESH_MS) return;
+    if ((!this.visible && !this.fpsOnly) || now - this.lastRefresh < REFRESH_MS) return;
     this.lastRefresh = now;
     const s = this.stats();
+    if (!this.visible) {
+      this.el.textContent = `${fmt(s.fps)} fps`;
+      return;
+    }
     this.el.textContent =
       `fps   ${fmt(s.fps)}\n` +
       `ping  ${fmt(s.pingMs)} ms\n` +

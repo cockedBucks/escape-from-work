@@ -47,7 +47,28 @@ export class Builder {
     this.add(g, color, x, y, z, axis === 'z' ? Math.PI / 2 : 0, 0, axis === 'x' ? Math.PI / 2 : 0);
   }
 
+  /**
+   * A side outline (points [z, y]) extruded `width` across the car, centered on `x`
+   * (car bodies, cabins and window panes).
+   */
+  prism(outline: readonly (readonly [number, number])[], width: number, color: number, x: number): void {
+    const shape = new THREE.Shape(outline.map(([z, y]) => new THREE.Vector2(z, y)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: width, bevelEnabled: false, steps: 1 });
+    // Shape x → car forward (+Z); the extrusion runs along −X, so shift it back to center.
+    this.add(g, color, x + width / 2, 0, 0, 0, -Math.PI / 2);
+  }
+
   build(): THREE.BufferGeometry {
+    // Extruded shapes come without an index; merging needs all parts alike.
+    if (this.parts.some((p) => !p.index)) {
+      for (let i = 0; i < this.parts.length; i++) {
+        const p = this.parts[i]!;
+        if (p.index) {
+          this.parts[i] = p.toNonIndexed();
+          p.dispose();
+        }
+      }
+    }
     const merged = mergeGeometries(this.parts);
     for (const p of this.parts) p.dispose();
     if (!merged) throw new Error('kit: could not merge the parts');

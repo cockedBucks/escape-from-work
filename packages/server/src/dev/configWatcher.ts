@@ -1,7 +1,7 @@
 import { watch, type FSWatcher } from 'node:fs';
 import type { LiveConfig } from '../liveConfig';
 
-export type ConfigFileKind = 'tuning' | 'cars' | 'track';
+export type ConfigFileKind = 'tuning' | 'cars' | `track:${string}`;
 
 /** Editors save in bursts (temp file, rename, touch): wait this long for it to settle (ms). */
 const SETTLE_MS = 150;
@@ -12,7 +12,8 @@ export function classifyConfigFile(rel: string): ConfigFileKind | null {
   if (p.includes('.tmp-')) return null; // our own atomic-write temp files
   if (p === 'tuning.json') return 'tuning';
   if (p === 'cars.json') return 'cars';
-  if (/^tracks\/[a-z0-9-]+\.json$/.test(p)) return 'track';
+  const track = /^tracks\/([a-z0-9-]+)\.json$/.exec(p);
+  if (track) return `track:${track[1]!}`;
   return null;
 }
 
@@ -26,7 +27,7 @@ export function watchConfig(live: LiveConfig): FSWatcher {
     try {
       if (kind === 'tuning') live.reloadTuning();
       else if (kind === 'cars') live.reloadCars();
-      else live.reloadTrack();
+      else live.reloadTrack(kind.slice('track:'.length));
       console.log(`[config] ${kind} reloaded`);
     } catch (err) {
       console.log(`[config] ${kind} NOT reloaded, keeping the last good one: ${String(err instanceof Error ? err.message : err)}`);
