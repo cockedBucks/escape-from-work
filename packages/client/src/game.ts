@@ -49,7 +49,7 @@ export interface GameOptions {
   focus: () => string | null;
   /** `view: 'fixed'`: where the camera stands and what it looks at (the garage showroom). */
   fixedCamera?: { from: readonly [number, number, number]; at: readonly [number, number, number] };
-  /** How each car looks (cars.json `look`); absent = a plain hatch. */
+  /** How each car looks (cars.json `look`); absent = a plain hatchback. */
   lookOf?: (carId: string) => CarLook;
   /** Chaos items to draw (boxes, envelopes, puddles); null or absent = none. */
   items?: () => ItemsView | null;
@@ -99,7 +99,7 @@ function teamColor(slot: number): number {
 }
 
 /** Look for a car the game was not told about. */
-const DEFAULT_LOOK: CarLook = { body: 'hatch', wheelScale: 1, parts: [] };
+const DEFAULT_LOOK: CarLook = { body: 'hatchback', wheelScale: 1, parts: [] };
 
 const NO_GAUGES: Omit<GaugeValues, 'speed'> = { lap: null, place: null, heat: null, stalled: false, nitro: null, item: null };
 const SIDES = ['left', 'right'] as const;

@@ -1,6 +1,9 @@
 // Visual-only constants: colors from docs/ART_STYLE.md and greybox proportions.
 // Gameplay numbers never live here (they come from config/). These only change looks.
 
+import type { BodyPreset } from '@escape/shared';
+import type { SidePoint } from './sideProfile';
+
 /** Palette (ART_STYLE §3). */
 export const PALETTE = {
   sand: 0xf4ebdc,
@@ -412,59 +415,146 @@ export const ITEM_LOOK = {
   shieldOpacity: 0.35,
 } as const;
 
-/** Car kit body presets (ART_STYLE §4): proportions in meters. `cabinZ` = cabin center from
- * the car center (+ = forward); heads sit in the cabin, poking through its roof. */
-export const CAR_BODIES = {
-  hatch: { length: 3.6, width: 1.9, body: 0.6, ride: 0.35, cabinLength: 1.8, cabinHeight: 0.6, cabinZ: -0.35, wheelBase: 1.2 },
-  sedan: { length: 4.1, width: 1.9, body: 0.55, ride: 0.35, cabinLength: 2.0, cabinHeight: 0.6, cabinZ: -0.2, wheelBase: 1.4 },
-  pickup: { length: 4.4, width: 1.95, body: 0.6, ride: 0.45, cabinLength: 1.5, cabinHeight: 0.65, cabinZ: 0.5, wheelBase: 1.45 },
-  van: { length: 4.0, width: 2.0, body: 0.7, ride: 0.35, cabinLength: 3.0, cabinHeight: 0.8, cabinZ: -0.3, wheelBase: 1.35 },
-  mini: { length: 2.8, width: 1.7, body: 0.55, ride: 0.4, cabinLength: 1.6, cabinHeight: 0.65, cabinZ: -0.2, wheelBase: 0.95 },
-  round: { length: 3.4, width: 1.85, body: 0.6, ride: 0.35, cabinLength: 1.8, cabinHeight: 0.7, cabinZ: -0.2, wheelBase: 1.15 },
-  muscle: { length: 4.5, width: 2.0, body: 0.5, ride: 0.32, cabinLength: 1.5, cabinHeight: 0.52, cabinZ: -0.85, wheelBase: 1.55 },
-} as const;
+/** A real-life car type for the car kit (ART_STYLE §4, P12.2). Side outlines are [z, y] points
+ * in meters (z forward from the car's center, y up from the ground; see sideProfile.ts). */
+export interface CarBodyLook {
+  width: number;
+  /** Bottom of the body above the ground. */
+  ride: number;
+  /** Wheel centers sit ± this far forward/back. */
+  wheelBase: number;
+  /** Body top line, front to back: nose, hood, shoulders, deck, tail (the kit adds the bottom). */
+  outline: readonly SidePoint[];
+  /** Cabin side (windshield base, roof front, roof back, rear window base), counter-clockwise. */
+  cabin: readonly SidePoint[];
+  /** Cabin width as a share of the body's (narrower = more shoulder). */
+  cabinWidth: number;
+  /** Side windows: [front z, back z] of each pane (the cabin's frame trims them). */
+  windows: readonly (readonly [number, number])[];
+  /** Where the two heads poke through the roof (z). */
+  seatZ: number;
+  /** A pickup's open bed: from/to z, floor height and side-rail height. */
+  bed?: { front: number; back: number; floor: number; rail: number };
+}
+
+/** The car types (BODY_PRESETS): real-life proportions, original and unbranded. */
+export const CAR_BODIES: Readonly<Record<BodyPreset, CarBodyLook>> = {
+  hatchback: {
+    width: 1.85, ride: 0.28, wheelBase: 1.25, cabinWidth: 0.82, seatZ: -0.3,
+    outline: [[1.97, 0.62], [1.85, 0.8], [0.85, 0.93], [-1.75, 0.99], [-1.95, 0.9]],
+    cabin: [[0.9, 0.86], [0.0, 1.4], [-1.45, 1.38], [-1.9, 0.86]],
+    windows: [[0.8, -0.32], [-0.42, -1.45]],
+  },
+  sedan: {
+    width: 1.85, ride: 0.26, wheelBase: 1.4, cabinWidth: 0.82, seatZ: -0.12,
+    outline: [[2.22, 0.62], [2.08, 0.79], [0.98, 0.91], [-2.02, 0.97], [-2.2, 0.9]],
+    cabin: [[1.02, 0.86], [0.15, 1.38], [-0.95, 1.38], [-1.6, 0.9]],
+    windows: [[0.9, -0.2], [-0.3, -1.3]],
+  },
+  pickup: {
+    width: 1.95, ride: 0.38, wheelBase: 1.55, cabinWidth: 0.86, seatZ: 0.12,
+    outline: [[2.42, 0.95], [2.3, 1.12], [1.15, 1.2], [-0.8, 1.22], [-0.8, 0.98], [-2.42, 0.98]],
+    cabin: [[1.18, 1.14], [0.6, 1.8], [-0.62, 1.8], [-0.72, 1.14]],
+    windows: [[1.02, 0.02], [-0.08, -0.62]],
+    bed: { front: -0.8, back: -2.42, floor: 0.98, rail: 1.22 },
+  },
+  muscle: {
+    width: 1.95, ride: 0.24, wheelBase: 1.45, cabinWidth: 0.8, seatZ: -0.55,
+    outline: [[2.37, 0.66], [2.25, 0.82], [0.45, 0.9], [-2.25, 0.93], [-2.37, 0.83]],
+    cabin: [[0.5, 0.84], [-0.25, 1.25], [-0.95, 1.25], [-1.95, 0.87]],
+    windows: [[0.35, -1.1]],
+  },
+  suv: {
+    width: 1.95, ride: 0.38, wheelBase: 1.42, cabinWidth: 0.88, seatZ: 0.02,
+    outline: [[2.27, 0.95], [2.15, 1.1], [1.2, 1.16], [-2.2, 1.2], [-2.27, 1.12]],
+    cabin: [[1.24, 1.1], [0.48, 1.76], [-2.05, 1.76], [-2.22, 1.12]],
+    windows: [[1.08, 0.15], [0.05, -1.0], [-1.1, -2.1]],
+  },
+  city: {
+    width: 1.68, ride: 0.26, wheelBase: 1.1, cabinWidth: 0.86, seatZ: -0.1,
+    outline: [[1.67, 0.68], [1.5, 0.88], [1.0, 0.98], [-1.57, 1.0], [-1.67, 0.94]],
+    cabin: [[1.03, 0.93], [0.32, 1.55], [-1.42, 1.55], [-1.62, 0.95]],
+    windows: [[0.9, -0.2], [-0.3, -1.45]],
+  },
+  sports: {
+    width: 1.98, ride: 0.2, wheelBase: 1.35, cabinWidth: 0.78, seatZ: -0.42,
+    outline: [[2.17, 0.5], [2.0, 0.64], [1.35, 0.86], [0.6, 0.8], [-1.35, 0.93], [-2.0, 0.92], [-2.17, 0.84]],
+    cabin: [[0.65, 0.76], [-0.18, 1.14], [-0.72, 1.14], [-1.8, 0.88]],
+    windows: [[0.5, -0.9]],
+  },
+  van: {
+    width: 2.0, ride: 0.32, wheelBase: 1.6, cabinWidth: 0.94, seatZ: 0.5,
+    outline: [[2.47, 0.98], [2.3, 1.16], [1.6, 1.24], [-2.42, 1.26], [-2.47, 1.2]],
+    cabin: [[1.64, 1.18], [0.88, 2.15], [-2.42, 2.15], [-2.47, 1.18]],
+    windows: [[1.48, 0.62]],
+  },
+};
 
 /** Car kit look rules: shared sizes and the trim/part colors (team paint comes from the slot). */
 export const CAR_KIT = {
-  wheelRadius: 0.48,
-  wheelWidth: 0.42,
+  /** Wheels: a bit bigger than real (about 1.15×) so they read from the chase cam. */
+  wheelRadius: 0.36,
+  wheelWidth: 0.3,
   wheelSegments: 14,
-  /** Low-poly round shapes (the "round" body, dish, key). */
-  roundSegments: 10,
-  /** Heads poke this share of their radius above the cabin roof. */
+  /** Rims: share of the tire radius, low-poly. */
+  rimShare: 0.6,
+  rimSegments: 8,
+  /** Low-poly round shapes (dish, speaker cones, spare wheel). */
+  roundSegments: 8,
+  /** Wheel arches: gap around the tire, the least body left above an arch, segments. */
+  archGap: 0.05,
+  archSkin: 0.04,
+  archSegments: 6,
+  /** Heads poke this share of their radius above the roof. */
   headAboveRoof: 0.85,
-  /** Roof slab thickness (team color) on top of the glass cabin. */
-  roofThickness: 0.08,
   trim: 0x1e2230,
-  glass: 0xbfe3f2,
+  /** Tinted window glass. */
+  glass: 0x3d5468,
   metal: 0xd9dde3,
+  rim: 0xc9ced6,
   light: 0xfff6d6,
   tail: 0xe63946,
+  plate: 0xf4f1e8,
+  stripe: 0xf7f7f2,
   signYellow: 0xffb703,
-  /** Roof number decal: size (m) and the atlas (8 numbers in a row, px per number). */
-  numberSize: 0.75,
+  /** Roof number decal: size (m), lift off the surface, and the atlas (8 numbers in a row, px each). */
+  numberSize: 0.6,
+  numberLift: 0.012,
   numberPx: 64,
   /** Blob shadow radius as a share of the car's length (or width, if wider). */
   shadowShare: 0.45,
 } as const;
 
-/** Car kit trim and part dimensions (m; shares are of the car's width or cabin length). */
+/** Car kit trim and part dimensions (m; shares are of the car's or cabin's width). */
 export const CAR_PARTS_LOOK = {
-  bumper: { height: 0.2, depth: 0.18, lift: 0.12, widthShare: 1.02 },
-  headlight: { width: 0.36, height: 0.14, sideShare: 0.62, heightShare: 0.62 },
-  taillight: { width: 0.3, height: 0.12, sideShare: 0.66 },
+  /** Window frame (pillar) width and glass pane thickness. */
+  pillar: 0.07,
+  glassThick: 0.03,
+  bumper: { height: 0.18, depth: 0.14, out: 0.05 },
+  headlight: { width: 0.4, height: 0.13, sideShare: 0.68, below: 0.04 },
+  taillight: { width: 0.36, height: 0.14, sideShare: 0.72, below: 0.05 },
+  grille: { widthShare: 0.34, height: 0.16, heightShare: 0.6 },
+  plate: { width: 0.46, height: 0.12, depth: 0.02 },
   lightDepth: 0.06,
-  /** Heads sit this share of the cabin length forward of its center; roof parts this share behind its back. */
-  seatForward: 0.15,
-  roofPartBack: 0.22,
-  spoiler: { heightOverRoof: 1.35, back: 0.3, post: 0.1, postSideShare: 0.55, wingWidthShare: 1.08, wingThick: 0.08, wingDepth: 0.5 },
-  roofSign: { widthShare: 0.62, height: 0.5, depth: 0.55, stripe: 0.1 },
-  roofBox: { widthShare: 0.8, height: 0.5, lengthShare: 0.5 },
-  dish: { post: 0.05, postHeight: 0.4, radius: 0.55, rim: 0.15, thick: 0.12, tilt: -0.6, sideShare: 0.4 },
-  ladder: { rail: 0.06, gap: 0.18, rungWidth: 0.42, rungs: 6, sideShare: -0.45, lengthShare: 0.9 },
-  speakers: { width: 0.7, height: 0.9, depth: 0.6, cone: 0.22, sideShare: 0.45, behindCabin: 0.55 },
-  hoodScoop: { widthShare: 0.36, height: 0.24, length: 0.8 },
-  windupKey: { shaft: 0.06, shaftLength: 0.5, wingWidth: 0.42, wingHeight: 0.28, wingThick: 0.06, heightShare: 0.8 },
+  /** Dark sills along the bottom of the doors. */
+  sill: { height: 0.1, thick: 0.05 },
+  mirror: { width: 0.18, height: 0.12, depth: 0.1, back: 0.18, lift: 0.16 },
+  /** The open sunroof the heads poke through. */
+  sunroof: { widthShare: 0.72, length: 0.9 },
+  /** Roof parts keep this gap from the roof's back edge and from the heads. */
+  roofMargin: 0.08,
+  /** On the hood, the number sits this share of the way from the nose to the windshield. */
+  numberHoodAt: 0.35,
+  spoiler: { back: 0.35, lift: 0.2, post: 0.07, postSideShare: 0.32, widthShare: 1.12, thick: 0.06, depth: 0.42, plate: 0.22 },
+  roofSign: { widthShare: 0.6, height: 0.36, depth: 0.4, stripe: 0.08 },
+  roofBox: { widthShare: 0.72, height: 0.36, length: 1.3, rail: 0.05, railSideShare: 0.42 },
+  dish: { post: 0.05, postHeight: 0.4, radius: 0.55, rim: 0.15, thick: 0.12, tilt: -0.6, sideShare: 0.35 },
+  ladder: { rail: 0.06, gap: 0.18, rungWidth: 0.42, rungs: 6, sideShare: -0.4, lengthShare: 0.8 },
+  speakers: { width: 0.62, height: 0.85, depth: 0.55, cone: 0.2, sideShare: 0.45, behindCabin: 0.5 },
+  hoodScoop: { widthShare: 0.34, height: 0.16, length: 0.7, at: 0.7 },
+  spareWheel: { share: 0.92, thick: 0.26 },
+  /** Racing stripes over hood, roof and deck: width, gap between the two, thickness. */
+  stripes: { width: 0.16, gap: 0.14, thick: 0.015 },
 } as const;
 
 /**

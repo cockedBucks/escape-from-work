@@ -13,6 +13,7 @@ import { loadSeasons, loadTrack, pickableTracks, trackName } from './content';
 import { HostScreen } from './ui/hostScreen';
 import { JoinScreen } from './ui/joinScreen';
 import { trackMapSvg } from './ui/trackMap';
+import { carLabel } from './ui/carType';
 import { savedName } from './ui/lobbyScreen';
 import { fetchGames, hostGame, joinGame, type RaceStateView } from './net/connection';
 import { t } from './i18n';
@@ -147,7 +148,7 @@ export function showMainMenu(opts: MenuOptions): Promise<Room<unknown, RaceState
     let first = true;
     const loop = (now: number): void => {
       showroom.render(now);
-      menu.setCar(showroom.current?.name ?? '');
+      menu.setCar(showroom.current ? carLabel(showroom.current) : '');
       menu.update(now);
       music.setPlaying(true);
       if (first) {

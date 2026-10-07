@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Bobblehead, makeDuck } from './bobblehead';
 import type { CockpitLift, SeatSide } from './cockpitCam';
 import type { CarLook } from '@escape/shared';
-import { buildCarShape, type CarShape } from './carKit';
+import { buildCarShape, buildWheel, type CarShape } from './carKit';
 import { headKick, Squash } from './juice';
 import { BOX_CAR, CAR_KIT, COCKPIT, DUCK, HEAD, MIRROR, PALETTE, TEAM_COLORS } from './look';
 
@@ -28,13 +28,8 @@ export type SeatContent =
 
 /** Shared by every car (built once). */
 interface CarAssets {
-  body: THREE.BufferGeometry;
-  /** Both rear wheels in one mesh: they share an axle, so they spin together (one draw call). */
-  rearAxle: THREE.BufferGeometry;
   dash: THREE.BufferGeometry;
   dashMat: THREE.Material;
-  wheel: THREE.BufferGeometry;
-  shadow: THREE.BufferGeometry;
   wheelMat: THREE.Material;
   shadowMat: THREE.Material;
 }
@@ -44,18 +39,6 @@ let assets: CarAssets | null = null;
 function getAssets(): CarAssets {
   if (assets) return assets;
   const C = BOX_CAR;
-  const body = new THREE.BoxGeometry(C.width, C.bodyHeight, C.length);
-  body.translate(0, C.ride + C.bodyHeight / 2, 0);
-  const cabin = new THREE.BoxGeometry(C.width * 0.86, C.cabinHeight, C.cabinLength);
-  cabin.translate(0, C.ride + C.bodyHeight + C.cabinHeight / 2, -C.cabinBack);
-  const merged = mergeGeometries([body, cabin]);
-  body.dispose();
-  cabin.dispose();
-  if (!merged) throw new Error('could not merge the box car body');
-
-  const wheel = new THREE.CylinderGeometry(C.wheelRadius, C.wheelRadius, C.wheelWidth, 14);
-  wheel.rotateZ(Math.PI / 2); // axle along X
-
   // Cockpit pieces (seen from inside): a low dashboard and the windshield frame (two
   // pillars and a roof bar), merged into one mesh = one extra draw call for your car only.
   const cabinW = C.width * 0.86;
@@ -78,24 +61,11 @@ function getAssets(): CarAssets {
   for (const p of parts) p.dispose();
   if (!dash) throw new Error('could not merge the cockpit');
 
-  const rearL = wheel.clone().translate(C.wheelTrack, 0, 0);
-  const rearR = wheel.clone().translate(-C.wheelTrack, 0, 0);
-  const rearAxle = mergeGeometries([rearL, rearR]);
-  rearL.dispose();
-  rearR.dispose();
-  if (!rearAxle) throw new Error('could not merge the rear wheels');
-
-  const shadow = new THREE.CircleGeometry(C.shadowRadius, 20);
-  shadow.rotateX(-Math.PI / 2);
-
   assets = {
-    body: merged,
-    rearAxle,
     dash,
     dashMat: new THREE.MeshLambertMaterial({ color: COCKPIT.dashColor, flatShading: true }),
-    wheel,
-    shadow,
-    wheelMat: new THREE.MeshLambertMaterial({ color: PALETTE.tire, flatShading: true }),
+    // Kit wheels are vertex-colored (tire + rim).
+    wheelMat: new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }),
     shadowMat: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: C.shadowOpacity, depthWrite: false }),
   };
   return assets;
@@ -109,8 +79,7 @@ const axleCache = new Map<string, THREE.BufferGeometry>();
 function wheelGeo(radius: number): THREE.BufferGeometry {
   let g = wheelCache.get(radius);
   if (!g) {
-    g = new THREE.CylinderGeometry(radius, radius, CAR_KIT.wheelWidth, CAR_KIT.wheelSegments);
-    g.rotateZ(Math.PI / 2); // axle along X
+    g = buildWheel(radius);
     wheelCache.set(radius, g);
   }
   return g;

@@ -8,7 +8,7 @@
       "stats": { "speed": 1, "grip": 1, "weight": 1 },
       "horn": "toot",
       "engine": "buzz",
-      "look": { "body": "hatch", "wheelScale": 1.05, "parts": ["spoiler"] }
+      "look": { "body": "hatchback", "wheelScale": 1.05, "parts": ["spoiler"] }
     },
     {
       "id": "cabbie",
@@ -32,7 +32,7 @@
       "stats": { "speed": 1.03, "grip": 0.96, "weight": 1 },
       "horn": "clown",
       "engine": "v8",
-      "look": { "body": "muscle", "wheelScale": 1.1, "parts": ["hoodScoop"] }
+      "look": { "body": "muscle", "wheelScale": 1.05, "parts": ["hoodScoop"] }
     },
     {
       "id": "packet-loss",
@@ -40,7 +40,7 @@
       "stats": { "speed": 0.97, "grip": 1.04, "weight": 1.06 },
       "horn": "duck",
       "engine": "rattle",
-      "look": { "body": "van", "wheelScale": 1, "parts": ["roofBox"] }
+      "look": { "body": "suv", "wheelScale": 1.12, "parts": ["roofBox", "spareWheel"] }
     },
     {
       "id": "pocket-rocket",
@@ -48,7 +48,7 @@
       "stats": { "speed": 0.99, "grip": 1.05, "weight": 0.93 },
       "horn": "bike",
       "engine": "whine",
-      "look": { "body": "mini", "wheelScale": 1.45, "parts": [] }
+      "look": { "body": "city", "wheelScale": 1.15, "parts": [] }
     },
     {
       "id": "bug-report",
@@ -56,7 +56,7 @@
       "stats": { "speed": 1.02, "grip": 1, "weight": 0.94 },
       "horn": "squeak",
       "engine": "putt",
-      "look": { "body": "round", "wheelScale": 1.1, "parts": ["windupKey"] }
+      "look": { "body": "sports", "wheelScale": 1.05, "parts": ["stripes"] }
     },
     {
       "id": "help-desk",

@@ -17,7 +17,7 @@ fun, more visual and clear." One task = one commit, pushed to the cloud branch.
 - [x] **P12.1 Host and join.** Rooms = games: the server's always-open game plus up to
   `net.maxGames` hosted ones (name, track, mode, laps, bots, chaos; closed when empty);
   `GET /games.json`; per-game track; HOST window, JOIN list, Leave game; the phone pad picks a game.
-- [ ] **P12.2 Real-life cars.** New car kit body types and parts (sedan, hatchback, SUV, pickup,
+- [x] **P12.2 Real-life cars.** New car kit body types and parts (sedan, hatchback, SUV, pickup,
   sports car, van, …), lights, rims, windows; cars.json looks; budgets; `/shots garage`.
 - [ ] **P12.3 Visual garage and seats.** Car pictures (rendered once, team colors) on the lobby
   cards, a garage window with stats to pick your team's car, big clear seat buttons.

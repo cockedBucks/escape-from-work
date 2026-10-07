@@ -6,8 +6,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Now
 - Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
   the human's request of 2026-10-07 (cloud).
-- Next task: P12.2 Real-life cars
-- Status: P12.1 done: HOST / JOIN, several games per server. `npm run verify` passes.
+- Next task: P12.3 Visual garage and seats
+- Status: P12.2 done: eight real-life car types (unbranded). `npm run verify` passes.
 
 ## Half-done
 - (none)
@@ -170,6 +170,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-07 (cloud): P12.1 Host and join — HOST window (name, track cards with mini maps, Race/Battle,
   laps, bots, chaos), JOIN list (live, every game), per-game tracks, `GET /games.json`, Leave game,
   the pad picks its game; checked with two real browsers. D125.
+- 2026-10-07 (cloud): P12.2 Real-life cars — eight unbranded real-life types (hatchback, taxi sedan,
+  pickup, muscle car, SUV, city car, sports car, van) from side outlines with wheel arches, windows,
+  lights, plates, rims; type shown under the pun name. D126.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
