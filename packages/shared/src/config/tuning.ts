@@ -236,6 +236,12 @@ const SlipstreamSchema = z.strictObject({
   cooldownSeconds: nonNeg(),
 });
 
+/** Boost pads (P13.6): `boost` zones in the track files. */
+const BoostPadSchema = z.strictObject({
+  /** Boost when a car drives onto a pad (s); it pushes like a drift boost. */
+  boostSeconds: pos(),
+});
+
 /** Jump tricks (P13.5): Space in the air spins the car; landing boosts. */
 const TrickSchema = z.strictObject({
   /** The press counts this high in the air (m) or higher. */
@@ -454,6 +460,7 @@ export const TuningSchema = z.strictObject({
   rocket: RocketSchema,
   slipstream: SlipstreamSchema,
   trick: TrickSchema,
+  boostPad: BoostPadSchema,
   solo: SoloSchema,
   race: RaceSchema,
   battle: BattleSchema,

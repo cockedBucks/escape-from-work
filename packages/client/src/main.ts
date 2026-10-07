@@ -905,8 +905,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
         horns.playSound(e.blocked ? ITEM_SOUNDS.blocked : ITEM_SOUNDS.hit, heardFrom(e.car));
         continue;
       }
-      if (e.type === 'boost' || e.type === 'nitro') {
-        horns.playSound(DRIFT_SOUNDS[e.type], heardFrom(e.car));
+      if (e.type === 'boost' || e.type === 'nitro' || e.type === 'boostPad') {
+        horns.playSound(DRIFT_SOUNDS[e.type === 'boostPad' ? 'boost' : e.type], heardFrom(e.car));
         continue;
       }
       if (e.type === 'wallHit') horns.playSound(IMPACT_SOUNDS.wall, heardFrom(e.car), 'sfx', impactLevel(e.speed));

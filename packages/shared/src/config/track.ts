@@ -53,6 +53,15 @@ const SwapZoneSchema = z.strictObject({
   minLap: z.number().int().min(1),
 });
 
+/** A boost pad (P13.6): arrows on the road; driving onto it gives a boost (`boostPad.boostSeconds`). */
+const BoostZoneSchema = z.strictObject({
+  type: z.literal('boost'),
+  from: progress(),
+  to: progress(),
+  /** The half of the road it covers, or all of it: a half pad is a choice of line. */
+  side: z.enum(['left', 'right', 'both']),
+});
+
 const ItemRowZoneSchema = z.strictObject({
   type: z.literal('itemRow'),
   at: progress(),
@@ -64,6 +73,7 @@ const ZoneSchema = z.discriminatedUnion('type', [
   SlickZoneSchema,
   PushZoneSchema,
   SwapZoneSchema,
+  BoostZoneSchema,
   ItemRowZoneSchema,
 ]);
 

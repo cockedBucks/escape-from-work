@@ -121,6 +121,9 @@
     "minHeight": 0.4,
     "boostSeconds": 0.8
   },
+  "boostPad": {
+    "boostSeconds": 1
+  },
   "solo": {
     "speedMultiplier": 1
   },

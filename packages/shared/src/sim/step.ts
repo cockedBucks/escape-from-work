@@ -125,6 +125,13 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     events.push({ type: 'jump', car: car.id });
   }
   car.onRamp = ramp !== undefined;
+  // Boost pad: a boost on entry (on the ground only; flying over it does nothing).
+  const pad = grounded && zones.some((z) => z.type === 'boost');
+  if (pad && !car.onPad) {
+    car.boostTicks = Math.max(car.boostTicks, ticks(cfg.boostPad.boostSeconds, dt));
+    events.push({ type: 'boostPad', car: car.id });
+  }
+  car.onPad = pad;
   // Cooling fans: a sideways shove along the road's right (+) or left (-) while on the ground.
   const push = grounded ? zones.find((z) => z.type === 'push') : undefined;
   if (push) {

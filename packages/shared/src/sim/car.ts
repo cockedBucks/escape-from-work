@@ -19,6 +19,7 @@ export function placeAtGate(state: CarState, track: Track, gate: SectorGate, lat
   state.lastGate = gate.index;
   state.onSlick = false;
   state.onRamp = false;
+  state.onPad = false;
   const loc = locateOnTrack(track, { x: state.x, z: state.z }, gate.sample);
   state.segment = loc.segment;
   state.progress = lapProgress(track, loc.progress);
@@ -46,6 +47,7 @@ export function createCar(id: string, stats: CarStats, track: Track, gateIndex =
     lastGate: 0,
     onSlick: false,
     onRamp: false,
+    onPad: false,
     respawnAtTick: -1,
     ghostUntilTick: 0,
     out: false,

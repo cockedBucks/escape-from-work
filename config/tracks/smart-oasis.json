@@ -33,6 +33,8 @@
     { "type": "ramp", "from": 0.327, "to": 0.334, "launch": 0.55, "look": "dune" },
     { "type": "ramp", "from": 0.349, "to": 0.355, "launch": 0.55, "look": "dune" },
     { "type": "swap", "from": 0.84, "to": 0.905, "side": "right", "minLap": 2 },
+    { "type": "boost", "from": 0.14, "to": 0.1482, "side": "both" },
+    { "type": "boost", "from": 0.245, "to": 0.2532, "side": "left" },
     { "type": "itemRow", "at": 0.082, "count": 4 },
     { "type": "itemRow", "at": 0.517, "count": 4 },
     { "type": "itemRow", "at": 0.823, "count": 4 }

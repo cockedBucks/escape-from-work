@@ -159,6 +159,8 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
   const slicks = new RibbonBuilder();
   const ice = new RibbonBuilder();
   const fans = new RibbonBuilder();
+  const pads = new RibbonBuilder();
+  const padArrows = new RibbonBuilder();
   const swaps = new RibbonBuilder();
   const swapColors = TRACK_LOOK.swapColors.map((c) => new THREE.Color(c));
   for (const zone of track.rangedZones) {
@@ -215,6 +217,29 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
         const y = L.decalLift * 3;
         upQuad(zone.look === 'ice' ? ice : slicks, v3(a.pos, y, a.right, lo(a.width)), v3(a.pos, y, a.right, hi(a.width)),
           v3(b.pos, y, b.right, lo(b.width)), v3(b.pos, y, b.right, hi(b.width)));
+      }
+    } else if (zone.type === 'boost') {
+      // A plate over its part of the road, and arrows ("^") pointing the way to go.
+      const lo = (w: number) => (zone.side === 'right' ? 0 : -w / 2);
+      const hi = (w: number) => (zone.side === 'left' ? 0 : w / 2);
+      const y = L.decalLift * 3;
+      for (let i = i0; i < i1; i++) {
+        const a = sample(i);
+        const b = sample(i + 1);
+        upQuad(pads, v3(a.pos, y, a.right, lo(a.width)), v3(a.pos, y, a.right, hi(a.width)),
+          v3(b.pos, y, b.right, lo(b.width)), v3(b.pos, y, b.right, hi(b.width)));
+      }
+      const ya = L.decalLift * 4;
+      for (let i = i0; i < i1; i += L.padArrowEvery) {
+        const s = sample(i);
+        const pt = (lat: number, along: number): THREE.Vector3 =>
+          new THREE.Vector3(s.pos.x + s.right.x * lat + s.dir.x * along, ya, s.pos.z + s.right.z * lat + s.dir.z * along);
+        const left = lo(s.width) + L.padArrowInset;
+        const right = hi(s.width) - L.padArrowInset;
+        const mid = (left + right) / 2;
+        for (const edge of [left, right]) {
+          upQuad(padArrows, pt(edge, 0), pt(edge, L.padArrowThick), pt(mid, L.padArrowLength), pt(mid, L.padArrowLength + L.padArrowThick));
+        }
       }
     } else if (zone.type === 'push') {
       // Chevrons across the road pointing the way the fan blows.
@@ -296,6 +321,10 @@ export function buildTrackMeshes(track: Track): TrackMeshes {
     add(ice.build(), new THREE.MeshLambertMaterial({
       color: TRACK_LOOK.iceColor, transparent: true, opacity: TRACK_LOOK.iceOpacity, depthWrite: false, ...DECAL,
     }), 'ice');
+  }
+  if (pads.indices.length > 0) {
+    add(pads.build(), new THREE.MeshBasicMaterial({ color: TRACK_LOOK.padColor, side: THREE.DoubleSide, ...DECAL }), 'boostPads');
+    add(padArrows.build(), new THREE.MeshBasicMaterial({ color: TRACK_LOOK.padArrowColor, side: THREE.DoubleSide, ...DECAL }), 'boostPadArrows');
   }
   if (fans.indices.length > 0) {
     add(fans.build(), new THREE.MeshBasicMaterial({ color: TRACK_LOOK.fanChevronColor, side: THREE.DoubleSide, ...DECAL }), 'fanChevrons');

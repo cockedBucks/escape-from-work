@@ -138,6 +138,7 @@ installed types for the API. Anything not on this list → ask the human first.
     { "type": "slick", "from": 0.42, "to": 0.45, "side": "both", "look": "coffee" },
     { "type": "push",  "from": 0.50, "to": 0.55, "toward": "right", "strength": 22 },
     { "type": "swap",  "from": 0.80, "to": 0.86, "side": "right", "minLap": 2 },
+    { "type": "boost", "from": 0.16, "to": 0.169, "side": "both" },
     { "type": "itemRow", "at": 0.20, "count": 4 }
   ],
   "props": [ { "kit": "desk", "x": 12, "z": 30, "rot": 1.57 } ],
@@ -379,6 +380,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | drift ends too easily (too slow) | `drift.exitSpeedRatio` (letting go of Space always ends it) |
 | spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
 | overheating too fast / never (P5) | `heat.nitroRisePerSec` (the main source), `heat.coolOnGasPerSec`, `heat.coolPerSec`; optional gas heat: `heat.risePerSec` (0 = off), `heat.hotSpeedFraction` |
+| boost pads too weak / too strong (P13.6) | `boostPad.boostSeconds`; where they are: `boost` zones in the track files |
 | jump tricks too hard to hit / too strong (P13.5) | `trick.minHeight`, `trick.boostSeconds`; jump height: `car.rampLaunch`, ramp zone `launch` |
 | slipstream too often / never / too strong (P13.4) | `slipstream.range`, `slipstream.width`, `slipstream.maxAngle`, `slipstream.minSpeedRatio`, `slipstream.chargeSeconds`, `slipstream.decayPerSec`, `slipstream.boostSeconds`, `slipstream.cooldownSeconds` |
 | rocket start too easy / too hard / too strong (P13.3) | `rocket.windowSeconds`, `rocket.floodSeconds`, `rocket.boostSeconds`, `rocket.floodStallSeconds`, `rocket.botSkill` |

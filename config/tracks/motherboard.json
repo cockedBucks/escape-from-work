@@ -38,6 +38,8 @@
     { "type": "ramp", "from": 0.259, "to": 0.265, "launch": 0.8, "look": "chip" },
     { "type": "push", "from": 0.332, "to": 0.386, "toward": "right", "strength": 10 },
     { "type": "swap", "from": 0.84, "to": 0.897, "side": "right", "minLap": 2 },
+    { "type": "boost", "from": 0.62, "to": 0.6272, "side": "both" },
+    { "type": "boost", "from": 0.77, "to": 0.7772, "side": "right" },
     { "type": "itemRow", "at": 0.05, "count": 4 },
     { "type": "itemRow", "at": 0.485, "count": 4 },
     { "type": "itemRow", "at": 0.73, "count": 4 }

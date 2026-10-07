@@ -156,6 +156,18 @@
       "to": 0.89,
       "side": "right",
       "minLap": 2
+    },
+    {
+      "type": "boost",
+      "from": 0.16,
+      "to": 0.1688,
+      "side": "both"
+    },
+    {
+      "type": "boost",
+      "from": 0.735,
+      "to": 0.7438,
+      "side": "left"
     }
   ],
   "props": [

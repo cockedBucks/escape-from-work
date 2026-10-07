@@ -62,6 +62,8 @@ export interface CarState {
   onSlick: boolean;
   /** Inside a ramp zone: a ramp launches only on entry, not again while still on it. */
   onRamp: boolean;
+  /** On a boost pad: it boosts on entry (P13.6). */
+  onPad: boolean;
   /** Engine heat 0–1 (1 = stall). */
   heat: number;
   /** Stalled (no gas) until this tick, or -1 when the engine runs. */
@@ -133,6 +135,8 @@ export type SimEvent =
   /** Space in the air: the car does a trick; it lands it = boost (P13.5). */
   | { type: 'trick'; car: string }
   | { type: 'trickLand'; car: string }
+  /** Drove onto a boost pad (P13.6). */
+  | { type: 'boostPad'; car: string }
   /** A slipstream charged up: the car shoots out of the wake (P13.4). */
   | { type: 'slipstream'; car: string }
   /** A drift began (the kart hops into it): `dir` -1 left / +1 right. */

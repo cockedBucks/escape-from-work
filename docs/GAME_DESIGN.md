@@ -110,6 +110,10 @@ Arcade, not simulation. Fast acceleration, strong grip, small slides, big forgiv
   Landing it = a short boost ("NAILED IT!"). One per jump; holding Space from the ground does
   not count (it must be a fresh press in the air). Every track with a jump rewards it.
 
+### Boost pads — P13.6
+- Orange plates with yellow arrows on the straights of every race track: drive onto one = a 1 s
+  boost. Each track has one across the whole road and one on half of it (pick your line).
+
 ### Slipstream (automatic) — P13.4
 - Tuck in close behind a rival at speed (within ~12 m, nearly in line): wind lines appear and a
   charge builds; after 2 s in the wake the car shoots out with a 1 s boost ("WHOOSH!"). Then a
