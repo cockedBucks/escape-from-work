@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { DEFAULT_TRACK, LeagueSchema, MSG, ROOM_NAME } from '@escape/shared';
+import { LeagueSchema, MSG, ROOM_NAME } from '@escape/shared';
 import { startBotCar, type BotCar } from '../../packages/client/src/bot/netBot';
 import { startServer, type GameServer } from '../../packages/server/src/app';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../../packages/server/src/config';
@@ -54,7 +54,7 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
 
   it('every car finishes (or is on its last lap at the window) and the server tick stays fast', async () => {
     const tuning = loadTuningFile();
-    const track = loadTrackFile(DEFAULT_TRACK, tuning); // the track the server races
+    const loadTrack = (id: string) => loadTrackFile(id, tuning);
     const roster = loadCarsFile().cars;
     const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
 
@@ -63,7 +63,7 @@ describe('load: 8 cars, 16 bot clients, 3 laps', () => {
     for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.lobbyError, MSG.raceRecord]) host.onMessage(type, () => {});
     await waitForState(host, (s) => s.host === host!.sessionId, 'watcher is host');
     // Car 1's clients play people (scored); the rest say they are bots (never scored).
-    for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster, markBot: i > 0 }));
+    for (let i = 0; i < CARS; i++) cars.push(await startBotCar({ endpoint, tuning, loadTrack, roster, markBot: i > 0 }));
     await waitForState(host, (s) => s.cars?.size === CARS, `${CARS} cars`);
     expect(host.state.laps).toBe(3);
 

@@ -21,7 +21,8 @@ const { startBotCar } = await load('packages/client/src/bot/netBot.ts');
 
 const readJson = (rel) => JSON.parse(readFileSync(path.join(ROOT, rel), 'utf8'));
 const tuning = shared.parseTuning(readJson('config/tuning.json'));
-const track = shared.buildTrack(shared.parseTrack(readJson(`config/tracks/${shared.DEFAULT_TRACK}.json`), shared.DEFAULT_TRACK), tuning.track);
+/** A track by id: the bots drive whichever track the server races (and follow a switch). */
+const loadTrack = (id) => shared.buildTrack(shared.parseTrack(readJson(`config/tracks/${id}.json`), id), tuning.track);
 const roster = shared.parseCars(readJson('config/cars.json')).cars;
 
 const carCount = Number(arg('cars', '4'));
@@ -43,14 +44,14 @@ if (!Number.isInteger(carCount) || carCount < 1 || !(seconds > 0)) {
 async function run() {
   const cars = [];
   try {
-    for (let i = 0; i < carCount; i++) cars.push(await startBotCar({ endpoint, tuning, track, roster }));
+    for (let i = 0; i < carCount; i++) cars.push(await startBotCar({ endpoint, tuning, loadTrack, roster }));
   } catch (err) {
     console.error(`bots: ${String(err instanceof Error ? err.message : err)} (is the server running at ${url.origin}?)`);
     await Promise.allSettled(cars.map((c) => c.stop()));
     process.exitCode = 1;
     return;
   }
-  console.log(`bots: ${cars.length} cars (${cars.length * 2} clients) driving on ${url.origin} for ${seconds}s…`);
+  console.log(`bots: ${cars.length} cars (${cars.length * 2} clients) driving ${cars[0]?.track()} on ${url.origin} for ${seconds}s…`);
 
   const stop = async () => {
     await Promise.allSettled(cars.map((c) => c.stop()));

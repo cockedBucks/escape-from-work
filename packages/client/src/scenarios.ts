@@ -6,6 +6,8 @@ import {
   newBotMemory,
   step,
   createChaos,
+  insideOtherRoad,
+  locateOnTrack,
   PROP_KITS,
   type PropKit,
   type CarInput,
@@ -156,7 +158,7 @@ export function garageWorld(track: Track): { world: World; camera: { from: [numb
 }
 
 /** Props showroom: one of each office prop in a row beside the start straight (spacing m). */
-const PROP_ROW = { pad: 1.6, side: 14, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2, viewWidthPerMeter: 1.5 };
+const PROP_ROW = { pad: 1.6, side: 14, sideStep: 1, maxSide: 200, camBack: 22, camSide: 0, camHeight: 7, lookHeight: 1.2, viewWidthPerMeter: 1.5 };
 
 /** Half the widest extent of a prop kit piece as drawn (m, `officeScale` included). */
 export function propHalfWidth(kit: PropKit): number {
@@ -181,15 +183,30 @@ export function propsShowroom(track: Track): { track: Track; camera: { from: [nu
   const kits = PROP_KITS.filter((k) => used.size === 0 || used.has(k));
   const halves = kits.map(propHalfWidth);
   const length = halves.reduce((sum, h) => sum + 2 * h + PROP_ROW.pad, -PROP_ROW.pad);
-  let cursor = -length / 2;
-  const props = kits.map((kit, i) => {
-    const along = cursor + halves[i]!;
-    cursor += 2 * halves[i]! + PROP_ROW.pad;
-    return { kit, x: gate.pos.x + f.x * along - r.x * PROP_ROW.side, z: gate.pos.z + f.z * along - r.z * PROP_ROW.side, rot: gate.yaw - Math.PI / 2 };
-  });
-  const mid = { x: gate.pos.x - r.x * PROP_ROW.side, z: gate.pos.z - r.z * PROP_ROW.side };
+  const rowAt = (side: number): { kit: PropKit; x: number; z: number; rot: number }[] => {
+    let cursor = -length / 2;
+    return kits.map((kit, i) => {
+      const along = cursor + halves[i]!;
+      cursor += 2 * halves[i]! + PROP_ROW.pad;
+      return { kit, x: gate.pos.x + f.x * along - r.x * side, z: gate.pos.z + f.z * along - r.z * side, rot: gate.yaw - Math.PI / 2 };
+    });
+  };
+  // Move the row out from the road until no prop (as a square of its drawn half width) touches any road.
+  const offRoad = (x: number, z: number, half: number): boolean =>
+    [-1, 0, 1].every((u) => [-1, 0, 1].every((v) => {
+      const q = { x: x + u * half, z: z + v * half };
+      const loc = locateOnTrack(track, q);
+      return Math.abs(loc.lateral) >= loc.halfWidth && !insideOtherRoad(track, q, loc.road);
+    }));
+  let side = PROP_ROW.side;
+  let props = rowAt(side);
+  while (side < PROP_ROW.maxSide && !props.every((p, i) => offRoad(p.x, p.z, halves[i]!))) {
+    side += PROP_ROW.sideStep;
+    props = rowAt(side);
+  }
+  const mid = { x: gate.pos.x - r.x * side, z: gate.pos.z - r.z * side };
   // Far enough to see the whole row, and in front of the deepest prop (the CPU cooler is huge).
-  const back = Math.max(PROP_ROW.camBack, length / PROP_ROW.viewWidthPerMeter - PROP_ROW.side, Math.max(...halves) + PROP_ROW.camBack / 2);
+  const back = Math.max(PROP_ROW.camBack, length / PROP_ROW.viewWidthPerMeter - side, Math.max(...halves) + PROP_ROW.camBack / 2);
   return {
     track: { ...track, def: { ...track.def, props } },
     camera: {

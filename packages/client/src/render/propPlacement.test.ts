@@ -1,6 +1,7 @@
-import { insideOtherRoad, locateOnTrack, type PropKit } from '@escape/shared';
+import { insideOtherRoad, locateOnTrack, type PropKit, type Track } from '@escape/shared';
 import { describe, expect, it } from 'vitest';
 import { loadTrack, loadTuning, trackIds } from '../content';
+import { propsShowroom } from '../scenarios';
 import { buildProp } from './propKit';
 
 const tuning = loadTuning();
@@ -22,25 +23,33 @@ function footprintOf(kit: PropKit): { hx: number; hz: number; cx: number; cz: nu
   return f;
 }
 
-describe('track props (P10.6)', () => {
-  it.each(trackIds())('%s: no prop stands on a road (drawn size)', (id) => {
-    const track = loadTrack(id, tuning);
-    const onRoad: string[] = [];
-    for (const p of track.def.props) {
-      const f = footprintOf(p.kit);
-      const c = Math.cos(p.rot);
-      const s = Math.sin(p.rot);
-      for (const [u, v] of [[0, 0], [1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
-        const a = f.cx + u * f.hx;
-        const b = f.cz + v * f.hz;
-        const q = { x: p.x + a * c + b * s, z: p.z - a * s + b * c };
-        const loc = locateOnTrack(track, q);
-        if (Math.abs(loc.lateral) < loc.halfWidth - EDGE_SLACK || insideOtherRoad(track, q, loc.road)) {
-          onRoad.push(`${p.kit} at (${p.x}, ${p.z})`);
-          break;
-        }
+/** Props of the track that stand on a road (drawn size), as "kit at (x, z)". */
+function propsOnRoad(track: Track): string[] {
+  const onRoad: string[] = [];
+  for (const p of track.def.props) {
+    const f = footprintOf(p.kit);
+    const c = Math.cos(p.rot);
+    const s = Math.sin(p.rot);
+    for (const [u, v] of [[0, 0], [1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const a = f.cx + u * f.hx;
+      const b = f.cz + v * f.hz;
+      const q = { x: p.x + a * c + b * s, z: p.z - a * s + b * c };
+      const loc = locateOnTrack(track, q);
+      if (Math.abs(loc.lateral) < loc.halfWidth - EDGE_SLACK || insideOtherRoad(track, q, loc.road)) {
+        onRoad.push(`${p.kit} at (${p.x}, ${p.z})`);
+        break;
       }
     }
-    expect(onRoad).toEqual([]);
+  }
+  return onRoad;
+}
+
+describe('track props (P10.6)', () => {
+  it.each(trackIds())('%s: no prop stands on a road (drawn size)', (id) => {
+    expect(propsOnRoad(loadTrack(id, tuning))).toEqual([]);
+  });
+
+  it.each(trackIds())('%s: the props showroom row stays off the roads', (id) => {
+    expect(propsOnRoad(propsShowroom(loadTrack(id, tuning)).track)).toEqual([]);
   });
 });

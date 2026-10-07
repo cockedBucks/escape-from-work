@@ -31,3 +31,6 @@ and a final stability pass.
   1. Host on the office PC with the start script. Get as many people as possible. Race all tracks.
   2. Reply: anything broken, plus the next features you want (see "Later ideas" in the roadmap).
 - [x] **P10.7 Release.** Reviewer, fixes, `git tag v1.0`, final report.
+- [x] **P10.8 Known-issue fixes.** (added after v1.0, 2026-10-07) Networked bot clients drive the
+  track the server races and follow a lobby switch; a busy port prints only the friendly message;
+  the `props` showroom row stays off the roads. Tests.

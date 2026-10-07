@@ -10,6 +10,7 @@ import { lanUrls } from './lan';
 import { dailyBackup } from './league/backup';
 import { localIso } from './league/record';
 import { LEAGUE_FILE } from './league/store';
+import { portFree } from './net/portFree';
 
 const isProd = process.argv.includes('--prod') || process.env['NODE_ENV'] === 'production';
 if (isProd) process.env['NODE_ENV'] = 'production';
@@ -31,6 +32,12 @@ const clientDir = path.join(REPO_ROOT, 'packages', 'client', 'dist');
 
 if (isProd && !existsSync(path.join(clientDir, 'index.html'))) {
   console.error('No built client found (packages/client/dist). Run `npm run build`, or use `npm start`.');
+  process.exit(1);
+}
+
+const BUSY_PORT = `Port ${requestedPort} is busy. Is the game already running? Or change net.port in config/tuning.json.`;
+if (!(await portFree(requestedPort, '0.0.0.0'))) {
+  console.error(BUSY_PORT);
   process.exit(1);
 }
 
@@ -61,7 +68,7 @@ try {
   }));
 } catch (err) {
   if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
-    console.error(`Port ${requestedPort} is busy. Is the game already running? Or change net.port in config/tuning.json.`);
+    console.error(BUSY_PORT); // taken in the moment between the check and the start
     process.exit(1);
   }
   throw err;

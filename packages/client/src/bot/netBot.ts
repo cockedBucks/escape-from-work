@@ -3,6 +3,7 @@
 // Used by `npm run bots` (scripts/bots.mjs) and tests/bot-clients.test.ts. Runs in Node.
 import { Client, type EndpointSettings, type Room } from '@colyseus/sdk';
 import {
+  DEFAULT_TRACK,
   MSG,
   ROOM_NAME,
   botItem,
@@ -36,6 +37,8 @@ interface BotStateView {
   };
   /** Roster car id per slot (the team's pick). */
   carModels?: ArrayLike<string>;
+  /** The track the server races (config/tracks/<id>.json). */
+  track?: string;
 }
 
 /** The stats of the car a slot drives (its pick, else roster car N like the server's default). */
@@ -47,7 +50,11 @@ export function slotStats(roster: readonly CarDef[], carModels: ArrayLike<string
 export interface BotCarOptions {
   endpoint: EndpointSettings;
   tuning: Tuning;
-  track: Track;
+  /**
+   * Loads a track by id (config/tracks/<id>.json). The bots drive the track the server
+   * names in its state, and switch when the host picks another one in the lobby.
+   */
+  loadTrack: (id: string) => Track;
   /** The car roster (config/cars.json): each bot plans with the stats of the car its slot drives. */
   roster: readonly CarDef[];
   /** Car slot to drive; -1 = first empty car. */
@@ -59,6 +66,8 @@ export interface BotCarOptions {
 
 export interface BotCar {
   slot: number;
+  /** The track id the bots are driving right now (the server's). */
+  track: () => string;
   /** Laps completed (start-line crossings after the first). */
   laps: () => number;
   /** Lap times in seconds (client clock). */
@@ -122,7 +131,7 @@ async function takeSeat(room: Room<unknown, BotStateView>, slot: number, seat: '
 
 /** Start one bot car (two clients). Resolves once both bots are seated. */
 export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
-  const { endpoint, tuning, track, roster } = opts;
+  const { endpoint, tuning, roster } = opts;
   const pilot = await new Client(endpoint).join<BotStateView>(ROOM_NAME, { bot: opts.markBot ?? true });
   ignoreBroadcasts(pilot);
   const first = await waitFor(pilot, (s) => s.players !== undefined, CONFIRM_MS);
@@ -145,13 +154,25 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   }
 
   const carId = carIdForSlot(slot);
-  await waitFor(engineer, (s) => s.cars?.get(carId) !== undefined, CONFIRM_MS);
+  const seated = await waitFor(engineer, (s) => s.cars?.get(carId) !== undefined, CONFIRM_MS);
+
+  // The track the server races; reloaded when the host switches tracks (pages reload, bots stay).
+  let trackId = seated.track || DEFAULT_TRACK;
+  let track = opts.loadTrack(trackId);
+  const trackOf = (s: BotStateView): Track => {
+    const id = s.track || DEFAULT_TRACK;
+    if (id !== trackId) {
+      track = opts.loadTrack(id);
+      trackId = id;
+    }
+    return track;
+  };
 
   // Each client plays the seat it has right now: the swap lane trades Pilot and Engineer,
   // and the server ignores controls a seat may not use.
   // Items: the Engineer fires, the Pilot holds Q when the shot should go backward (both halves
   // see the same cars, so they agree).
-  const halfFor = (seat: string | undefined, car: CarState, memory: BotMemory, others: readonly CarState[]): Omit<InputMessage, 'seq'> => {
+  const halfFor = (track: Track, seat: string | undefined, car: CarState, memory: BotMemory, others: readonly CarState[]): Omit<InputMessage, 'seq'> => {
     const item = botItem(car, others, tuning, tuning.bot.skill);
     const route = botRoute(car, track, tuning, tuning.bot.skill);
     return seat === 'engineer'
@@ -159,7 +180,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
       : { steer: botSteer(car, track, tuning, tuning.bot.skill, route), aimBack: item.aimBack };
   };
   /** The other cars, rebuilt from synced state (positions are all the item aim needs). */
-  const othersIn = (s: BotStateView): CarState[] => {
+  const othersIn = (s: BotStateView, track: Track): CarState[] => {
     const out: CarState[] = [];
     s.cars?.forEach((v, id) => {
       if (id !== carId) out.push(carStateFromView(id, v, track, slotStats(roster, s.carModels, Number(id.slice('car'.length)))));
@@ -170,19 +191,26 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   // Pilot half (until a swap): steer toward the look-ahead point on every state update.
   let pilotSeq = 0;
   let pilotHint: number | undefined;
+  let pilotTrack = track;
   const pilotMemory = newBotMemory(tuning.bot.skill);
   pilot.onStateChange((s) => {
     const view = s.cars?.get(carId);
     if (!view) return;
-    const car = carStateFromView(carId, view, track, slotStats(roster, s.carModels, slot), pilotHint);
+    const t = trackOf(s);
+    if (t !== pilotTrack) {
+      pilotTrack = t;
+      pilotHint = undefined; // segment ids belong to the old track
+    }
+    const car = carStateFromView(carId, view, t, slotStats(roster, s.carModels, slot), pilotHint);
     pilotHint = car.segment;
     if (s.phase !== 'racing') resetStuck(pilotMemory);
-    pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s)) });
+    pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(t, s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s, t)) });
   });
 
   // Engineer half: gas/brake for the next corners, respawn when stuck; also counts laps.
   let engSeq = 0;
   let engHint: number | undefined;
+  let engTrack = track;
   const memory = newBotMemory(tuning.bot.skill);
   let lastProgress = -1;
   let wraps = 0;
@@ -191,13 +219,19 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   engineer.onStateChange((s) => {
     const view = s.cars?.get(carId);
     if (!view) return;
-    const car = carStateFromView(carId, view, track, slotStats(roster, s.carModels, slot), engHint);
+    const t = trackOf(s);
+    if (t !== engTrack) {
+      engTrack = t;
+      engHint = undefined;
+      lastProgress = -1; // progress on the old track says nothing about a lap here
+    }
+    const car = carStateFromView(carId, view, t, slotStats(roster, s.carModels, slot), engHint);
     engHint = car.segment;
     // Controls are ignored outside a race (countdown): standing still there is not stuck.
     if (s.phase !== 'racing') resetStuck(memory);
     // Engineer half (until a swap): pedals, heat, drift taps, nitro.
     const seat = s.players?.get(engineer.sessionId)?.seat;
-    engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s)) });
+    engineer.send(MSG.input, { seq: ++engSeq, ...halfFor(t, seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s, t)) });
     if (lastProgress > WRAP && view.progress < 1 - WRAP) {
       wraps++;
       const now = performance.now();
@@ -209,6 +243,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
 
   return {
     slot,
+    track: () => trackId,
     laps: () => Math.max(0, wraps - 1),
     lapTimes: () => [...times],
     stop: async () => {

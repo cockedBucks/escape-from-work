@@ -7,7 +7,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - Phase: ALL PHASES BUILT (P0–P10). v1.0 = commit "P10.7: release" (tag it locally, see below).
 - Next task: run the "Deferred human tests" below with the human (first: merge the cloud branch
   back on the local machine, see "Cloud session").
-- Status: `npm run verify` passes (516 tests + bot race, best lap 35.52 s). Four tracks: The Office (default), Server Room, Smart Oasis,
+- Status: `npm run verify` passes (524 tests + bot race, best lap 35.52 s); `npm run test:load` passes.
+  P10.8 fixed the fixable known issues after v1.0. Four tracks: The Office (default), Server Room, Smart Oasis,
   Motherboard.
 
 ## Half-done
@@ -75,13 +76,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
   launch-party gate.
 - In dev (`npm run dev`), anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite).
   Accepted for playtests; it never exists with `npm start`.
-- A busy port prints Colyseus' own EADDRINUSE stack before our friendly message (exit code 1);
-  cosmetic, left as is.
-- Bots (server bots and `npm run bots`) drive any track, but networked bot clients
-  (`npm run bots`, `soak`, `test:load`) only know The Office: they follow the default track.
-- The sandstorm is drawn only (fog on every screen); bots do not slow down in it.
-- The `props` shots scenario lines up a track's props beside the start straight; on big kits
-  (the CPU cooler) they overhang the road there. It is a debug view only.
+- The sandstorm is drawn only (fog on every screen); bots do not slow down in it (by design, D110).
 
 ## Last sessions
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
@@ -149,6 +144,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
   league backups, `npm run soak` (no leak), final pass (props off roads, one lobby per server,
   README). Launch-party gate deferred. Review fixes D115. Decisions D108–D115. **v1.0.**
   LOCAL: double-click `start-server.bat` once on the Windows host to confirm it.
+- 2026-10-07 (cloud): P10.8 known-issue fixes — network bots follow the server's track, busy port
+  prints only the friendly line, `props` showroom off the roads. D116.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
