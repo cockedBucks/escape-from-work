@@ -78,8 +78,11 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `track-overview` | top-down camera over the whole track, cars on the start line |
 | `shortcut` | fixed camera over the fork where the track's first shortcut leaves the main road, no cars (P7.5) |
 | `league` | the main menu with the League screen open on made-up tables (this week) (P9.4) |
-| `menu` | main menu: turntable showroom (first roster car), PLAY, HONK, loading message; the slideshow shows when `assets/menu/` has images (P8.1) |
-| `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview |
+| `menu` | main menu: turntable showroom (first roster car, with its real-life type), HOST, JOIN, HONK, loading message; the slideshow shows when `assets/menu/` has images (P8.1, P12.1) |
+| `lobby` | lobby with made-up players (you = host, full cars, a solo car, one away) over the track overview: car pictures, seat buttons (P12.3) |
+| `carpick` | the same lobby with your team's garage window open: every car, type, stat bars, Honk (P12.3) |
+| `host` | the main menu with the HOST window open: name, track cards with mini maps, mode, laps, bots, chaos (P12.1) |
+| `join` | the main menu with the JOIN list open on made-up games (P12.1) |
 | `garage` | all roster cars side by side in team colors |
 | `props` | one of every office prop in a row beside the start straight, fixed camera (P7.4) |
 | `lobby` | lobby with fake players in 4 teams |

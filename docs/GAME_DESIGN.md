@@ -217,10 +217,13 @@ Lap target 40–55 s.
 - **Main menu**: cars spinning on a turntable, wobbly buttons, a big HONK button, fake IT
   loading messages ("Waiting for IT to approve your ticket…", "Rebooting the coffee
   machine…"), and company images from `assets/menu/` in a slideshow.
-- **Lobby**: name, team list with colors, a car picker per team (either player of the car can
-  change it; two teams may pick the same car), seat picker (Pilot / Engineer), solo indicator,
-  Shuffle (host), bots toggle, chaos toggle, track and laps (host), Ready, Start (host).
-  A short "how to play" card for each role.
+- **Lobby**: name, team cards in team colors, each with a picture of its car (in the team's
+  color), the car's name and real-life type; either player of the car flips it with ◀ ▶ or
+  opens the **garage** (every car with its type, speed / grip / weight bars and a Honk button;
+  two teams may pick the same car). Big seat buttons: 🕹️ Pilot and 🔧 Engineer side by side
+  with what each does and who sits there (face + name, or "Sit here"), and "or drive Solo"
+  under them. Shuffle (host), bots toggle, chaos toggle, track and laps (host), Ready, Start
+  (host). A short "how to play" card for each role (hidden on short screens).
 - **HUD**: chase cam uses a DOM HUD; cockpit cam puts speed, heat, nitro, item and lap/place
   on the dashboard, plus a small rear-view mirror.
 - **Results**: podium with bobbleheads, times, awards, points, Rematch / Lobby.

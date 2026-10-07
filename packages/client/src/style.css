@@ -2493,3 +2493,473 @@ body {
   width: 100%;
   margin-top: 0.4rem;
 }
+
+/* P12.3: team cards with their car's picture, big seat buttons, and the garage window. */
+.lobby .join-cards {
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+}
+
+.join-card-head {
+  justify-content: flex-start;
+}
+
+.car-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--team);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.car-show {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.car-pic-box {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 4.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0.7rem;
+  background: radial-gradient(ellipse at 50% 85%, color-mix(in srgb, var(--team) 28%, #fff) 0%, #f1f2f6 72%);
+  overflow: hidden;
+  font: inherit;
+}
+
+button.car-pic-box {
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+button.car-pic-box:hover {
+  transform: scale(1.04) rotate(-1deg);
+}
+
+.car-pic {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Inside the picture box the car sits above its name plate; the wide box crops the
+   picture's empty floor and sky so the car shows big. */
+.car-pic-box .car-pic {
+  height: calc(100% - 1.1rem);
+  align-self: flex-start;
+  object-fit: cover;
+  object-position: 50% 40%;
+}
+
+.garage-tag {
+  position: absolute;
+  top: 0.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.05rem 0.45rem;
+  border-radius: 0.5rem;
+  background: var(--ui-dark);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ◀ ▶ sit on the picture's edges (the car is in the middle). */
+.car-flip {
+  position: absolute;
+  top: 0.9rem;
+  z-index: 1;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 2px solid var(--ui-dark);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ui-dark);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.car-flip:first-child {
+  left: 0.3rem;
+}
+
+.car-flip:last-child {
+  right: 0.3rem;
+}
+
+.car-flip:hover {
+  background: var(--team);
+  color: #fff;
+}
+
+.car-label {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.05rem 0.4rem 0.1rem;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--ui-dark);
+  font-size: 0.9rem;
+  line-height: 1.15;
+}
+
+.car-label strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.car-type {
+  color: var(--road);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Short screens (1280×720, 1366×768): the how-to cards go (the countdown's role card and "?"
+   show the keys); the seat buttons still say what each role does. */
+@media (max-height: 820px) {
+  .lobby .howto {
+    display: none;
+  }
+
+  .lobby .join-panel h2 {
+    margin-bottom: 0.2rem;
+  }
+}
+
+/* Very short (1280×720): the seats lose their job line too. */
+@media (max-height: 760px) {
+  .lobby .join-card .seat-job {
+    display: none;
+  }
+}
+
+/* The two real seats side by side (left seat Pilot, right seat Engineer), Solo as one line under. */
+.seat-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.lobby .join-card .seat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'icon role' 'job job' 'who who';
+  align-items: center;
+  column-gap: 0.3rem;
+  min-width: 0;
+  padding: 0.22rem 0.45rem;
+  border: 2px solid transparent;
+  line-height: 1.2;
+  text-align: start;
+}
+
+.seat-icon {
+  grid-area: icon;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.seat-role {
+  grid-area: role;
+  font-weight: 700;
+}
+
+/* Role colors as on the role badge: the Pilot is blue, the Engineer yellow. */
+.seat-pilot .seat-role {
+  text-decoration: underline 3px #8fd3ff;
+}
+
+.seat-engineer .seat-role {
+  text-decoration: underline 3px #ffd166;
+}
+
+.seat-job {
+  grid-area: job;
+  overflow: hidden;
+  color: var(--road);
+  font-size: 0.7rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.join-card .seat-who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.seat-face {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: cover;
+  font-size: 0.95rem;
+}
+
+.seat-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seat-free {
+  color: var(--team);
+  font-weight: 700;
+}
+
+.lobby .join-card .seat.open {
+  border: 2px dashed var(--team);
+  background: #fff;
+}
+
+.lobby .join-card .seat.open:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--team) 14%, #fff);
+}
+
+.join-card .seat.mine .seat-job {
+  color: #fff;
+}
+
+.lobby .join-card .seat-solo {
+  grid-template-columns: auto auto 1fr;
+  grid-template-areas: 'icon role who';
+  padding: 0.15rem 0.45rem;
+  font-size: 0.9rem;
+}
+
+.join-card .seat-solo .seat-job,
+.join-card .seat-solo.open .seat-who {
+  display: none;
+}
+
+.join-card .seat-solo .seat-role {
+  font-weight: 600;
+}
+
+.join-card .seat-solo .seat-icon {
+  font-size: 0.9rem;
+}
+
+.join-card .seat-solo .seat-who {
+  justify-content: flex-end;
+}
+
+/* The garage window over the lobby: every car, its stats and horn; click one to drive it. */
+.garage {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(30, 34, 48, 0.6);
+  animation: fade-in 0.2s ease-out;
+}
+
+.garage-panel {
+  width: min(60rem, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 0.9rem 1.1rem 1.1rem;
+  border: 0.2rem solid var(--ui-dark);
+  border-top: 0.6rem solid var(--team);
+  border-radius: 1.25rem;
+  background: var(--sand);
+  box-shadow: var(--pop-big);
+  animation: panel-in 0.3s var(--ease-pop);
+}
+
+.garage-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.garage-head h3 {
+  margin: 0;
+  color: var(--ui-dark);
+  font-size: 1.7rem;
+  transform: rotate(-1.5deg);
+}
+
+.garage-for {
+  flex: 1;
+  color: var(--road);
+  font-size: 1.1rem;
+}
+
+.garage-close {
+  width: 2.3rem;
+  height: 2.3rem;
+  border: var(--edge);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--pop);
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.garage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.7rem;
+}
+
+.garage-car {
+  display: flex;
+  flex-direction: column;
+  border: 3px solid var(--ui-dark);
+  border-radius: 1rem;
+  background: #fff;
+  overflow: hidden;
+  transition: transform 0.12s;
+}
+
+.garage-car:hover {
+  transform: translateY(-0.2rem) rotate(-0.8deg);
+}
+
+.garage-car.current {
+  border-color: var(--team);
+  box-shadow: 0 0 0 3px var(--team);
+}
+
+.garage-pick {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+  padding: 0 0.6rem 0.4rem;
+  border: 0;
+  background: none;
+  color: var(--ui-dark);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.garage-pick .car-pic {
+  height: 6.6rem;
+  margin: 0 -0.6rem 0.1rem;
+  width: calc(100% + 1.2rem);
+  background: radial-gradient(ellipse at 50% 85%, color-mix(in srgb, var(--team) 28%, #fff) 0%, #f1f2f6 72%);
+}
+
+.garage-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.stat {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.stat-name {
+  color: var(--road);
+}
+
+.stat-bar {
+  height: 0.55rem;
+  border-radius: 0.3rem;
+  background: #e3e6ec;
+  overflow: hidden;
+}
+
+.stat-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 0.3rem;
+  background: var(--team);
+}
+
+.garage-yours {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.5rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 0.6rem;
+  background: var(--team);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.garage-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-top: 2px dashed #e3e6ec;
+}
+
+.garage-honk {
+  padding: 0.15rem 0.6rem;
+  border: 2px solid var(--ui-dark);
+  border-radius: 0.6rem;
+  background: #ffd23f;
+  color: var(--ui-dark);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.garage-honk:active {
+  transform: scale(0.94);
+}
+
+.garage-others {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.garage-dot {
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--team);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { lobbyHtml, trackHtml, type LobbyView } from './lobbyScreen';
+import { garageHtml, lobbyHtml, trackHtml, type LobbyCar, type LobbyView } from './lobbyScreen';
+
+const car = (id: string, name: string, body: LobbyCar['look']['body'], speed = 1, grip = 1, weight = 1): LobbyCar => ({
+  id, name, stats: { speed, grip, weight }, look: { body, wheelScale: 1, parts: [] },
+});
+const roster = [car('spoiler-alert', 'Spoiler Alert', 'hatchback', 1.08, 0.92, 1), car('cabbie', 'Cabbie', 'sedan')];
 
 const limits = { maxCars: 4, minLaps: 1, maxLaps: 10 };
 const base = (over: Partial<LobbyView> = {}): LobbyView => ({
@@ -19,13 +24,28 @@ const base = (over: Partial<LobbyView> = {}): LobbyView => ({
 });
 
 describe('lobbyHtml', () => {
-  it("shows each team's car; only its own players get the ◀ ▶ picker", () => {
-    const roster = [{ id: 'spoiler-alert', name: 'Spoiler Alert' }, { id: 'cabbie', name: 'Cabbie' }];
+  it("shows each team's car picture, name and real-life type; only its own players get ◀ ▶ and the garage", () => {
     const html = lobbyHtml(base({ carModels: ['cabbie', 'spoiler-alert'], roster }), limits);
     expect(html).toContain('data-action="car-next" data-slot="0"');
+    expect(html).toContain('data-action="garage" data-slot="0"');
     expect(html).not.toContain('data-action="car-next" data-slot="1"');
-    expect(html).toContain('<span>Cabbie</span>');
-    expect(html).toContain('<span>Spoiler Alert</span>');
+    expect(html).not.toContain('data-action="garage" data-slot="1"');
+    expect(html).toContain('<img class="car-pic" data-pic="cabbie|0"');
+    expect(html).toContain('<img class="car-pic" data-pic="spoiler-alert|1"');
+    expect(html).toContain('<strong>Cabbie</strong><span class="car-type">Sedan</span>');
+    expect(html).toContain('<strong>Spoiler Alert</strong><span class="car-type">Hatchback</span>');
+    // No picking once the race is on.
+    expect(lobbyHtml(base({ carModels: ['cabbie'], roster, phase: 'countdown' }), limits)).not.toContain('data-action="garage"');
+  });
+
+  it('seats are big buttons with an icon, the role, its job, and who sits there (face) or "Sit here"', () => {
+    const html = lobbyHtml(base({ players: [{ id: 'me', name: 'Me', slot: 0, seat: 'pilot', connected: true, ready: false, face: 'dina.png' }] }), limits);
+    expect(html).toMatch(/class="seat seat-pilot mine" data-slot="0" data-seat="pilot" >.*🕹️.*Pilot.*steers.*src="\/faces\/dina.png".*Me/);
+    expect(html).toMatch(/class="seat seat-engineer open" data-slot="0" data-seat="engineer" >.*🔧.*Engineer.*gas · brake · nitro · items.*Sit here/);
+    // Solo is blocked for a car with someone else in it; a free car offers "or drive Solo".
+    expect(html).toMatch(/class="seat seat-solo open" data-slot="1" data-seat="solo" >.*or drive Solo/);
+    const watcher = lobbyHtml(base({ myId: 'x' }), limits);
+    expect(watcher).toMatch(/class="seat seat-solo" data-slot="0" data-seat="solo" disabled/);
   });
 
   it('the host can switch chaos mode (on by default)', () => {
@@ -78,7 +98,7 @@ describe('lobbyHtml', () => {
 describe('lobbyHtml bots', () => {
   it('shows bot cars as "🤖 bot" and lets you take them over', () => {
     const html = lobbyHtml(base({ botSlots: [2] }), limits);
-    expect(html).toMatch(/data-slot="2" data-seat="pilot" >\s*<span class="seat-role">Pilot<\/span><span class="seat-who">🤖 bot/);
+    expect(html).toMatch(/data-slot="2" data-seat="pilot" >.*<span class="seat-who">🤖 bot<\/span>/);
   });
 });
 
@@ -129,5 +149,38 @@ describe('lobby battle switch (P11.6)', () => {
     const guest = lobbyHtml(base({ mode: 'battle', host: 'b' }), limits);
     expect(guest).toContain('Battle · waiting for');
     expect(guest).not.toContain('data-action="mode"');
+  });
+});
+
+describe('garage window (P12.3)', () => {
+  const v = base({ carModels: ['spoiler-alert', 'spoiler-alert', 'cabbie'], roster, statRange: { min: 0.92, max: 1.08 } });
+
+  it('shows every roster car in your team color with type, stats and a horn; yours is marked', () => {
+    const html = garageHtml(v, 0, limits.maxCars);
+    expect(html).toContain('class="garage"');
+    expect(html).toContain('Pick a car for Ctrl Freaks');
+    for (const c of roster) {
+      expect(html).toContain(`data-action="pick-car" data-slot="0" data-car="${c.id}"`);
+      expect(html).toContain(`data-pic="${c.id}|0"`);
+      expect(html).toContain(`data-action="honk" data-car="${c.id}"`);
+    }
+    expect(html).toMatch(/class="garage-car current"><button class="garage-pick" data-action="pick-car" data-slot="0" data-car="spoiler-alert"/);
+    expect(html).toContain('✓ Your car');
+    expect(html.match(/✓ Your car/g)).toHaveLength(1);
+  });
+
+  it('stat bars scale over the balance range (lowest still shows a bar)', () => {
+    const html = garageHtml(v, 0, limits.maxCars);
+    // Spoiler Alert: speed at the top of the range, grip at the bottom; Cabbie in the middle.
+    expect(html).toMatch(/Speed<\/span><span class="stat-bar"><i style="width:100%">/);
+    expect(html).toMatch(/Grip<\/span><span class="stat-bar"><i style="width:18%">/);
+    expect(html).toMatch(/Weight<\/span><span class="stat-bar"><i style="width:59%">/);
+  });
+
+  it('shows which other teams drive each car, and escapes names', () => {
+    const html = garageHtml(base({ ...v, teams: ['<b>T</b>'] }), 0, limits.maxCars);
+    expect(html).toContain('class="garage-dot" style="--team:#1d7fe0">2</span>');
+    expect(html).not.toContain('<b>T</b>');
+    expect(html).toContain('&lt;b&gt;T&lt;/b&gt;');
   });
 });

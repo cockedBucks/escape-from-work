@@ -6,8 +6,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Now
 - Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
   the human's request of 2026-10-07 (cloud).
-- Next task: P12.3 Visual garage and seats
-- Status: P12.2 done: eight real-life car types (unbranded). `npm run verify` passes.
+- Next task: P12.4 Review and ship
+- Status: P12.3 done: car pictures, garage window, big seat buttons. `npm run verify` passes.
 
 ## Half-done
 - (none)
@@ -173,6 +173,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-07 (cloud): P12.2 Real-life cars — eight unbranded real-life types (hatchback, taxi sedan,
   pickup, muscle car, SUV, city car, sports car, van) from side outlines with wheel arches, windows,
   lights, plates, rims; type shown under the pun name. D126.
+- 2026-10-07 (cloud): P12.3 Visual garage and seats — rendered car pictures in team colors on the
+  lobby cards, a garage window (types, stat bars, Honk), big Pilot / Engineer / Solo buttons with
+  faces; checked in a real browser. D127.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

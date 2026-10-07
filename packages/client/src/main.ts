@@ -39,6 +39,7 @@ import { pickQuality } from './render/renderer';
 import { frozenBotRace, frozenItems, frozenSource, garageWorld, isRaceScenario, photoFinishClip, propsShowroom, shortcutCamera, type RaceScenario } from './scenarios';
 import { focusPose, installHooks, liveStats, markReady, type GameHooks } from './test-hooks';
 import { LobbyScreen, type LobbyHandlers, type LobbyPlayer } from './ui/lobbyScreen';
+import { CarPictures } from './render/carPicture';
 import { GaugePanel, type GaugeValues } from './ui/gauges';
 import type { ItemsView, ShotSnap } from './render/itemProps';
 import { ItemEffectsOverlay } from './ui/itemEffects';
@@ -262,8 +263,8 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   await markReady(hooks);
 }
 
-/** Lobby with made-up players over the track (scenario `lobby`, for screenshots). */
-async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void> {
+/** Lobby with made-up players over the track (scenario `lobby`; `carpick` opens your garage), for screenshots. */
+async function showLobbyScenario(hooks: GameHooks, tuning: Tuning, garage = false): Promise<void> {
   const r = tuning.race;
   await showScenario(hooks, tuning, 'track-overview', () => {
     const noop = (): void => {};
@@ -271,14 +272,20 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
       setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
       start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop, setTrack: noop, setMode: noop, leaveGame: noop,
     };
-    const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
+    const cars = loadCars();
+    const pictures = new CarPictures(cars.cars);
+    const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers, (car, slot) => pictures.url(car, slot));
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
-    const roster = loadCars().cars;
+    const roster = cars.cars;
+    // Car 7 also drives the Hatchback, so the garage shows its dot.
+    const carModels = roster.map((d) => d.id);
+    carModels[6] = roster[0]!.id;
     lobby.update({
       players: fakePlayers, myId: 'me', host: 'me', phase: 'lobby', laps: r.defaultLaps, teams, bots: true, botSlots: [4],
-      carModels: roster.map((d) => d.id), roster: roster.map((d) => ({ id: d.id, name: d.name })),
+      carModels, roster, statRange: cars.statRange,
       track: DEFAULT_TRACK, tracks: pickableTracks(),
     });
+    if (garage) lobby.openMyGarage();
   });
 }
 
@@ -376,6 +383,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
   // seat buttons down under the player's mouse.
   const faces = await fetchFaces();
   const race = latestTuning.race;
+  const cars = loadCars();
+  const pictures = new CarPictures(cars.cars);
   const join = new LobbyScreen(container, { maxCars: race.maxCars, minLaps: race.minLaps, maxLaps: race.maxLaps }, {
     setName: (name) => room.send(MSG.setName, { name }),
     setSeat: (slot, seat) => room.send(MSG.setSeat, { slot, seat }),
@@ -392,7 +401,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
     setBots: (on) => room.send(MSG.hostBots, { on }),
     setChaos: (on) => room.send(MSG.hostChaos, { on }),
     setCar: (slot, car) => room.send(MSG.setCar, { slot, car }),
-  });
+    honk: (car) => {
+      const def = cars.cars.find((d) => d.id === car);
+      if (def) horns.play(def.horn, 0);
+    },
+  }, (car, slot) => pictures.url(car, slot));
   room.onMessage(MSG.lobbyError, (e: LobbyError) => {
     join.show(true);
     join.showError(e.reason);
@@ -527,8 +540,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
   /** The countdown text last shown (beeps when it changes). */
   let lastCountdown: string | null = null;
   // The car each slot drives (synced), and lookups by car id ("car3" → slot 3).
-  const roster = loadCars().cars;
-  const rosterNames = roster.map((d) => ({ id: d.id, name: d.name }));
+  const roster = cars.cars;
   let carModels: string[] = [];
   /** The car you drive (stats and engine voice are set when it changes). */
   let myCarDef: CarDef | null = null;
@@ -729,7 +741,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
       bots: state.bots,
       chaos: state.chaos,
       carModels,
-      roster: rosterNames,
+      roster,
+      statRange: cars.statRange,
       botSlots: botSlotsOf(state),
       faces,
       track: state.track,
@@ -904,6 +917,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
     window.clearInterval(pingTimer);
     keyboard?.dispose();
     join.dispose();
+    pictures.dispose();
     badge.dispose();
     hud.dispose();
     gaugePanel.dispose();
@@ -1028,8 +1042,8 @@ if (hooks.error !== null) {
       ? showHello(hooks, tuning)
       : hooks.scenario === 'menu' || hooks.scenario === 'league' || hooks.scenario === 'host' || hooks.scenario === 'join'
         ? showMenuScenario(hooks, tuning, hooks.scenario)
-      : hooks.scenario === 'lobby'
-        ? showLobbyScenario(hooks, tuning)
+      : hooks.scenario === 'lobby' || hooks.scenario === 'carpick'
+        ? showLobbyScenario(hooks, tuning, hooks.scenario === 'carpick')
       : hooks.scenario === 'pad'
         ? showPadScenario(hooks)
         : hooks.scenario === 'results'

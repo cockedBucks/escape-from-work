@@ -490,6 +490,19 @@ export const CAR_BODIES: Readonly<Record<BodyPreset, CarBodyLook>> = {
   },
 };
 
+/** Car pictures for the lobby and the garage (P12.3): rendered once per car and team color. */
+export const CAR_PICTURE = {
+  /** Image size (px; drawn at about half that on screen, so it stays sharp on HiDPI). */
+  width: 480,
+  height: 270,
+  fov: 30,
+  /** Every car is shot from the same spot, so their sizes compare (the van is big). */
+  camera: [0, 3.1, 10.2] as const,
+  target: [0, 0.85, 0] as const,
+  /** The car turns this much to show its front three-quarter (rad). */
+  yaw: -0.62,
+} as const;
+
 /** Car kit look rules: shared sizes and the trim/part colors (team paint comes from the slot). */
 export const CAR_KIT = {
   /** Wheels: a bit bigger than real (about 1.15×) so they read from the chase cam. */
