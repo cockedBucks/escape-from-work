@@ -17,7 +17,10 @@ export const cycleIndex = (now: number, periodMs: number, count: number): number
 export const captionOf = (file: string): string => file.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
 
 export interface MainMenuHandlers {
-  onPlay(): void;
+  /** Host a game (P12.1). */
+  onHost(): void;
+  /** See the games and join one (P12.1). */
+  onJoin(): void;
   onHonk(): void;
   onSettings(): void;
   onKeys(): void;
@@ -47,12 +50,19 @@ export class MainMenu {
     title.className = 'menu-title';
     title.innerHTML = 'Escape<br /><span>from Work</span>';
     this.loading.className = 'menu-loading';
-    const play = document.createElement('button');
-    play.type = 'button';
-    play.className = 'menu-play wobbly';
-    play.dataset.action = 'play';
-    play.textContent = t('menu.play');
-    play.addEventListener('click', () => handlers.onPlay());
+    // HOST makes a game with your settings, JOIN lists the games to jump into (P12.1).
+    const bigButton = (action: string, text: string, extra: string, onClick: () => void): HTMLButtonElement => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = `menu-play wobbly ${extra}`;
+      b.dataset.action = action;
+      b.textContent = text;
+      b.addEventListener('click', onClick);
+      return b;
+    };
+    const main = document.createElement('div');
+    main.className = 'menu-main';
+    main.append(bigButton('host', t('menu.host'), 'menu-host', () => handlers.onHost()), bigButton('join', t('menu.join'), 'menu-join', () => handlers.onJoin()));
     this.honk.type = 'button';
     this.honk.className = 'menu-honk wobbly';
     this.honk.dataset.action = 'honk';
@@ -65,7 +75,7 @@ export class MainMenu {
     });
     const buttons = document.createElement('div');
     buttons.className = 'menu-buttons';
-    buttons.append(play, this.honk);
+    buttons.append(main, this.honk);
     const small = document.createElement('div');
     small.className = 'menu-small';
     const smallButton = (action: string, text: string, onClick: () => void): HTMLButtonElement => {

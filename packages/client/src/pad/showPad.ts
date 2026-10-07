@@ -2,7 +2,8 @@
 // touch screen). Joins the race room like a laptop (your seat is held over a reload), sends the
 // same input messages, and buzzes the phone when your car is hit. No 3D.
 import { MSG, carIdForSlot, type LobbyError, type SimEvent, type Tuning } from '@escape/shared';
-import { botSlotsOf, joinOrReconnect } from '../net/connection';
+import type { Room } from '@colyseus/sdk';
+import { botSlotsOf, leaveGame, type RaceStateView } from '../net/connection';
 import { hudText } from '../ui/raceHud';
 import { savedName } from '../ui/lobbyScreen';
 import { PadControls } from './padControls';
@@ -22,8 +23,7 @@ const buzz = (pattern: number | readonly number[]): void => {
   }
 };
 
-export async function showPad(container: HTMLElement, tuning: Tuning): Promise<void> {
-  const room = await joinOrReconnect(tuning);
+export async function showPad(container: HTMLElement, tuning: Tuning, room: Room<unknown, RaceStateView>): Promise<void> {
   for (const type of [MSG.tuning, MSG.reload, MSG.raceRecord]) room.onMessage(type, () => {});
   const controls = new PadControls((msg) => room.send(MSG.input, msg), tuning.net.inputResendMs);
   const name = savedName() ?? '';
@@ -33,6 +33,8 @@ export async function showPad(container: HTMLElement, tuning: Tuning): Promise<v
     setSeat: (slot, seat) => room.send(MSG.setSeat, { slot, seat }),
     setReady: (ready) => room.send(MSG.ready, { ready }),
     start: () => room.send(MSG.hostStart, {}),
+    // Back to the list of games (P12.1).
+    leave: () => void leaveGame(room).then(() => window.location.reload()),
   }, name);
   room.onMessage(MSG.lobbyError, (e: LobbyError) => screen.showError(e.reason));
   // Wi-Fi blip: the SDK reconnects while the server holds the seat; say so, and let go of the gas.

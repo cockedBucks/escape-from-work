@@ -42,6 +42,8 @@ export interface PadHandlers {
   setReady(ready: boolean): void;
   /** Host only: start (or rematch). */
   start(): void;
+  /** Leave this game (back to the list of games). */
+  leave(): void;
 }
 
 const hex = (c: number): string => `#${c.toString(16).padStart(6, '0')}`;
@@ -184,6 +186,7 @@ export class PadScreen {
       out.push(`<button data-action="seats">${this.wantSeats ? t('pad.backToPad') : t('pad.changeSeat')}</button>`);
     }
     if (v.host === v.myId) out.push(`<button data-action="start" class="start">${v.phase === 'results' ? t('lobby.rematch') : t('lobby.start')}</button>`);
+    out.push(`<button data-action="leave">${t('lobby.leaveGame')}</button>`);
     return out.join('');
   }
 
@@ -241,6 +244,7 @@ export class PadScreen {
     if (!v) return;
     if (action === 'ready') this.h.setReady(!(v.players.find((p) => p.id === v.myId)?.ready ?? false));
     else if (action === 'start') this.h.start();
+    else if (action === 'leave') this.h.leave();
     else if (action === 'seats') {
       this.wantSeats = !this.wantSeats;
       this.update(v);

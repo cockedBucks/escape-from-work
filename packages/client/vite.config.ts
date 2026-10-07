@@ -19,6 +19,8 @@ export default defineConfig({
       '/menu': `http://localhost:${tuning.net.port}`,
       // League tables (the host PC's data/league.json).
       '/league': `http://localhost:${tuning.net.port}`,
+      // The games to join (P12.1).
+      '/games.json': `http://localhost:${tuning.net.port}`,
     },
   },
   preview: { host: true },

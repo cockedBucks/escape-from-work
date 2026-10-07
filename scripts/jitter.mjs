@@ -27,9 +27,8 @@ try {
   for (let i = 0; i < 60; i++) { try { if ((await fetch(`http://localhost:${PORT}/`)).ok) break; } catch {} await sleep(500); }
   ({ browser } = await launchBrowser());
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-  await page.goto(`http://localhost:${PORT}/`);
-  // Main menu first (P8.1): PLAY joins the lobby.
-  await page.click('button[data-action="play"]', { delay: 50, timeout: 20000, force: true }); // it wobbles
+  // `?play` joins the server's always-open game without the menu (P12.1).
+  await page.goto(`http://localhost:${PORT}/?play`);
   await page.waitForSelector('button.seat[data-slot="0"][data-seat="solo"]', { timeout: 20000 });
   await page.click('button.seat[data-slot="0"][data-seat="solo"]', { delay: 50 });
   await sleep(500);

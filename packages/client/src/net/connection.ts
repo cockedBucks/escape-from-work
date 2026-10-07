@@ -1,5 +1,5 @@
 import { Client, type EndpointSettings, type Room } from '@colyseus/sdk';
-import { ROOM_NAME, type RacePhase, type Tuning } from '@escape/shared';
+import { ROOM_NAME, type CreateGame, type GameListing, type RacePhase, type Tuning } from '@escape/shared';
 import type { CarSource } from '../game';
 import { ServerTimeline } from './latency';
 import { SnapshotBuffer, type CarSnap } from './snapshots';
@@ -90,6 +90,8 @@ export interface RaceStateView {
   chaos: boolean;
   /** 'race' or 'battle' (P11.6). */
   mode: string;
+  /** The game's name ('' = the server's always-open game), P12.1. */
+  game: string;
   boxesUp: string;
   shots: { forEach(cb: (s: { kind: string; x: number; z: number; vx: number; vz: number }, id: string) => void): void };
 }
@@ -119,9 +121,70 @@ export function serverEndpoint(loc: PageLocation, dev: boolean, gamePort: number
   return { hostname: loc.hostname, secure, port: dev ? gamePort : pagePort };
 }
 
+const gameServer = (tuning: Tuning): EndpointSettings => serverEndpoint(window.location, import.meta.env.DEV, tuning.net.port);
+
+/** Any game (the `hello` page only counts players). */
 export function joinRace(tuning: Tuning): Promise<Room<unknown, RaceStateView>> {
-  const endpoint = serverEndpoint(window.location, import.meta.env.DEV, tuning.net.port);
-  return new Client(endpoint).join<RaceStateView>(ROOM_NAME);
+  return new Client(gameServer(tuning)).join<RaceStateView>(ROOM_NAME);
+}
+
+/** The games on the server to join (P12.1); null when the server cannot be reached. */
+export async function fetchGames(): Promise<GameListing[] | null> {
+  try {
+    const res = await fetch('/games.json', { cache: 'no-store' });
+    return res.ok ? ((await res.json()) as { games: GameListing[] }).games : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Host a new game with these settings; you are its first player (and so its host). */
+export async function hostGame(tuning: Tuning, settings: CreateGame): Promise<Room<unknown, RaceStateView>> {
+  return remember(await new Client(gameServer(tuning)).create<RaceStateView>(ROOM_NAME, settings));
+}
+
+/** Join the game with this id (from `fetchGames`). */
+export async function joinGame(tuning: Tuning, id: string): Promise<Room<unknown, RaceStateView>> {
+  return remember(await new Client(gameServer(tuning)).joinById<RaceStateView>(id));
+}
+
+/** The server's always-open game (`?play`, tools): straight in, no menu. */
+export async function joinDefaultGame(tuning: Tuning): Promise<Room<unknown, RaceStateView>> {
+  const id = (await fetchGames())?.find((g) => g.isDefault)?.id;
+  return id ? joinGame(tuning, id) : remember(await new Client(gameServer(tuning)).join<RaceStateView>(ROOM_NAME));
+}
+
+/**
+ * Take back your seat: if this browser left a game a moment ago (tab closed or reloaded),
+ * reconnect with the saved token so the server restores the seat. Null when there is none.
+ */
+export async function reconnectSaved(tuning: Tuning): Promise<Room<unknown, RaceStateView> | null> {
+  const token = usableSession(readSession(), Date.now(), tuning.net.reconnectSeconds);
+  if (!token) return null;
+  try {
+    return remember(await new Client(gameServer(tuning)).reconnect<RaceStateView>(token));
+  } catch {
+    clearSession();
+    return null; // seat no longer held (or still in use by another tab)
+  }
+}
+
+/** Leaving on purpose (Leave game): free the seat at once and do not come back on reload. */
+export async function leaveGame(room: Room<unknown, RaceStateView>): Promise<void> {
+  leaving = true;
+  clearSession();
+  await room.leave(true).catch(() => {});
+}
+
+/** Set by `leaveGame`: the page going away must not save the seat to come back to. */
+let leaving = false;
+
+/** Remember the room's latest token when the page goes away, with the time it left. */
+function remember(room: Room<unknown, RaceStateView>): Room<unknown, RaceStateView> {
+  window.addEventListener('pagehide', () => {
+    if (!leaving) writeSession(room.reconnectionToken);
+  });
+  return room;
 }
 
 const SESSION_KEY = 'efw.session';
@@ -151,6 +214,14 @@ function readSession(): SavedSession | null {
   }
 }
 
+function clearSession(): void {
+  try {
+    window.localStorage.removeItem(SESSION_KEY);
+  } catch {
+    // nothing saved
+  }
+}
+
 function writeSession(token: string): void {
   try {
     window.localStorage.setItem(SESSION_KEY, JSON.stringify({ token, leftAt: Date.now() } satisfies SavedSession));
@@ -159,27 +230,6 @@ function writeSession(token: string): void {
   }
 }
 
-/**
- * Join the race, or take back your seat: if this browser left the race a moment ago (tab
- * closed or reloaded), reconnect with the saved token so the server restores your seat.
- */
-export async function joinOrReconnect(tuning: Tuning): Promise<Room<unknown, RaceStateView>> {
-  const endpoint = serverEndpoint(window.location, import.meta.env.DEV, tuning.net.port);
-  const token = usableSession(readSession(), Date.now(), tuning.net.reconnectSeconds);
-  let room: Room<unknown, RaceStateView> | null = null;
-  if (token) {
-    try {
-      room = await new Client(endpoint).reconnect<RaceStateView>(token);
-    } catch {
-      room = null; // seat no longer held (or still in use by another tab): join fresh
-    }
-  }
-  room ??= await new Client(endpoint).join<RaceStateView>(ROOM_NAME);
-  const joined = room;
-  // Remember the latest token when the page goes away, with the time it left.
-  window.addEventListener('pagehide', () => writeSession(joined.reconnectionToken));
-  return joined;
-}
 
 /**
  * Cars from the server: every state patch becomes a snapshot stamped with the arrival

@@ -4,13 +4,10 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: ALL BUILT — v1.0 (P0–P10) plus P11 extras (ghost lap, photo finish, seasonal decorations,
-  Arabic UI, phone controller, battle mode + The Break Room). Tag `p11-done` = commit "P11.7".
-- Next task: the "Deferred human tests" below with the human (first merge the cloud branch on the
-  laptop, see "Cloud session"). After that: ideas from playtests; a public internet server stays open.
-- Status: `npm run verify` passes (578 tests + bot race, best lap 35.52 s); `test:load` passes; soak
-  OK (7 races, heap +0.2 MB, worst tick 12.7 ms, 0 overruns); all 6 tracks pass `track:check`; all 20
-  shots scenarios OK.
+- Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
+  the human's request of 2026-10-07 (cloud).
+- Next task: P12.2 Real-life cars
+- Status: P12.1 done: HOST / JOIN, several games per server. `npm run verify` passes.
 
 ## Half-done
 - (none)
@@ -169,6 +166,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   photo-finish replay, seasonal decorations (Ramadan/Eid/Halloween/winter + snow), Arabic UI (RTL),
   phone controller (`?pad`), battle mode (lives, last car standing) + The Break Room arena. Every extra
   has an off switch. Review fixes D124. Decisions D117–D124. Not built: a public internet server.
+
+- 2026-10-07 (cloud): P12.1 Host and join — HOST window (name, track cards with mini maps, Race/Battle,
+  laps, bots, chaos), JOIN list (live, every game), per-game tracks, `GET /games.json`, Leave game,
+  the pad picks its game; checked with two real browsers. D125.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

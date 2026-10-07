@@ -180,7 +180,15 @@ installed types for the API. Anything not on this list → ask the human first.
 ## 6. Networking
 
 ### Room and timing
-- One Colyseus room type `race`. The server auto-creates it at startup; everyone joins it.
+- One Colyseus room type `race`; each room is a **game** (P12.1). The server creates the always-open
+  game at startup (`SERVER_ROOM_KEY`, never disposed); players host more with
+  `client.create('race', CreateGame)` — `{name, track, mode, laps, bots, chaos}`, zod-checked,
+  laps in range, a pickable track, at most `net.maxGames` at once — and such a game disposes
+  itself when the last player is gone (after a held seat expires). Each game has its own track
+  (`LiveConfig.trackById`, built once and cached; a dev edit of a track file reloads the games on
+  it). Rooms publish their listing as matchmaker metadata (name, host, track, mode, phase,
+  isDefault); `GET /games.json` returns them with player counts for the JOIN window, which joins
+  with `joinById`. `?play` joins the always-open game without the menu (tools).
 - Sim at 60 Hz. State patches every `cfg.net.patchRateMs` (start: 33 ms).
 - Clients render about `cfg.net.interpDelayMs` (start: 50 ms) in the past and interpolate
   between snapshots. On a LAN this keeps total input-to-screen delay under ~100 ms.

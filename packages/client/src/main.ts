@@ -4,8 +4,8 @@ import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
-import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, sandstormOn, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning, type World } from '@escape/shared';
-import { DEFAULT_TRACK, loadCars, loadItems, loadSeasons, loadTrack, loadTuning, pickableTracks } from './content';
+import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, sandstormOn, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning, type World, type GameListing } from '@escape/shared';
+import { DEFAULT_TRACK, loadCars, loadItems, loadSeasons, loadTrack, loadTuning, pickableTracks, trackName } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
 import { EngineSound, squealing } from './audio/engine';
@@ -25,7 +25,9 @@ import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
-import { ServerCarSource, botSlotsOf, hasSavedSeat, joinOrReconnect, joinRace, type RaceStateView } from './net/connection';
+import { ServerCarSource, botSlotsOf, fetchGames, hasSavedSeat, joinDefaultGame, joinGame, joinRace, leaveGame, reconnectSaved, type RaceStateView } from './net/connection';
+import { JoinScreen } from './ui/joinScreen';
+import { reasonOf, trackMap } from './menu';
 import type { Room } from '@colyseus/sdk';
 import { HeadSender } from './net/heads';
 import { InputDelayMeter } from './net/latency';
@@ -267,7 +269,7 @@ async function showLobbyScenario(hooks: GameHooks, tuning: Tuning): Promise<void
     const noop = (): void => {};
     const handlers: LobbyHandlers = {
       setName: noop, setSeat: noop, leaveSeat: noop, setTeamName: noop, setReady: noop,
-      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop, setTrack: noop, setMode: noop,
+      start: noop, setLaps: noop, shuffle: noop, setBots: noop, setChaos: noop, setCar: noop, setFace: noop, setTrack: noop, setMode: noop, leaveGame: noop,
     };
     const lobby = new LobbyScreen(el('game'), { maxCars: r.maxCars, minLaps: r.minLaps, maxLaps: r.maxLaps }, handlers);
     const teams = ['The Blue Screens', '404 Not Found', 'Ctrl Freaks', 'Have You Tried Turning It Off', 'Packet Sniffers', 'The Hotfixers', 'Merge Conflict', 'Cable Management'];
@@ -332,13 +334,10 @@ async function serverTrack(room: Room<unknown, RaceStateView>): Promise<string> 
 }
 
 /** The real thing: join the server's race, pick a seat, drive. */
-async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Promise<void> {
+async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, room: Room<unknown, RaceStateView>): Promise<void> {
   const settings = loadSettings();
   const container = el('game');
   container.hidden = false;
-  setStatus(t('status.connecting'));
-  const room = await joinOrReconnect(tuning);
-  setStatus('');
   // Wi-Fi blip: the SDK reconnects by itself while the server holds our seat.
   room.onDrop(() => setStatus(t('status.connectionLost'), true));
   room.onReconnect(() => setStatus(''));
@@ -388,6 +387,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     setLaps: (laps) => room.send(MSG.hostLaps, { laps }),
     setTrack: (id) => room.send(MSG.hostTrack, { id }),
     setMode: (mode) => room.send(MSG.hostMode, { mode }),
+    leaveGame: () => void leaveToMenu(room),
     shuffle: () => room.send(MSG.hostShuffle, {}),
     setBots: (on) => room.send(MSG.hostBots, { on }),
     setChaos: (on) => room.send(MSG.hostChaos, { on }),
@@ -734,6 +734,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       faces,
       track: state.track,
       tracks: trackChoices,
+      game: state.game,
       mode: state.mode,
       battle: { lives: latestTuning.battle.lives, minutes: Math.round((latestTuning.battle.timeLimitSeconds / 60) * 10) / 10 },
     });
@@ -928,31 +929,63 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
 }
 
 /**
- * The real game: the main menu first, then the race room. A player who left a seat a moment
- * ago (reload, closed tab) goes straight back in; `?play` skips the menu too.
+ * The real game: the main menu first (HOST or JOIN a game), then that game. A player who left
+ * a seat a moment ago (reload, closed tab) goes straight back in; `?play` joins the server's
+ * always-open game without the menu (tools); `?pad` is a phone controller.
  */
 async function startGame(hooks: GameHooks, tuning: Tuning): Promise<void> {
-  // `?pad`: this device is a phone controller (P11.5), no menu and no 3D.
-  if (new URLSearchParams(window.location.search).has('pad')) {
+  const params = new URLSearchParams(window.location.search);
+  let room: Room<unknown, RaceStateView> | null = null;
+  setStatus(''); // the page's "Loading…" (the menu or the game takes over)
+  if (hasSavedSeat(tuning)) {
     setStatus(t('status.connecting'));
-    await showPad(document.body, tuning);
+    room = await reconnectSaved(tuning);
     setStatus('');
+  }
+  if (params.has('pad')) {
+    // A phone controller (P11.5): no menu and no 3D; it picks its game from the list.
+    room ??= await pickGame(tuning);
+    await showPad(document.body, tuning, room);
     await markReady(hooks);
     return;
   }
   const horns = new HornPlayer();
-  const skip = hasSavedSeat(tuning) || new URLSearchParams(window.location.search).has('play');
-  if (!skip) {
-    setStatus('');
-    await showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning, loadSettings().quality).preset, roster: loadCars().cars, horns });
-  }
-  await showRace(hooks, tuning, horns);
+  if (!room && params.has('play')) room = await joinDefaultGame(tuning);
+  room ??= await showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning, loadSettings().quality).preset, roster: loadCars().cars, horns });
+  await showRace(hooks, tuning, horns, room);
+}
+
+/** The phone controller's game: the Join list, full screen, until one is joined. */
+function pickGame(tuning: Tuning): Promise<Room<unknown, RaceStateView>> {
+  return new Promise((resolve) => {
+    const screen: JoinScreen = new JoinScreen(document.body, {
+      fetchGames,
+      trackName,
+      trackMap: (id) => trackMap(id, tuning),
+      join: (id) =>
+        joinGame(tuning, id).then((room) => {
+          screen.dispose();
+          resolve(room);
+          return null;
+        }, reasonOf),
+    }, true);
+    screen.open();
+  });
+}
+
+/** Leave this game on purpose: free the seat and go back to the menu (`?play` would rejoin). */
+async function leaveToMenu(room: Room<unknown, RaceStateView>): Promise<void> {
+  await leaveGame(room);
+  const params = new URLSearchParams(window.location.search);
+  params.delete('play');
+  if (params.toString() === window.location.search.replace(/^\?/, '')) window.location.reload();
+  else window.location.search = params.toString();
 }
 
 /** The `pad` scenario: the phone controller as the Engineer mid-race (shots use a phone-sized view). */
 async function showPadScenario(hooks: GameHooks): Promise<void> {
   const controls = new PadControls(() => {}, 1000);
-  const screen = new PadScreen(document.body, controls, { setName: () => {}, setSeat: () => {}, setReady: () => {}, start: () => {} }, 'Dina');
+  const screen = new PadScreen(document.body, controls, { setName: () => {}, setSeat: () => {}, setReady: () => {}, start: () => {}, leave: () => {} }, 'Dina');
   screen.update({
     phase: 'racing', myId: 'me', host: 'other', teams: ['The Blue Screens', '404 Not Found'], botSlots: [], maxCars: 8,
     players: [{ id: 'me', name: 'Dina', slot: 0, seat: 'engineer', ready: true }, { id: 'p', name: 'You', slot: 0, seat: 'pilot', ready: true }],
@@ -964,13 +997,21 @@ async function showPadScenario(hooks: GameHooks): Promise<void> {
   await markReady(hooks);
 }
 
-/** The `menu` and `league` scenarios: the main menu (and the League screen) for screenshots. */
-async function showMenuScenario(hooks: GameHooks, tuning: Tuning, withLeague: boolean): Promise<void> {
+/** Made-up games for the `join` scenario: the always-open one and two hosted ones (one racing). */
+const FAKE_GAMES: GameListing[] = [
+  { id: 'a', name: '', host: 'Omar', track: 'office', mode: 'race', phase: 'lobby', players: 3, maxPlayers: 24, isDefault: true },
+  { id: 'b', name: "Dina's lunch race", host: 'Dina', track: 'smart-oasis', mode: 'race', phase: 'lobby', players: 5, maxPlayers: 24, isDefault: false },
+  { id: 'c', name: 'Battle of the Break Room', host: 'Karim', track: 'break-room', mode: 'battle', phase: 'racing', players: 8, maxPlayers: 24, isDefault: false },
+];
+
+/** The `menu`, `league`, `host` and `join` scenarios: the main menu (and that window) for screenshots. */
+async function showMenuScenario(hooks: GameHooks, tuning: Tuning, scenario: 'menu' | 'league' | 'host' | 'join'): Promise<void> {
   const horns = new HornPlayer();
   await new Promise<void>((shown) => {
     void showMainMenu({
       tuning, quality: pickQuality(window.location.search, tuning).preset, roster: loadCars().cars, horns, onShown: shown,
-      ...(withLeague ? { leagueTables: { enabled: true as const, ...FAKE_TABLES } } : {}),
+      ...(scenario === 'league' ? { leagueTables: { enabled: true as const, ...FAKE_TABLES } } : {}),
+      ...(scenario === 'host' ? { open: 'host' as const } : scenario === 'join' ? { open: 'join' as const, games: FAKE_GAMES } : {}),
     });
   });
   setStatus('');
@@ -985,8 +1026,8 @@ if (hooks.error !== null) {
   const run =
     hooks.scenario === 'hello'
       ? showHello(hooks, tuning)
-      : hooks.scenario === 'menu' || hooks.scenario === 'league'
-        ? showMenuScenario(hooks, tuning, hooks.scenario === 'league')
+      : hooks.scenario === 'menu' || hooks.scenario === 'league' || hooks.scenario === 'host' || hooks.scenario === 'join'
+        ? showMenuScenario(hooks, tuning, hooks.scenario)
       : hooks.scenario === 'lobby'
         ? showLobbyScenario(hooks, tuning)
       : hooks.scenario === 'pad'

@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { Server, matchMaker } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
-import { leagueTables, ROOM_NAME } from '@escape/shared';
+import { leagueTables, ROOM_NAME, type GameListing } from '@escape/shared';
 import { watchConfig } from './dev/configWatcher';
 import { FACES_DIR } from './faces';
 import { league, setLeague } from './league/league';
@@ -12,7 +12,7 @@ import { LeagueStore } from './league/store';
 import { listMenuImages, MENU_DIR } from './menuImages';
 import { installTuningRoutes } from './dev/tuningRoutes';
 import { LiveConfig, setLiveConfig } from './liveConfig';
-import { RaceRoom, SERVER_ROOM_KEY } from './rooms/RaceRoom';
+import { RaceRoom, SERVER_ROOM_KEY, type GameMeta } from './rooms/RaceRoom';
 
 export interface StartOptions {
   port: number;
@@ -76,6 +76,25 @@ export async function startServer(opts: StartOptions): Promise<GameServer> {
         const store = league();
         res.set('Cache-Control', 'no-store');
         res.json(store ? { enabled: true, ...leagueTables(store.data, live.tuning.league, localIso(new Date())) } : { enabled: false });
+      });
+      // The games to join (P12.1): the always-open one first, then hosted ones, oldest first.
+      app.get('/games.json', (_req, res) => {
+        res.set('Cache-Control', 'no-store');
+        matchMaker.query({ name: ROOM_NAME }, { createdAt: 1 }).then(
+          (rooms) => {
+            const games: GameListing[] = rooms
+              .map((r) => {
+                const m = (r.metadata ?? {}) as Partial<GameMeta>;
+                return {
+                  id: r.roomId, name: m.name ?? '', host: m.host ?? '', track: m.track ?? '', mode: m.mode ?? 'race',
+                  phase: m.phase ?? 'lobby', players: r.clients, maxPlayers: r.maxClients, isDefault: m.isDefault ?? false,
+                };
+              })
+              .sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
+            res.json({ games });
+          },
+          () => res.status(500).json({ games: [] }),
+        );
       });
       // Main menu slideshow (P8.1): the list is read on every request, so new images just appear.
       app.get('/menu/menu.json', (_req, res) => {

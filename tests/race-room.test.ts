@@ -36,9 +36,9 @@ describe('race room (real server, real clients)', () => {
   // `?.`: if startup failed, don't hide that error behind a TypeError here.
   afterAll(() => game?.close());
 
-  it('is the only lobby: a client cannot create a second room', async () => {
-    await expect(new Client(endpoint).create(ROOM_NAME)).rejects.toThrow();
-    await expect(new Client(endpoint).create(ROOM_NAME, { key: 'guess' })).rejects.toThrow();
+  it('a client cannot make a game without proper settings, nor pose as the server (P12.1)', async () => {
+    await expect(new Client(endpoint).create(ROOM_NAME)).rejects.toThrow(/bad game settings/);
+    await expect(new Client(endpoint).create(ROOM_NAME, { key: 'guess' })).rejects.toThrow(/bad game settings/);
   });
 
   it('counts 2 players when two join, then 1 when one leaves', async () => {

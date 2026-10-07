@@ -36,6 +36,8 @@ export interface LobbyView {
   botSlots: number[];
   /** Faces available on the host (from /faces/faces.json); empty = placeholder only. */
   faces?: { file: string; name: string }[];
+  /** The game's name as its host typed it ('' / absent = the server's always-open game), P12.1. */
+  game?: string;
   /** Race or Battle (P11.6), and the battle rules to show; absent = race. */
   mode?: string;
   battle?: { lives: number; minutes: number };
@@ -62,6 +64,8 @@ export interface LobbyHandlers {
   setTrack(id: string): void;
   /** Host: Race or Battle next (P11.6). */
   setMode(mode: 'race' | 'battle'): void;
+  /** Leave this game and go back to the menu (P12.1). */
+  leaveGame(): void;
 }
 
 export interface LobbyLimits {
@@ -215,6 +219,8 @@ export class LobbyScreen {
   private readonly error = document.createElement('p');
   private readonly nameInput = document.createElement('input');
   private readonly trackEl = document.createElement('div');
+  private readonly title = document.createElement('h2');
+  private gameName = '';
   private view: LobbyView | null = null;
   private lastHtml = '';
   private lastTrackHtml = '';
@@ -227,8 +233,18 @@ export class LobbyScreen {
     this.root.className = 'join lobby';
     const panel = document.createElement('div');
     panel.className = 'join-panel';
-    const title = document.createElement('h2');
+    const title = this.title;
     title.textContent = t('lobby.title');
+    // Leave this game (back to the menu: host or join another one).
+    const leave = document.createElement('button');
+    leave.type = 'button';
+    leave.className = 'leave-game';
+    leave.dataset['action'] = 'leave-game';
+    leave.textContent = t('lobby.leaveGame');
+    leave.addEventListener('click', () => {
+      leave.disabled = true;
+      this.handlers.leaveGame();
+    });
     const nameRow = document.createElement('label');
     nameRow.className = 'join-name';
     nameRow.textContent = t('lobby.yourName');
@@ -241,7 +257,7 @@ export class LobbyScreen {
     topRow.className = 'lobby-top';
     this.trackEl.className = 'track-pick';
     this.trackEl.addEventListener('change', this.onTrackChange);
-    topRow.append(nameRow, this.trackEl);
+    topRow.append(nameRow, this.trackEl, leave);
     this.body.addEventListener('click', this.onClick);
     this.body.addEventListener('change', this.onChange);
     this.error.className = 'join-error';
@@ -342,6 +358,10 @@ export class LobbyScreen {
   update(view: LobbyView): void {
     const prev = this.view;
     this.view = view;
+    if ((view.game ?? '') !== this.gameName) {
+      this.gameName = view.game ?? '';
+      this.title.textContent = this.gameName ? t('lobby.titleGame', { name: this.gameName }) : t('lobby.title');
+    }
     const me = view.players.find((p) => p.id === view.myId);
     if (me && document.activeElement !== this.nameInput && !this.nameInput.value) this.nameInput.value = me.name;
     const between = view.phase === 'lobby'; // the results screen covers the results phase

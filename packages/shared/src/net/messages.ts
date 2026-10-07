@@ -133,6 +133,40 @@ export const SetTrackSchema = z.strictObject({
   id: z.string().regex(/^[a-z0-9-]{1,40}$/),
 });
 
+/** Longest name of a hosted game. */
+export const GAME_NAME_MAX_LENGTH = 32;
+
+/**
+ * Hosting a game (P12.1): the options of `client.create('race', …)`. Laps are checked against
+ * the config by the server; the track must be one the host may pick.
+ */
+export const CreateGameSchema = z.strictObject({
+  name: z.string().trim().min(1).max(GAME_NAME_MAX_LENGTH),
+  track: z.string().regex(/^[a-z0-9-]{1,40}$/),
+  mode: z.enum(RACE_MODES),
+  laps: z.number().int(),
+  bots: z.boolean(),
+  chaos: z.boolean(),
+});
+export type CreateGame = z.infer<typeof CreateGameSchema>;
+
+/** A game as the server lists it (`GET /games.json`, P12.1). */
+export interface GameListing {
+  /** Colyseus room id (join with `joinById`). */
+  id: string;
+  /** '' for the server's always-open game (the page names it). */
+  name: string;
+  /** The host's player name ('' while nobody is in it). */
+  host: string;
+  track: string;
+  mode: string;
+  phase: string;
+  players: number;
+  maxPlayers: number;
+  /** The server's own game: always there, never closes. */
+  isDefault: boolean;
+}
+
 /** `lobby:setCar` (client → server): a cars.json id for your team's car slot. */
 export const SetCarSchema = z.strictObject({ slot: z.number().int().nonnegative(), car: z.string().min(1).max(40) });
 

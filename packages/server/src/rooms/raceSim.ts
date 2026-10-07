@@ -447,6 +447,19 @@ export class RaceSim {
     return null;
   }
 
+  /**
+   * A hosted game's settings (P12.1), applied when it is created, before anyone is in it: no
+   * host checks. Laps must already be inside the config's range.
+   */
+  configure(s: { mode: RaceMode; laps: number; bots: boolean; chaos: boolean }): void {
+    this.flow.laps = s.laps;
+    this.mode = s.mode;
+    this.battle = null;
+    this.botsEnabled = s.bots;
+    this.setChaos(s.chaos);
+    this.syncCars();
+  }
+
   /** Is this car driven by a server bot? */
   isBot(carId: string): boolean {
     return this.botSlots.has(slotOfCar(carId));

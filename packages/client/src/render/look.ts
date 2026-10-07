@@ -373,6 +373,8 @@ export const SHOWROOM = {
 export const MENU = {
   messageMs: 2600,
   slideMs: 5000,
+  /** The Join window refreshes its list of games this often (ms). */
+  gamesPollMs: 2000,
 } as const;
 
 /** Chaos items in the world (ART_STYLE: chunky, bright, readable from the chase cam). */

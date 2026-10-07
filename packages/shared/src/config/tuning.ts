@@ -353,6 +353,8 @@ const NetSchema = z.strictObject({
   predictCorrectionRate: pos(),
   /** Clients resend their held controls this often (ms), so a lost message never leaves a key stuck. */
   inputResendMs: z.number().int().min(50),
+  /** Games players may host at the same time on one server (P12.1), on top of the always-open one. */
+  maxGames: z.number().int().min(1).max(32),
 });
 
 /** Days of the week, Sunday first (the same order as `Date.getUTCDay()`). */

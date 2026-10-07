@@ -36,20 +36,29 @@ describe('track picker (P10.0)', () => {
     expect(ids).not.toContain('broken');
   });
 
-  it('switches the track and tells the room; refuses dev, unknown and broken tracks', () => {
+  it('builds any pickable track for a game; refuses dev, unknown and broken tracks (P12.1)', () => {
     const live = new LiveConfig(twoTracks());
     const heard: ConfigChange[] = [];
     live.subscribe((c) => heard.push(c));
-    expect(live.selectTrack('test-loop')).toMatch(/no such track/);
-    expect(live.selectTrack('nope')).toMatch(/no such track/);
-    expect(live.selectTrack('broken')).toMatch(/no such track/);
+    expect(live.trackById('test-loop')).toMatch(/no such track/);
+    expect(live.trackById('nope')).toMatch(/no such track/);
+    expect(live.trackById('broken')).toMatch(/no such track/);
+    const two = live.trackById('office-two');
+    expect(typeof two === 'string' ? two : two.def.id).toBe('office-two');
+    expect(live.trackById('office-two')).toBe(two); // built once
+    // Picking a track for a game changes nothing server-wide and tells nobody.
+    expect(live.trackId).toBe('office');
     expect(heard).toEqual([]);
-    expect(live.selectTrack('office-two')).toBeNull();
-    expect(live.trackId).toBe('office-two');
-    expect(live.track.def.id).toBe('office-two');
-    expect(heard.map((c) => c.kind)).toEqual(['track']);
-    expect(live.selectTrack('office-two')).toBeNull(); // already: nothing happens
-    expect(heard).toHaveLength(1);
+  });
+
+  it('a track file edit reloads that track for the games on it', () => {
+    const live = new LiveConfig(twoTracks());
+    const heard: ConfigChange[] = [];
+    live.subscribe((c) => heard.push(c));
+    live.trackById('office-two');
+    live.reloadTrack('office-two');
+    expect(heard.map((c) => (c.kind === 'track' ? c.id : c.kind))).toEqual(['office-two']);
+    expect(live.trackId).toBe('office'); // the always-open game's start track is untouched
   });
 });
 
@@ -106,8 +115,8 @@ describe('classifyConfigFile', () => {
   it('knows tuning, cars and tracks; ignores the rest', () => {
     expect(classifyConfigFile('tuning.json')).toBe('tuning');
     expect(classifyConfigFile('cars.json')).toBe('cars');
-    expect(classifyConfigFile('tracks/test-loop.json')).toBe('track');
-    expect(classifyConfigFile('tracks\\test-loop.json')).toBe('track');
+    expect(classifyConfigFile('tracks/test-loop.json')).toBe('track:test-loop');
+    expect(classifyConfigFile('tracks\\test-loop.json')).toBe('track:test-loop');
     expect(classifyConfigFile('tuning.json.tmp-123')).toBeNull();
     expect(classifyConfigFile('notes.txt')).toBeNull();
     expect(classifyConfigFile('tracks')).toBeNull();

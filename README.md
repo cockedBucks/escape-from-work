@@ -16,9 +16,12 @@ Runs in Chrome or Edge. One PC hosts; nobody else installs anything. No internet
 2. **Host PC, every day:** double-click **`start-server.bat`** (Windows) or run
    `./start-server.sh` (macOS/Linux). It installs what is missing, builds and starts the game,
    then prints the address, for example `http://192.168.1.23:2567`.
-3. **Everyone:** open that address. Type your name, pick a face and a seat (Pilot, Engineer or
-   Solo) in a team, press **Ready**.
-4. **The host** picks the track, laps, chaos items and bots, then presses **Start**.
+3. **One player presses HOST:** name the game, pick the track, Race or Battle, laps, bots and
+   chaos, then **CREATE GAME**. You are in its lobby as the host.
+4. **Everyone else presses JOIN:** the list shows every game on the server (and the always-open
+   "Office game"); press **JOIN** on one. Type your name, pick a car and a seat (Pilot, Engineer or
+   Solo), press **Ready**.
+5. **The host** presses **Start**. "⬅ Leave game" in the lobby goes back to the menu.
 
 Stop the server with **Ctrl+C**. The league is saved on the host PC (`data/league.json`) with
 a daily backup in `data/backups/`.

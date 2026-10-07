@@ -25,9 +25,12 @@ first. Use it for flavor everywhere:
 
 ## 3. Players, teams and roles
 
-- 4–16 players, 2–8 cars. One server on the LAN hosts one lobby. Everyone who opens the
-  URL lands in that lobby. The first player is the **host** (can start races, change
-  settings). Host passes to the next player if they leave.
+- 4–16 players per game, 2–8 cars. One server on the LAN runs several **games** (P12.1): the menu's
+  **HOST** opens a window to set one up (name, track, Race/Battle, laps, bots, chaos) and puts you
+  in its lobby as the host; **JOIN** lists every game (the server's always-open "Office game" plus
+  the hosted ones, live) to jump into. A hosted game closes when everyone has left. In a game the
+  first player is the **host** (can start races, change settings); host passes to the next player
+  if they leave. "Leave game" in the lobby goes back to the menu.
 - A **team** = one car = up to two players.
   - **Pilot**: steering, aiming items.
   - **Engineer**: gas, brake/reverse, nitro, firing items, managing engine heat.

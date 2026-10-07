@@ -146,7 +146,8 @@
     "lobbyBurst": 5,
     "predictMaxMs": 200,
     "predictCorrectionRate": 8,
-    "inputResendMs": 250
+    "inputResendMs": 250,
+    "maxGames": 8
   },
   "camera": {
     "fov": 70,

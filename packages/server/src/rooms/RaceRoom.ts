@@ -3,6 +3,7 @@ import { Room, type Client } from '@colyseus/core';
 import {
   BotsSchema,
   ChaosSchema,
+  CreateGameSchema,
   ModeSchema,
   SetCarSchema,
   MSG,
@@ -22,6 +23,7 @@ import {
   pickAwards,
   type LobbyError,
   type RaceRecord,
+  type Track,
   type Tuning,
   type World,
 } from '@escape/shared';
@@ -47,11 +49,32 @@ interface Limits {
 /** Proof that the server (not a client) asked for the room; a fresh secret every run. */
 export const SERVER_ROOM_KEY = randomUUID();
 
-/** The one room of the server: players join, pick a car and seat, and drive. */
-export class RaceRoom extends Room<{ state: RaceState }> {
-  // The server creates this room at startup; it must survive being empty.
+/** Games players host right now (the always-open one not counted), for `net.maxGames`. */
+let hostedGames = 0;
+
+/** What the Join screen lists for a game (room metadata; `/games.json` adds players and the id). */
+export interface GameMeta {
+  name: string;
+  host: string;
+  track: string;
+  mode: string;
+  phase: string;
+  isDefault: boolean;
+}
+
+/**
+ * One game (P12.1): the server's always-open one (made at startup, never closes) or one a
+ * player hosted with their settings (closes when the last player has gone). Players join,
+ * pick a car and a seat, and drive.
+ */
+export class RaceRoom extends Room<{ state: RaceState; metadata: GameMeta }> {
+  // The always-open game must survive being empty; hosted games set this to true.
   override autoDispose = false;
   override state = new RaceState();
+  /** The track this game races (config/tracks id). */
+  private trackId = '';
+  /** Counted in `hostedGames` (released when the room goes). */
+  private hosted = false;
 
   private sim!: RaceSim;
   private tuning!: Tuning;
@@ -65,18 +88,45 @@ export class RaceRoom extends Room<{ state: RaceState }> {
   private readonly botClients = new Set<string>();
 
   override onCreate(options: unknown): void {
-    // One lobby per server (D004): only the server itself makes the room, never a client's create().
-    if ((options as { key?: unknown } | null)?.key !== SERVER_ROOM_KEY) throw new Error('rooms are made by the server only');
-    // Config comes from the server's files (live in dev), never from client options.
+    // Tuning, cars and items come from the server's files (live in dev), never from a client.
     const live = liveConfig();
     this.tuning = live.tuning;
     const firstCar = live.cars.cars[0];
     if (!firstCar) throw new Error('config/cars.json has no cars');
-    this.sim = new RaceSim(live.track, this.tuning, firstCar.stats, live.teams, live.items);
+    // The always-open game (made by the server at startup) or a game a player hosts (P12.1).
+    const isDefault = (options as { key?: unknown } | null)?.key === SERVER_ROOM_KEY;
+    let track: Track = live.track;
+    this.trackId = live.trackId;
+    let settings = null;
+    if (!isDefault) {
+      const parsed = CreateGameSchema.safeParse(options);
+      if (!parsed.success) throw new Error('bad game settings');
+      const race = this.tuning.race;
+      if (parsed.data.laps < race.minLaps || parsed.data.laps > race.maxLaps) throw new Error(`laps must be ${race.minLaps}–${race.maxLaps}`);
+      if (hostedGames >= this.tuning.net.maxGames) throw new Error(`this server already has ${this.tuning.net.maxGames} games: join one of them`);
+      const picked = live.trackById(parsed.data.track);
+      if (typeof picked === 'string') throw new Error(picked);
+      track = picked;
+      this.trackId = parsed.data.track;
+      settings = parsed.data;
+      hostedGames++;
+      this.hosted = true;
+      this.autoDispose = true; // closes when everyone has left
+    }
+    this.sim = new RaceSim(track, this.tuning, firstCar.stats, live.teams, live.items);
     for (const name of this.sim.teamNames) this.state.teams.push(name);
-    this.state.track = live.trackId;
+    this.state.track = this.trackId;
+    this.state.game = settings?.name ?? '';
+    if (settings) {
+      this.sim.configure(settings);
+      this.state.mode = this.sim.mode;
+      this.state.bots = this.sim.botsEnabled;
+      this.state.chaos = this.sim.chaos;
+      console.log(`[room] game "${settings.name}" hosted (${this.trackId}, ${settings.mode}); ${hostedGames}/${this.tuning.net.maxGames} hosted games`);
+    }
     this.sim.setRoster(live.cars.cars);
     for (const model of this.sim.carModels) this.state.carModels.push(model);
+    this.updateListing();
     // Two players per car plus some watchers (seats themselves are limited by the seat rules).
     this.maxClients = this.tuning.race.maxCars * 2 + this.tuning.race.maxSpectators;
     this.setPatchRate(this.tuning.net.patchRateMs);
@@ -114,6 +164,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       const player = this.state.players.get(client.sessionId);
       if (!msg.success || !player) return this.refuse(client, `names are 1–${NAME_MAX_LENGTH} characters`);
       player.name = msg.data.name;
+      this.updateListing(); // the host's name is listed
     });
 
     this.onMessage(MSG.setSeat, (client, message: unknown) => {
@@ -192,6 +243,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (problem) return this.refuse(client, problem);
       this.state.mode = this.sim.mode;
       this.state.chaos = this.sim.chaos;
+      this.updateListing();
     });
 
     this.onMessage(MSG.hostStart, (client) => {
@@ -218,9 +270,11 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (!msg.success) return this.refuse(client, 'bad track request');
       if (client.sessionId !== this.sim.flow.host) return this.refuse(client, 'only the host can pick the track');
       if (!seatChangesAllowed(this.sim.flow.phase)) return this.refuse(client, 'not during a race');
-      // Loading the track emits a config change: the sim takes it and every page reloads into it.
-      const problem = liveConfig().selectTrack(msg.data.id);
-      if (problem) return this.refuse(client, problem);
+      // This game only: the sim takes the track and every page in it reloads into it.
+      if (msg.data.id === this.trackId) return;
+      const track = liveConfig().trackById(msg.data.id);
+      if (typeof track === 'string') return this.refuse(client, track);
+      this.switchTrack(msg.data.id, track);
       console.log(`[room] track is now ${msg.data.id}`);
     });
 
@@ -268,6 +322,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       this.recordRace();
     }
     if (hostBefore !== flow.host) this.logHost();
+    if (phaseBefore !== flow.phase || hostBefore !== flow.host) this.updateListing();
   }
 
   /** Joining or back during the results: the points and awards of the race just finished. */
@@ -286,7 +341,7 @@ export class RaceRoom extends Room<{ state: RaceState }> {
     const players = [...this.state.players.entries()].map(([id, p]) => ({ name: p.name, slot: p.slot, seat: p.seat, bot: this.botClients.has(id) }));
     const record = raceRecord({
       at: localIso(new Date()),
-      track: liveConfig().trackId,
+      track: this.trackId,
       laps: this.sim.flow.laps,
       chaos: this.sim.chaos,
       tickMs: this.tuning.sim.dt * 1000,
@@ -376,13 +431,41 @@ export class RaceRoom extends Room<{ state: RaceState }> {
       if (first) this.sim.setStats(first.stats);
       this.sim.setRoster(change.cars.cars);
       this.sim.carModels.forEach((model, slot) => (this.state.carModels[slot] = model));
-    } else {
-      this.sim.setTrack(change.track);
-      this.state.track = liveConfig().trackId;
-      this.sim.keepHostThroughReload();
-      this.broadcast(MSG.reload, { reason: 'track' });
+    } else if (change.id === this.trackId) {
+      this.switchTrack(change.id, change.track); // dev: this game's track file was edited
     }
   }
+
+  /** Race `track` from now on: every page in this game reloads into it (seats and host held). */
+  private switchTrack(id: string, track: Track): void {
+    this.trackId = id;
+    this.sim.setTrack(track);
+    this.state.track = id;
+    this.sim.keepHostThroughReload();
+    this.broadcast(MSG.reload, { reason: 'track' });
+    this.updateListing();
+  }
+
+  /** What the Join screen shows for this game (sent to the matchmaker when it changes). */
+  private updateListing(): void {
+    const meta: GameMeta = {
+      name: this.state.game,
+      host: this.state.players.get(this.sim.flow.host ?? '')?.name ?? '',
+      track: this.trackId,
+      mode: this.sim.mode,
+      phase: this.sim.flow.phase,
+      isDefault: !this.hosted,
+    };
+    const old = this.listed;
+    if (old && old.name === meta.name && old.host === meta.host && old.track === meta.track && old.mode === meta.mode && old.phase === meta.phase) return;
+    // The first listing is set while creating; later ones go through the matchmaker.
+    if (old === null) this.metadata = meta;
+    else this.setMatchmaking({ metadata: meta }).catch(() => {});
+    this.listed = meta;
+  }
+
+  /** The listing last sent (null before the first). */
+  private listed: GameMeta | null = null;
 
   override onJoin(client: Client, options?: unknown): void {
     this.joinCount++;
@@ -428,10 +511,15 @@ export class RaceRoom extends Room<{ state: RaceState }> {
 
   override onDispose(): void {
     this.unsubscribe();
+    if (this.hosted) {
+      hostedGames--;
+      console.log(`[room] game "${this.state.game}" closed (everyone left)`);
+    }
   }
 
   /** Copy seats and roles into the synced players (after any seat change). */
   private syncPlayers(): void {
+    this.updateListing();
     const seating = this.sim.seating();
     for (const s of seating) {
       const view = this.state.players.get(s.id);
