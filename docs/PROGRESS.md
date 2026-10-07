@@ -37,6 +37,20 @@ roll old "Last sessions" lines into one summary line per finished phase.
   (see "Later ideas" in docs/ROADMAP.md).
 - P6 chaos race: race with chaos on, 3+ cars (bots allowed). Ask: most fun items? annoying or
   unclear ones? anything too strong? (weights/durations in config/items.json)
+- P11 extras (built in the cloud 2026-10-07; each can be turned off):
+  1. Ghost: race 2+ laps on one track; from your next lap a see-through car drives your best lap.
+     Reply: helpful or distracting? (Settings → Screen → ghost checkbox.)
+  2. Photo finish: finish close behind/ahead of another car (or watch bots: many cars, 1 lap).
+     Reply: is the slow-motion replay fun, too long, or confusing?
+  3. Decorations: Settings → Decorations → try Ramadan, Eid, Halloween, Winter on a track.
+     Reply: which look good, which are tacky? Are the Ramadan/Eid dates right (config/seasons.json)?
+  4. Arabic: Settings → Language → العربية, then menu, lobby, a race, results, League, Settings.
+     Reply: wrong or awkward Arabic, anything not translated, layout problems?
+  5. Phone controller: on a phone open the game address → "📱 Use this phone as a controller",
+     sit as Engineer next to a laptop Pilot and race. Reply: buttons comfortable? any lag? does
+     the phone screen lock mid-race (raise the screen timeout)? Does it buzz on hits (Android)?
+  6. Battle: host presses 🏁 Race → 💥 Battle, picks The Break Room, 3+ cars (bots ok).
+     Reply: fun? too long/short (battle.* in tuning.json)? is "out" clear?
 
 ## Cloud session (read me first, local Claude)
 - 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
