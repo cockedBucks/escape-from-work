@@ -71,6 +71,8 @@ escape-from-work/
       cameras/         chase, cockpit, spectator, showroom
       ui/              menu, lobby, hud, results, settings, overlays (blue screen…)
       i18n/            UI strings: en.ts (every string), ar.ts (Arabic, type-checked complete), t() (P11.4)
+      pad/             phone controller page (?pad): seat list, touch buttons → the same input messages (P11.5)
+      ghost/ replay/   ghost of your best lap (P11.1), photo-finish recorder and replay (P11.2)
       audio/           procedural Web Audio: engine, horns, sfx
       debug/           F3 overlay, F2 tuning panel (dev)
       test-hooks.ts    ?scenario= handling + window.__game

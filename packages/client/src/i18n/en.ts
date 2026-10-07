@@ -240,6 +240,24 @@ export const EN = {
   'volume.music': 'Music',
   'volume.title': 'Sound volume',
   'volume.gear': 'Settings and keys',
+
+  // Phone controller (P11.5)
+  'menu.pad': '📱 Use this phone as a controller',
+  'pad.title': '📱 Controller',
+  'pad.pickSeat': 'Pick your seat. Sit next to a teammate: their laptop shows the race.',
+  'pad.changeSeat': 'Change seat',
+  'pad.backToPad': 'Back to the controls',
+  'pad.rotate': 'Turn your phone sideways for bigger buttons',
+  'pad.awake': 'Tip: make the screen stay on longer (screen timeout) so it does not lock mid-race.',
+  'pad.lobby': 'Waiting for the race…',
+  'pad.gas': 'GAS',
+  'pad.brake': 'BRAKE',
+  'pad.nitro': 'NITRO',
+  'pad.item': 'ITEM',
+  'pad.aimBack': 'AIM BACK',
+  'pad.honk': 'HONK',
+  'pad.respawn': 'RESPAWN',
+  'pad.speed': '{n} km/h',
 } as const;
 
 export type StringKey = keyof typeof EN;

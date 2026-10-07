@@ -22,6 +22,8 @@ export interface MainMenuHandlers {
   onSettings(): void;
   onKeys(): void;
   onLeague(): void;
+  /** Touch screens: switch this device to the phone controller (P11.5). */
+  onPad(): void;
 }
 
 export class MainMenu {
@@ -80,6 +82,12 @@ export class MainMenu {
       smallButton('settings', t('menu.settings'), () => handlers.onSettings()),
       smallButton('keys', t('menu.keys'), () => handlers.onKeys()),
     );
+    // A phone or tablet: offer the controller (big touch buttons) instead of the 3D race.
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(any-pointer: coarse)').matches) {
+      const pad = smallButton('pad', t('menu.pad'), () => handlers.onPad());
+      pad.classList.add('menu-pad');
+      small.appendChild(pad);
+    }
     const car = document.createElement('p');
     car.className = 'menu-car';
     car.append(t('menu.turntable'), this.carName);

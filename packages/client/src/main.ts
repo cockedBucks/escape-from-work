@@ -25,7 +25,7 @@ import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
 import { MouseLook } from './input/mouseLook';
-import { ServerCarSource, hasSavedSeat, joinOrReconnect, joinRace, type RaceStateView } from './net/connection';
+import { ServerCarSource, botSlotsOf, hasSavedSeat, joinOrReconnect, joinRace, type RaceStateView } from './net/connection';
 import type { Room } from '@colyseus/sdk';
 import { HeadSender } from './net/heads';
 import { InputDelayMeter } from './net/latency';
@@ -51,7 +51,10 @@ import { ResultsScreen } from './ui/resultsScreen';
 import { Scoreboard, boardRows, type BoardCar } from './ui/scoreboard';
 import { Spectator } from './ui/spectator';
 import { RoleBadge } from './ui/roleBadge';
-import { pickLang, setLang, t } from './i18n';
+import { ordinal, pickLang, setLang, t } from './i18n';
+import { showPad } from './pad/showPad';
+import { PadControls } from './pad/padControls';
+import { PadScreen } from './pad/padScreen';
 
 /**
  * Seats per car from the synced players: Pilot or Solo on the left, Engineer on the right;
@@ -103,15 +106,6 @@ async function fetchFaces(): Promise<FaceListEntry[]> {
   } catch {
     return [];
   }
-}
-
-/** Car slots driven by server bots (car ids are "car<slot>"). */
-function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: string) => void): void } }): number[] {
-  const slots: number[] = [];
-  state.cars.forEach((c, id) => {
-    if (c.bot) slots.push(Number(id.slice('car'.length)));
-  });
-  return slots;
 }
 
 /** Where you look in the `cockpit` scenario: right (negative yaw) and a bit up, at your teammate. */
@@ -914,6 +908,14 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
  * ago (reload, closed tab) goes straight back in; `?play` skips the menu too.
  */
 async function startGame(hooks: GameHooks, tuning: Tuning): Promise<void> {
+  // `?pad`: this device is a phone controller (P11.5), no menu and no 3D.
+  if (new URLSearchParams(window.location.search).has('pad')) {
+    setStatus(t('status.connecting'));
+    await showPad(document.body, tuning);
+    setStatus('');
+    await markReady(hooks);
+    return;
+  }
   const horns = new HornPlayer();
   const skip = hasSavedSeat(tuning) || new URLSearchParams(window.location.search).has('play');
   if (!skip) {
@@ -921,6 +923,21 @@ async function startGame(hooks: GameHooks, tuning: Tuning): Promise<void> {
     await showMainMenu({ tuning, quality: pickQuality(window.location.search, tuning, loadSettings().quality).preset, roster: loadCars().cars, horns });
   }
   await showRace(hooks, tuning, horns);
+}
+
+/** The `pad` scenario: the phone controller as the Engineer mid-race (shots use a phone-sized view). */
+async function showPadScenario(hooks: GameHooks): Promise<void> {
+  const controls = new PadControls(() => {}, 1000);
+  const screen = new PadScreen(document.body, controls, { setName: () => {}, setSeat: () => {}, setReady: () => {}, start: () => {} }, 'Dina');
+  screen.update({
+    phase: 'racing', myId: 'me', host: 'other', teams: ['The Blue Screens', '404 Not Found'], botSlots: [], maxCars: 8,
+    players: [{ id: 'me', name: 'Dina', slot: 0, seat: 'engineer', ready: true }, { id: 'p', name: 'You', slot: 0, seat: 'pilot', ready: true }],
+    role: 'engineer',
+    hud: { countdown: null, lap: t('hud.lap', { n: 2, laps: 3 }), place: t('hud.place', { ord: ordinal(2), cars: 4 }), banner: null, wrongWay: false },
+    car: { speed: 24.5, heat: 0.55, nitro: 0.8, item: 'firewall', stalled: false },
+  });
+  setStatus('');
+  await markReady(hooks);
 }
 
 /** The `menu` and `league` scenarios: the main menu (and the League screen) for screenshots. */
@@ -948,6 +965,8 @@ if (hooks.error !== null) {
         ? showMenuScenario(hooks, tuning, hooks.scenario === 'league')
       : hooks.scenario === 'lobby'
         ? showLobbyScenario(hooks, tuning)
+      : hooks.scenario === 'pad'
+        ? showPadScenario(hooks)
         : hooks.scenario === 'results'
           ? showResultsScenario(hooks, tuning)
         : isRaceScenario(hooks.scenario)

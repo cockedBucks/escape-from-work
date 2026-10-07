@@ -232,6 +232,23 @@ export const AR: Record<StringKey, string> = {
   'volume.music': 'الموسيقى',
   'volume.title': 'مستوى الصوت',
   'volume.gear': 'الإعدادات والأزرار',
+
+  'menu.pad': '📱 استخدم هذا الهاتف كذراع تحكم',
+  'pad.title': '📱 ذراع التحكم',
+  'pad.pickSeat': 'اختر مقعدك. اجلس بجانب زميل: اللابتوب بتاعه يعرض السباق.',
+  'pad.changeSeat': 'غيّر المقعد',
+  'pad.backToPad': 'رجوع للتحكم',
+  'pad.rotate': 'لفّ الهاتف بالعرض لأزرار أكبر',
+  'pad.awake': 'نصيحة: خلّي الشاشة تفضل شغّالة مدة أطول (مهلة الشاشة) عشان ما تقفلش وسط السباق.',
+  'pad.lobby': 'في انتظار السباق…',
+  'pad.gas': 'بنزين',
+  'pad.brake': 'فرامل',
+  'pad.nitro': 'نيترو',
+  'pad.item': 'أداة',
+  'pad.aimBack': 'صوّب للخلف',
+  'pad.honk': 'بوق',
+  'pad.respawn': 'رجوع',
+  'pad.speed': '{n} كم/س',
 };
 
 /** Names that come from config files, by id (missing = the config's English name). */

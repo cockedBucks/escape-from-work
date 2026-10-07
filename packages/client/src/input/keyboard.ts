@@ -13,7 +13,7 @@ const KEYS = {
   honk: ['KeyH'],
 } as const;
 
-type Action = keyof typeof KEYS;
+export type Action = keyof typeof KEYS;
 
 const ACTION_BY_CODE = new Map<string, Action>(
   (Object.entries(KEYS) as [Action, readonly string[]][]).flatMap(([action, codes]) => codes.map((c) => [c, action] as const)),

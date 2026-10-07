@@ -14,6 +14,9 @@ const OUT_DIR = path.join(ROOT, 'artifacts', 'shots');
 const VITE = path.join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js');
 const SERVER_ENTRY = path.join('packages', 'server', 'src', 'index.ts');
 const VIEWPORT = { width: 1280, height: 720 };
+/** Scenarios shown on a phone (landscape, touch): the phone controller (P11.5). */
+const PHONE_SCENARIOS = new Set(['pad']);
+const PHONE = { viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
 const SEED = 1;
 const SERVER_START_TIMEOUT_MS = 30_000;
 const READY_TIMEOUT_MS = 20_000;
@@ -90,7 +93,7 @@ function launchBrowser(mode) {
 
 async function shoot(browser, port, scenario, track, quality, season, lang) {
   const name = [scenario, track, season, quality, lang].filter(Boolean).join('-');
-  const page = await browser.newPage({ viewport: VIEWPORT });
+  const page = await browser.newPage(PHONE_SCENARIOS.has(scenario) ? PHONE : { viewport: VIEWPORT });
   const consoleErrors = [];
   page.on('console', (msg) => {
     // "Failed to load resource" has no URL; the response listener reports those with one.

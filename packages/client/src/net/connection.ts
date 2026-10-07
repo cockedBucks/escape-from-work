@@ -89,6 +89,15 @@ export interface RaceStateView {
   shots: { forEach(cb: (s: { kind: string; x: number; z: number; vx: number; vz: number }, id: string) => void): void };
 }
 
+/** Car slots driven by server bots (car ids are "car<slot>"). */
+export function botSlotsOf(state: { cars: { forEach(cb: (c: { bot: boolean }, id: string) => void): void } }): number[] {
+  const slots: number[] = [];
+  state.cars.forEach((c, id) => {
+    if (c.bot) slots.push(Number(id.slice('car'.length)));
+  });
+  return slots;
+}
+
 export interface PageLocation {
   protocol: string;
   hostname: string;

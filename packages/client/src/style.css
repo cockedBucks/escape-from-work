@@ -1950,3 +1950,289 @@ body {
 [dir='rtl'] .keys-page dt {
   font-family: inherit;
 }
+
+/* Phone controller (P11.5): big thumb buttons left and right, small ones in the middle, a
+   status line on top. No scrolling or zooming while you press (only the seat list scrolls). */
+.pad-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: var(--sand);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pad-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.7rem;
+  font-size: 0.95rem;
+}
+
+.pad-status .pad-role {
+  padding: 0.1rem 0.6rem;
+  border-radius: 0.5rem;
+  background: var(--ui-dark);
+  color: #fff;
+}
+
+.pad-status .pad-count {
+  font-size: 1.4rem;
+  color: var(--red);
+}
+
+.pad-status .pad-warn {
+  color: var(--red);
+}
+
+.pad-bar {
+  position: relative;
+  display: inline-block;
+  min-width: 5.5rem;
+  padding: 0 0.4rem;
+  border: var(--edge);
+  border-radius: 0.4rem;
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.pad-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  background: var(--red);
+  opacity: 0.55;
+}
+
+.pad-bar.nitro i {
+  background: #1d7fe0;
+}
+
+.pad-bar.stalled {
+  animation: stall-blink 0.4s ease-in-out infinite alternate;
+}
+
+.pad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pad-actions:empty {
+  display: none;
+}
+
+.pad-actions button,
+.pad-seat {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.35rem 0.8rem;
+  border: var(--edge);
+  border-radius: 0.6rem;
+  background: #fff;
+  color: var(--ui-dark);
+  box-shadow: var(--pop);
+}
+
+.pad-actions button.on {
+  background: var(--teal);
+  color: #fff;
+}
+
+.pad-actions button.start {
+  background: var(--red);
+  color: #fff;
+}
+
+.pad-seats-box {
+  flex: 1;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+.pad-seats-box h2 {
+  margin: 0.2rem 0;
+  color: var(--red);
+}
+
+.pad-hint {
+  margin: 0.2rem 0 0.5rem;
+}
+
+.pad-hint.small {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.pad-name input {
+  font: inherit;
+  margin-inline-start: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  border: var(--edge);
+  border-radius: 0.5rem;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.pad-car-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.pad-car {
+  padding: 0.4rem;
+  border: 0.2rem solid var(--team);
+  border-radius: 0.8rem;
+  background: #fff;
+}
+
+.pad-car-name {
+  font-weight: 700;
+  color: var(--team);
+  margin-bottom: 0.3rem;
+}
+
+.pad-seats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem;
+}
+
+.pad-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.3rem;
+  font-size: 0.85rem;
+  box-shadow: none;
+}
+
+.pad-seat span {
+  font-weight: 400;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  unicode-bidi: plaintext;
+}
+
+.pad-seat.mine {
+  background: var(--team, var(--teal));
+  color: #fff;
+}
+
+.pad-seat:disabled {
+  opacity: 0.55;
+}
+
+.pad-buttons {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr minmax(9rem, 1fr) 1fr;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.pad-buttons[hidden] {
+  display: none;
+}
+
+.pad-zone {
+  display: flex;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.pad-zone.middle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: center;
+}
+
+.pad-btn {
+  flex: 1;
+  min-height: 3.2rem;
+  border: var(--edge);
+  border-radius: 1rem;
+  background: #fff;
+  color: var(--ui-dark);
+  font: 700 1.1rem 'Fredoka', system-ui, sans-serif;
+  box-shadow: var(--pop-big);
+  touch-action: none;
+}
+
+.pad-zone.left .pad-btn,
+.pad-zone.right .pad-btn {
+  font-size: 1.8rem;
+}
+
+.pad-btn.gas {
+  background: var(--teal);
+  color: #fff;
+}
+
+.pad-btn.brake {
+  background: var(--red);
+  color: #fff;
+}
+
+.pad-btn.nitro {
+  background: #1d7fe0;
+  color: #fff;
+}
+
+.pad-btn.fire {
+  background: #ffd23f;
+}
+
+.pad-btn.down {
+  transform: translateY(0.25rem);
+  box-shadow: none;
+  filter: brightness(0.85);
+}
+
+.pad-rotate {
+  display: none;
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+@media (orientation: portrait) {
+  .pad-buttons {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .pad-zone.middle {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .pad-rotate {
+    display: block;
+  }
+}
+
+/* The pad is laid out by thumb (left = steer / brake, right = gas), never mirrored. */
+[dir='rtl'] .pad-buttons {
+  direction: ltr;
+}
+
+/* The menu's controller button stands out on phones. */
+.menu-pad {
+  background: var(--teal);
+  color: #fff;
+}
