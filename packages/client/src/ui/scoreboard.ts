@@ -3,6 +3,7 @@ import { isTyping } from '../input/keyboard';
 import type { RacePhase } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
 import { escapeHtml } from './html';
+import { t } from '../i18n';
 
 export interface BoardCar {
   slot: number;
@@ -50,16 +51,16 @@ export function boardRows(cars: BoardCar[], players: BoardPlayer[], teams: reado
     const inCar = players.filter((p) => p.slot === c.slot && p.seat !== '');
     const pilot = inCar.find((p) => p.seat === 'pilot' || p.seat === 'solo');
     const engineer = inCar.find((p) => p.seat === 'engineer');
-    const names = c.bot ? '🤖 Bot' : [pilot?.name, engineer?.name].filter(Boolean).join(' & ') || '—';
+    const names = c.bot ? t('board.bot') : [pilot?.name, engineer?.name].filter(Boolean).join(' & ') || '—';
     let lap = '';
     let gap = '';
     if (racing) {
-      lap = c.dnf ? 'DNF' : c.finished ? 'FIN' : `${Math.min(c.lapsDone + 1, laps)}/${laps}`;
-      gap = c.finished ? raceTime(c.finishMs) : c.place === 1 ? 'leader' : c.dnf || c.gapMs === 0 ? '' : `+${(c.gapMs / 1000).toFixed(1)}s`;
+      lap = c.dnf ? t('board.dnf') : c.finished ? t('board.fin') : `${Math.min(c.lapsDone + 1, laps)}/${laps}`;
+      gap = c.finished ? raceTime(c.finishMs) : c.place === 1 ? t('board.leader') : c.dnf || c.gapMs === 0 ? '' : `+${(c.gapMs / 1000).toFixed(1)}s`;
     }
     return {
       place: racing && c.place > 0 ? String(c.place) : '',
-      team: teams[c.slot] ?? `Team ${c.slot + 1}`,
+      team: teams[c.slot] ?? t('team.default', { n: c.slot + 1 }),
       color: hex(TEAM_COLORS[c.slot % TEAM_COLORS.length]!),
       players: names,
       lap,
@@ -111,7 +112,7 @@ export class Scoreboard {
           `<td>${escapeHtml(r.players)}</td><td>${r.lap}</td><td class="sb-gap">${r.gap}</td></tr>`,
       )
       .join('');
-    const html = `<table><thead><tr><th>#</th><th>Team</th><th>Players</th><th>Lap</th><th>Gap</th></tr></thead><tbody>${body}</tbody></table>`;
+    const html = `<table><thead><tr><th>${t('board.place')}</th><th>${t('board.team')}</th><th>${t('board.players')}</th><th>${t('board.lap')}</th><th>${t('board.gap')}</th></tr></thead><tbody>${body}</tbody></table>`;
     if (html === this.lastHtml) return;
     this.lastHtml = html;
     this.el.innerHTML = html;

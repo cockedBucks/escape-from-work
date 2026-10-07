@@ -2,6 +2,7 @@
 // mixer (`efw.volumes`) and the default camera in `efw.camera`; this file brings them together
 // for the settings screen. Everything falls back to defaults when storage is blocked or junk.
 import type { QualityLevel } from '@escape/shared';
+import { LANG_SETTINGS, type LangSetting } from './i18n';
 
 /** `auto` = the server config's default preset (`quality.default`). */
 export type QualitySetting = 'auto' | QualityLevel;
@@ -14,9 +15,11 @@ export interface Settings {
   ghost: boolean;
   /** Seasonal decorations (P11.3): 'auto' (on the holiday dates), 'off', or a season id. */
   decor: string;
+  /** UI language (P11.4): 'auto' follows the browser. */
+  lang: LangSetting;
 }
 
-export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, ghost: true, decor: 'auto' };
+export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, ghost: true, decor: 'auto', lang: 'auto' };
 
 const KEY = 'efw.settings';
 
@@ -32,7 +35,8 @@ export function parseSettings(raw: string | null): Settings {
   const showFps = typeof data.showFps === 'boolean' ? data.showFps : DEFAULT_SETTINGS.showFps;
   const ghost = typeof data.ghost === 'boolean' ? data.ghost : DEFAULT_SETTINGS.ghost;
   const decor = typeof data.decor === 'string' && /^[a-z0-9-]{1,32}$/.test(data.decor) ? data.decor : DEFAULT_SETTINGS.decor;
-  return { quality, showFps, ghost, decor };
+  const lang = (LANG_SETTINGS as readonly unknown[]).includes(data.lang) ? (data.lang as LangSetting) : DEFAULT_SETTINGS.lang;
+  return { quality, showFps, ghost, decor, lang };
 }
 
 export function loadSettings(): Settings {

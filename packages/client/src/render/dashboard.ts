@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { gaugeText, type GaugeValues } from '../ui/gauges';
 import { BOX_CAR, COCKPIT, DASH_SCREEN } from './look';
+import { t as tr } from '../i18n';
 
 /** Redraw the dashboard screen at most this often (ms): text, not animation. */
 const REDRAW_MS = 100;
@@ -55,7 +56,7 @@ export class DashboardScreen {
     ctx.fillText(t.speed, W * 0.25, H * 0.48);
     ctx.font = `600 ${H * 0.18}px Fredoka, system-ui, sans-serif`;
     ctx.textAlign = 'left';
-    ctx.fillText('km/h', W * 0.26, H * 0.72);
+    ctx.fillText(tr('gauge.kmh'), W * 0.26, H * 0.72);
     ctx.fillText(t.lap, W * 0.38, H * 0.32);
     ctx.fillText(t.place, W * 0.38, H * 0.7);
     const bar = (label: string, x: number, y: number, fill: number, color: string): void => {
@@ -67,7 +68,7 @@ export class DashboardScreen {
       ctx.fillRect(x, y, W * 0.17 * Math.max(0, Math.min(1, fill)), H * 0.12);
     };
     bar(t.heatLabel, W * 0.6, H * 0.32, t.heat, '#e63946');
-    bar('NITRO', W * 0.6, H * 0.7, t.nitro, '#1d7fe0');
+    bar(tr('gauge.nitro'), W * 0.6, H * 0.7, t.nitro, '#1d7fe0');
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = H * 0.04;
     ctx.strokeRect(W * 0.81, H * 0.18, H * 0.64, H * 0.64);

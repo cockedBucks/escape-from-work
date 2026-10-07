@@ -4,6 +4,7 @@ import rawCars from '../../../config/cars.json';
 import rawItems from '../../../config/items.json';
 import rawSeasons from '../../../config/seasons.json';
 import rawTuning from '../../../config/tuning.json';
+import { nameOf } from './i18n';
 
 // Config files are bundled into the page at build time (offline, no fetches).
 const trackFiles = import.meta.glob<unknown>('../../../config/tracks/*.json', { eager: true, import: 'default' });
@@ -47,11 +48,11 @@ export function pickableTracks(): { id: string; name: string }[] {
     .map((id) => ({ id, name: trackName(id) }));
 }
 
-/** A track's display name ("office" → "The Office"); the id itself if unknown. */
+/** A track's display name ("office" → "The Office", in the page's language); the id itself if unknown. */
 export function trackName(id: string): string {
   const entry = Object.entries(trackFiles).find(([p]) => p.endsWith(`/${id}.json`));
   const name = (entry?.[1] as { name?: unknown } | undefined)?.name;
-  return typeof name === 'string' ? name : id;
+  return nameOf(`track.${id}`, typeof name === 'string' ? name : id);
 }
 
 /** Validate and build a bundled track. Throws for an unknown id. */

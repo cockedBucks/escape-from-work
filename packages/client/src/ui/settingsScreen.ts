@@ -5,8 +5,9 @@ import type { Volumes } from '../audio/mixer';
 import type { CameraMode } from '../input/cameraPref';
 import { QUALITY_SETTINGS, type QualitySetting, type Settings } from '../settings';
 import { isTyping } from '../input/keyboard';
-import { KEY_HELP } from './roleKeys';
+import { keyHelp } from './roleKeys';
 import { volumeSliders } from './volumePanel';
+import { LANG_NAMES, LANG_SETTINGS, nameOf, t, type StringKey } from '../i18n';
 
 export type SettingsTab = 'settings' | 'keys';
 
@@ -37,7 +38,7 @@ export function helpKeyAction(
   return null;
 }
 
-const QUALITY_LABEL: Record<QualitySetting, string> = { auto: 'Auto', low: 'Low', medium: 'Medium', high: 'High' };
+const QUALITY_LABEL: Record<QualitySetting, StringKey> = { auto: 'settings.auto', low: 'settings.low', medium: 'settings.medium', high: 'settings.high' };
 
 /** A row of toggle buttons (the chosen one is `.on`). */
 function choices<T extends string>(options: readonly T[], label: (o: T) => string, chosen: T, pick: (o: T) => void): HTMLElement {
@@ -107,7 +108,7 @@ export class SettingsScreen {
       tabRow.appendChild(b);
       return b;
     };
-    this.tabButtons = { settings: tabButton('settings', 'Settings'), keys: tabButton('keys', 'Keys') };
+    this.tabButtons = { settings: tabButton('settings', t('settings.tab')), keys: tabButton('keys', t('settings.keysTab')) };
     this.tabs = { settings: this.buildSettings(), keys: this.buildKeys() };
     box.append(close, tabRow, this.tabs.settings, this.tabs.keys);
     this.root.appendChild(box);
@@ -157,41 +158,53 @@ export class SettingsScreen {
     const reload = document.createElement('button');
     reload.type = 'button';
     reload.className = 'reload';
-    reload.textContent = 'Reload to apply (you keep your seat)';
+    reload.textContent = t('settings.reload');
     reload.hidden = true;
     reload.addEventListener('click', () => window.location.reload());
-    const quality = choices(QUALITY_SETTINGS, (q) => QUALITY_LABEL[q], this.settings.quality, (q) => {
+    const quality = choices(QUALITY_SETTINGS, (q) => t(QUALITY_LABEL[q]), this.settings.quality, (q) => {
       this.settings = { ...this.settings, quality: q };
       this.h.onSettings(this.settings);
       reload.hidden = !this.h.inRace;
     });
     const qualityNote = document.createElement('p');
     qualityNote.className = 'note';
-    qualityNote.textContent = 'Low for slow laptops; Auto uses the host’s default.';
+    qualityNote.textContent = t('settings.qualityNote');
     const decorReload = reload.cloneNode(true) as HTMLButtonElement;
     decorReload.addEventListener('click', () => window.location.reload());
     const seasonName = new Map(this.h.seasons.map((x) => [x.id, x.name]));
     const decorOptions = ['auto', 'off', ...this.h.seasons.map((x) => x.id)];
-    const decor = choices(decorOptions, (d) => (d === 'auto' ? 'Auto' : d === 'off' ? 'Off' : (seasonName.get(d) ?? d)), this.settings.decor, (d) => {
+    const decor = choices(decorOptions, (d) => (d === 'auto' ? t('settings.auto') : d === 'off' ? t('settings.off') : nameOf(`season.${d}`, seasonName.get(d) ?? d)), this.settings.decor, (d) => {
       this.settings = { ...this.settings, decor: d };
       this.h.onSettings(this.settings);
       decorReload.hidden = !this.h.inRace;
     });
     const decorNote = document.createElement('p');
     decorNote.className = 'note';
-    decorNote.textContent = 'Holiday props beside the tracks. Auto: only on the holiday dates.';
-    const camera = choices(['chase', 'cockpit'] as const, (c) => (c === 'chase' ? 'Behind the car' : 'Cockpit'), this.h.camera(), (c) => this.h.onCamera(c));
+    decorNote.textContent = t('settings.decorNote');
+    // Language: the whole page is built in it, so a change always needs a reload.
+    const langReload = reload.cloneNode(true) as HTMLButtonElement;
+    langReload.addEventListener('click', () => window.location.reload());
+    const language = choices(LANG_SETTINGS, (l) => (l === 'auto' ? t('settings.auto') : LANG_NAMES[l]), this.settings.lang, (l) => {
+      this.settings = { ...this.settings, lang: l };
+      this.h.onSettings(this.settings);
+      langReload.hidden = false;
+    });
+    const langNote = document.createElement('p');
+    langNote.className = 'note';
+    langNote.textContent = t('settings.languageNote');
+    const camera = choices(['chase', 'cockpit'] as const, (c) => (c === 'chase' ? t('settings.chase') : t('settings.cockpit')), this.h.camera(), (c) => this.h.onCamera(c));
     this.cameraRow = camera;
     const volumes = volumeSliders(this.h.volumes, (v) => this.h.onVolumes(v));
     this.refreshVolumes = volumes.refresh;
-    const fpsLabel = this.checkbox('showFps', ' Show FPS in the corner');
-    const ghostLabel = this.checkbox('ghost', ' Race the ghost of my best lap (see-through car)');
+    const fpsLabel = this.checkbox('showFps', t('settings.fps'));
+    const ghostLabel = this.checkbox('ghost', t('settings.ghost'));
     page.append(
-      section('Picture quality', quality, qualityNote, reload),
-      section('Sound', volumes.el),
-      section('Default camera (C switches any time)', camera),
-      section('Screen', fpsLabel, ghostLabel),
-      section('Decorations', decor, decorNote, decorReload),
+      section(t('settings.language'), language, langNote, langReload),
+      section(t('settings.quality'), quality, qualityNote, reload),
+      section(t('settings.sound'), volumes.el),
+      section(t('settings.camera'), camera),
+      section(t('settings.screen'), fpsLabel, ghostLabel),
+      section(t('settings.decorations'), decor, decorNote, decorReload),
     );
     return page;
   }
@@ -216,7 +229,7 @@ export class SettingsScreen {
   private buildKeys(): HTMLElement {
     const page = document.createElement('div');
     page.className = 'tab-page keys-page';
-    for (const group of KEY_HELP) {
+    for (const group of keyHelp()) {
       const list = document.createElement('dl');
       for (const [keys, what] of group.keys) {
         const dt = document.createElement('dt');

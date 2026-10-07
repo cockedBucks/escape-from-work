@@ -2,22 +2,11 @@
 // button, the car on the turntable, and a slideshow of company images (assets/menu/).
 
 import { MENU } from '../render/look';
+import { t, type StringKey } from '../i18n';
 
-/** Fake IT loading messages (original text; no real products or brands). */
-export const LOADING_MESSAGES = [
-  'Waiting for IT to approve your ticket…',
-  'Rebooting the coffee machine…',
-  'Defragmenting the parking lot…',
-  'Updating your updates…',
-  'Asking the printer nicely…',
-  'Clearing the cache (and your calendar)…',
-  'Reconnecting to the Wi-Fi of hope…',
-  'Restarting the mail client, again…',
-  'Locating meeting room 4B… still looking…',
-  'Untangling the cable drawer…',
-  'Reply-all storm detected, taking cover…',
-  'Turning it off and on again…',
-] as const;
+/** Fake IT loading messages (original text; no real products or brands), in the page's language. */
+const MESSAGE_KEYS = ['menu.msg1', 'menu.msg2', 'menu.msg3', 'menu.msg4', 'menu.msg5', 'menu.msg6', 'menu.msg7', 'menu.msg8', 'menu.msg9', 'menu.msg10', 'menu.msg11', 'menu.msg12'] as const satisfies readonly StringKey[];
+export const loadingMessages = (): string[] => MESSAGE_KEYS.map((k) => t(k));
 
 
 /** Which of `count` items shows at `now` ms when each stays `periodMs`. Pure, for tests. */
@@ -44,6 +33,7 @@ export class MainMenu {
   private readonly slideCaption = document.createElement('figcaption');
   private readonly honk = document.createElement('button');
   private images: string[] = [];
+  private readonly messages = loadingMessages();
   private shownMessage = -1;
   private shownSlide = -1;
 
@@ -59,12 +49,12 @@ export class MainMenu {
     play.type = 'button';
     play.className = 'menu-play wobbly';
     play.dataset.action = 'play';
-    play.textContent = 'PLAY';
+    play.textContent = t('menu.play');
     play.addEventListener('click', () => handlers.onPlay());
     this.honk.type = 'button';
     this.honk.className = 'menu-honk wobbly';
     this.honk.dataset.action = 'honk';
-    this.honk.textContent = 'HONK!';
+    this.honk.textContent = t('menu.honk');
     this.honk.addEventListener('click', () => {
       handlers.onHonk();
       this.honk.classList.remove('honked');
@@ -86,13 +76,13 @@ export class MainMenu {
       return b;
     };
     small.append(
-      smallButton('league', '🏆 League', () => handlers.onLeague()),
-      smallButton('settings', '⚙ Settings', () => handlers.onSettings()),
-      smallButton('keys', '⌨ Keys', () => handlers.onKeys()),
+      smallButton('league', t('menu.league'), () => handlers.onLeague()),
+      smallButton('settings', t('menu.settings'), () => handlers.onSettings()),
+      smallButton('keys', t('menu.keys'), () => handlers.onKeys()),
     );
     const car = document.createElement('p');
     car.className = 'menu-car';
-    car.append('On the turntable: ', this.carName);
+    car.append(t('menu.turntable'), this.carName);
     panel.append(title, this.loading, buttons, small, car);
     this.slides.className = 'menu-slides';
     this.slides.hidden = true;
@@ -115,10 +105,10 @@ export class MainMenu {
 
   /** Rotate the loading message and the slideshow. Call every frame with the time in ms. */
   update(now: number): void {
-    const m = cycleIndex(now, MENU.messageMs, LOADING_MESSAGES.length);
+    const m = cycleIndex(now, MENU.messageMs, this.messages.length);
     if (m !== this.shownMessage) {
       this.shownMessage = m;
-      this.loading.textContent = LOADING_MESSAGES[m]!;
+      this.loading.textContent = this.messages[m]!;
       this.loading.classList.remove('fresh');
       void this.loading.offsetWidth;
       this.loading.classList.add('fresh');

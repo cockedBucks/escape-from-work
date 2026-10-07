@@ -1,5 +1,7 @@
 // Photo-finish banner (P11.2): "PHOTO FINISH!" over the slow-motion replay, a camera flash at
 // each car crossing the line, and who won by how much.
+import { t } from '../i18n';
+
 export class PhotoBanner {
   private readonly el = document.createElement('div');
   private readonly flashEl = document.createElement('div');
@@ -11,11 +13,11 @@ export class PhotoBanner {
     this.el.hidden = true;
     this.flashEl.className = 'photo-flash';
     const title = document.createElement('strong');
-    title.textContent = '📸 PHOTO FINISH!';
+    title.textContent = t('photo.title');
     this.lineEl.className = 'who';
     const badge = document.createElement('span');
     badge.className = 'replay-badge';
-    badge.innerHTML = '<span class="dot">●</span> REPLAY';
+    badge.innerHTML = `<span class="dot">●</span> ${t('photo.replay')}`;
     this.el.append(this.flashEl, badge, title, this.lineEl);
     parent.appendChild(this.el);
   }

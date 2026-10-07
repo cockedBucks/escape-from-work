@@ -3,7 +3,7 @@ import realTuning from '../../../config/tuning.json';
 import { parseTuning } from '@escape/shared';
 import { pickQuality } from './render/renderer';
 import { DEFAULT_SETTINGS, parseSettings } from './settings';
-import { KEY_HELP } from './ui/roleKeys';
+import { keyHelp } from './ui/roleKeys';
 
 const tuning = parseTuning(realTuning);
 
@@ -11,7 +11,9 @@ describe('settings', () => {
   it('reads saved settings and falls back for anything missing or junk', () => {
     expect(parseSettings(null)).toEqual(DEFAULT_SETTINGS);
     expect(parseSettings('{oops')).toEqual(DEFAULT_SETTINGS);
-    expect(parseSettings(JSON.stringify({ quality: 'low', showFps: true }))).toEqual({ quality: 'low', showFps: true, ghost: true, decor: 'auto' });
+    expect(parseSettings(JSON.stringify({ quality: 'low', showFps: true }))).toEqual({ quality: 'low', showFps: true, ghost: true, decor: 'auto', lang: 'auto' });
+    expect(parseSettings(JSON.stringify({ lang: 'ar' })).lang).toBe('ar');
+    expect(parseSettings(JSON.stringify({ lang: 'klingon' })).lang).toBe('auto');
     expect(parseSettings(JSON.stringify({ decor: 'winter' })).decor).toBe('winter');
     expect(parseSettings(JSON.stringify({ decor: '<b>' })).decor).toBe('auto');
     expect(parseSettings(JSON.stringify({ ghost: false })).ghost).toBe(false);
@@ -25,7 +27,7 @@ describe('settings', () => {
   });
 
   it('the key help names every key the game listens to', () => {
-    const text = KEY_HELP.flatMap((g) => g.keys.map(([k]) => k)).join(' ');
+    const text = keyHelp().flatMap((g) => g.keys.map(([k]) => k)).join(' ');
     for (const key of ['A', 'D', 'W', 'S', 'Shift', 'Space', 'Q', 'H', 'R', 'C', 'Tab', 'Esc', 'F3', '?']) {
       expect(text, key).toContain(key);
     }

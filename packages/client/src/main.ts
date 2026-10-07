@@ -20,7 +20,7 @@ import { PhotoBanner } from './ui/photoBanner';
 import { PHOTO } from './render/look';
 import { decorationsFor, localDay, pickSeason } from './render/decorations';
 import { GhostRecorder, LapWatch, ghostPoseAt, keepIfBest, loadGhost, type GhostLap, type GhostPose } from './ghost/ghostLap';
-import { HINT_TEXT, Onboarding, RoleCard } from './ui/onboarding';
+import { hintText, Onboarding, RoleCard } from './ui/onboarding';
 import { VolumePanel } from './ui/volumePanel';
 import { CameraToggle } from './input/cameraPref';
 import { KeyboardControls } from './input/keyboard';
@@ -51,6 +51,7 @@ import { ResultsScreen } from './ui/resultsScreen';
 import { Scoreboard, boardRows, type BoardCar } from './ui/scoreboard';
 import { Spectator } from './ui/spectator';
 import { RoleBadge } from './ui/roleBadge';
+import { pickLang, setLang, t } from './i18n';
 
 /**
  * Seats per car from the synced players: Pilot or Solo on the left, Engineer on the right;
@@ -120,8 +121,6 @@ const SCENARIO_JUICE = { landing: 9, confettiSeconds: 0.45 };
 /** `stall`/`drift` scenarios: smoke/sparks already flying this long when the picture is taken (s). */
 const SCENARIO_SMOKE_SECONDS = 1;
 
-/** Shown when the track's sandstorm starts blowing. */
-const STORM_TOAST = '🌪️ <b>SANDSTORM!</b> You can barely see — trust your teammate!';
 /** How often the live race re-measures ping for the F3 overlay (ms). */
 const PING_EVERY_MS = 2000;
 /** How long to wait for the server's first state (its track) after joining (ms). */
@@ -142,6 +141,10 @@ function setStatus(text: string, isError = false): void {
   statusEl.hidden = text === '';
 }
 
+// The UI language (P11.4) before anything is drawn: `?lang=` (screenshots), else Settings → Language.
+setLang(pickLang(new URLSearchParams(window.location.search).get('lang') ?? loadSettings().lang, navigator.languages ?? [navigator.language]));
+if (!statusEl.hidden) setStatus(t('status.loading'));
+
 document.title = GAME_TITLE;
 el('title').textContent = GAME_TITLE;
 
@@ -149,7 +152,7 @@ el('title').textContent = GAME_TITLE;
 async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
   el('hello').hidden = false;
   const room = await joinRace(tuning);
-  setStatus('Connected');
+  setStatus(t('status.connected'));
   // This page only shows the player count; ignore the race broadcasts.
   for (const type of [MSG.events, MSG.tuning, MSG.reload, MSG.raceRecord]) room.onMessage(type, () => {});
   room.ping((ms) => {
@@ -159,13 +162,13 @@ async function showHello(hooks: GameHooks, tuning: Tuning): Promise<void> {
   room.onStateChange((state) => {
     const n = state.players.size;
     el('player-count').textContent = String(n);
-    el('player-label').textContent = n === 1 ? 'player' : 'players';
+    el('player-label').textContent = n === 1 ? t('hello.player') : t('hello.players');
     if (!readyPending) {
       readyPending = true;
       void markReady(hooks);
     }
   });
-  room.onLeave(() => setStatus('Disconnected from the game server. Reload to rejoin.', true));
+  room.onLeave(() => setStatus(t('status.disconnected'), true));
 }
 
 /** The `ghost` scenario's ghost: ahead of bot1 and a little to its right. */
@@ -253,7 +256,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     game.renderFrame(performance.now(), true); // builds the car meshes
     game.jolt('bot1', SCENARIO_JUICE.landing, true);
     game.confetti('bot1', true);
-    game.say('bot1', 'HONK!');
+    game.say('bot1', t('bubble.honk'));
     game.warmEffects(SCENARIO_JUICE.confettiSeconds, performance.now());
   }
   game.renderFrame(performance.now(), true);
@@ -339,11 +342,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   const settings = loadSettings();
   const container = el('game');
   container.hidden = false;
-  setStatus('Connecting…');
+  setStatus(t('status.connecting'));
   const room = await joinOrReconnect(tuning);
   setStatus('');
   // Wi-Fi blip: the SDK reconnects by itself while the server holds our seat.
-  room.onDrop(() => setStatus('Connection lost — reconnecting…', true));
+  room.onDrop(() => setStatus(t('status.connectionLost'), true));
   room.onReconnect(() => setStatus(''));
   room.ping((ms) => {
     liveStats.pingMs = ms;
@@ -414,7 +417,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   // Host only, during a race: the way out of a race nobody finishes.
   const endRace = document.createElement('button');
   endRace.className = 'end-race';
-  endRace.textContent = '⏹ End race';
+  endRace.textContent = t('hud.endRace');
   endRace.hidden = true;
   endRace.addEventListener('click', () => room.send(MSG.hostEndRace, {}));
   container.appendChild(endRace);
@@ -454,11 +457,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   /** A replay is coming or playing: the results screen waits for it. */
   let photoHold = false;
   const photoFinish = (winner: number, runnerUp: number, gapMs: number, stillDriving: boolean): void => {
-    const name = (slot: number): string => escapeHtml(teamNames[slot] || `Car ${slot + 1}`);
-    const line = `<b>${name(winner)}</b> beat <b>${name(runnerUp)}</b> by ${(gapMs / 1000).toFixed(2)} s`;
+    const name = (slot: number): string => `<bdi>${escapeHtml(teamNames[slot] || t('lobby.car', { n: slot + 1 }))}</bdi>`;
+    const line = t('photo.line', { winner: name(winner), runnerUp: name(runnerUp), gap: (gapMs / 1000).toFixed(2) });
     // Still driving: a replay would take your view away, so just say it.
     if (stillDriving) {
-      toasts.show(`📸 Photo finish! ${line}`, 'info');
+      toasts.show(t('toast.photoFinish', { line }), 'info');
       return;
     }
     photoHold = true;
@@ -607,7 +610,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       const done = ghostRecorder.finish(now, trackId, myCarDef.id);
       if (done && keepIfBest(done, bestGhost)) {
         bestGhost = done;
-        if (ghostOn) toasts.show(`👻 New best lap: <b>${(done.lapMs / 1000).toFixed(2)} s</b>. Your ghost races you from now on.`, 'good');
+        if (ghostOn) toasts.show(t('toast.newBest', { time: (done.lapMs / 1000).toFixed(2) }), 'good');
       }
     }
     if (lap.started) {
@@ -650,7 +653,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       }
     }
     const storm = sandstormOn(track.def.sandstorm, state.phase, boardCars.map((c) => c.lapsDone));
-    if (storm && !stormOn) toasts.show(STORM_TOAST, 'bad');
+    if (storm && !stormOn) toasts.show(t('toast.sandstorm'), 'bad');
     stormOn = storm;
     if (state.phase === 'countdown') lastRecord = null;
     resultsScreen.update(state.phase === 'results' && !photoHold, {
@@ -683,7 +686,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     if (state.phase === 'racing' && roleCardShown) onboarding.mark('roleCard');
     if (state.phase === 'racing' && myCar && myRole !== null && swapMinLap !== null && !onboarding.has('swap') && myCar.lapsDone + 1 >= swapMinLap) {
       onboarding.mark('swap');
-      toasts.show(HINT_TEXT.swap, 'info');
+      toasts.show(hintText('swap'), 'info');
     }
     const cue = countdownCue(lastCountdown, hudNow.countdown);
     lastCountdown = hudNow.countdown;
@@ -796,12 +799,12 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   onEvents = (events) => {
     for (const e of events) {
       if (e.type === 'honk') {
-        game.say(e.car, 'HONK!');
+        game.say(e.car, t('bubble.honk'));
         horns.play(carDefOf(e.car).horn, heardFrom(e.car));
         continue;
       }
       if (e.type === 'stall' || e.type === 'restart') {
-        if (e.type === 'stall') game.say(e.car, 'STALL!');
+        if (e.type === 'stall') game.say(e.car, t('bubble.stall'));
         horns.playSound(ENGINE_SOUNDS[e.type], heardFrom(e.car));
         continue;
       }
@@ -821,10 +824,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       }
       if (e.type === 'itemBox') {
         if (e.car === myCarId && e.item) {
-          toasts.show(`${itemIcon(e.item)} You got <b>${itemName(e.item)}</b>!`, 'good');
+          toasts.show(t('toast.gotItem', { icon: itemIcon(e.item), item: itemName(e.item) }), 'good');
           if (!onboarding.has('item')) {
             onboarding.mark('item');
-            toasts.show(HINT_TEXT.item, 'info');
+            toasts.show(hintText('item'), 'info');
           }
           horns.playSound(ITEM_SOUNDS.pickup, 0);
         }
@@ -836,11 +839,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       }
       if (e.type === 'itemHit') {
         const what = `${itemIcon(e.item)} <b>${itemName(e.item)}</b>`;
-        const from = escapeHtml(teamNames[Number(e.by.slice('car'.length))] ?? e.by);
-        const whom = escapeHtml(teamNames[Number(e.car.slice('car'.length))] ?? e.car);
+        const from = `<bdi>${escapeHtml(teamNames[Number(e.by.slice('car'.length))] ?? e.by)}</bdi>`;
+        const whom = `<bdi>${escapeHtml(teamNames[Number(e.car.slice('car'.length))] ?? e.car)}</bdi>`;
         // Both players of the hit car see it (and the car that fired it).
-        if (e.car === myCarId) toasts.show(e.blocked ? `Your Firewall blocked ${what}!` : `Hit by ${what} from ${from}!`, e.blocked ? 'good' : 'bad');
-        else if (e.by === myCarId) toasts.show(e.blocked ? `${whom}'s Firewall blocked your ${what}` : `Your ${what} got ${whom}!`, e.blocked ? 'info' : 'good');
+        if (e.car === myCarId) toasts.show(e.blocked ? t('toast.youBlocked', { what }) : t('toast.hitBy', { what, from }), e.blocked ? 'good' : 'bad');
+        else if (e.by === myCarId) toasts.show(e.blocked ? t('toast.theyBlocked', { whom, what }) : t('toast.youHit', { what, whom }), e.blocked ? 'info' : 'good');
         horns.playSound(e.blocked ? ITEM_SOUNDS.blocked : ITEM_SOUNDS.hit, heardFrom(e.car));
         continue;
       }
@@ -901,7 +904,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     board.dispose();
     resultsScreen.dispose();
     spectator.dispose();
-    setStatus('Disconnected from the game server. Reload to rejoin.', true);
+    setStatus(t('status.disconnected'), true);
   });
   void markReady(hooks);
 }
@@ -956,8 +959,8 @@ if (hooks.error !== null) {
     const unreachable = /connect|websocket|network|failed to fetch/i.test(msg);
     setStatus(
       unreachable
-        ? `Can't reach the game server at ${window.location.hostname}. Is it running? Reload to retry.`
-        : `Something broke: ${msg}`,
+        ? t('status.unreachable', { host: window.location.hostname })
+        : t('status.broke', { msg }),
       true,
     );
     hooks.error = unreachable ? 'cannot reach the game server' : msg;

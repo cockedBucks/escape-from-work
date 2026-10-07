@@ -1,6 +1,7 @@
 import { VOLUME_KEYS, type Volumes } from '../audio/mixer';
+import { t, type StringKey } from '../i18n';
 
-const LABELS: Record<(typeof VOLUME_KEYS)[number], string> = { master: 'Master', engine: 'Engine', sfx: 'Effects', music: 'Music' };
+const LABELS: Record<(typeof VOLUME_KEYS)[number], StringKey> = { master: 'volume.master', engine: 'volume.engine', sfx: 'volume.sfx', music: 'volume.music' };
 
 /** Four labelled volume sliders; `refresh()` moves them to the current levels (another panel may have changed them). */
 export interface VolumeSliders {
@@ -19,7 +20,7 @@ export function volumeSliders(get: () => Volumes, set: (v: Volumes) => void): Vo
   for (const key of VOLUME_KEYS) {
     const label = document.createElement('label');
     const name = document.createElement('span');
-    name.textContent = LABELS[key];
+    name.textContent = t(LABELS[key]);
     const slider = document.createElement('input');
     slider.type = 'range';
     slider.min = '0';
@@ -56,7 +57,7 @@ export class VolumePanel {
     row.className = 'volume-row';
     this.button.type = 'button';
     this.button.className = 'volume-button';
-    this.button.title = 'Sound volume';
+    this.button.title = t('volume.title');
     this.panel.className = 'volume-panel';
     this.panel.hidden = true;
     const sliders = volumeSliders(get, (v) => {
@@ -76,7 +77,7 @@ export class VolumePanel {
       const gear = document.createElement('button');
       gear.type = 'button';
       gear.className = 'volume-button';
-      gear.title = 'Settings and keys';
+      gear.title = t('volume.gear');
       gear.dataset.action = 'settings';
       gear.textContent = '⚙';
       gear.addEventListener('click', (e) => {

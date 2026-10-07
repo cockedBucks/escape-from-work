@@ -5,7 +5,7 @@ roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
 - Phase: P11 — Extras after v1.0 (`docs/phases/P11-extras.md`), human's request 2026-10-07 (D117).
-- Next task: P11.4 Arabic UI
+- Next task: P11.5 Phones as controllers
 - Status: v1.0 done (P0–P10 + P10.8 fixes). `npm run verify` passes (524 tests + bot race).
 
 ## Half-done
@@ -151,6 +151,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-07 (cloud): P11.3 Seasonal decorations — config/seasons.json (Ramadan, Eid, Halloween, winter),
   9 original decoration kits beside every track (off roads, clear of props, tested), snow in winter,
   Settings → Decorations (Auto/Off/season), `shots --season <id>`. D120.
+- 2026-10-07 (cloud): P11.4 Arabic UI — every screen in English or Arabic (right-to-left), string tables in
+  `packages/client/src/i18n/` (Arabic must cover every key: typed + tested), Settings → Language,
+  `shots --lang ar`. Server refusal messages stay English. D121.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

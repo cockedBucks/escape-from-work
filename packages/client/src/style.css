@@ -1906,3 +1906,47 @@ body {
   cursor: pointer;
   box-shadow: var(--pop);
 }
+
+/* Arabic (P11.4): the page runs right-to-left. Names players typed (teams, people, cars) and
+   signed numbers keep their own direction; the menu keeps its layout so the turntable car stays
+   in view; window close buttons move to the left. */
+[dir='rtl'] .menu {
+  direction: ltr;
+}
+
+[dir='rtl'] .menu-panel {
+  direction: rtl;
+}
+
+[dir='rtl'] .menu-loading {
+  font-family: inherit;
+}
+
+[dir='rtl'] .modal-close {
+  right: auto;
+  left: 0.8rem;
+}
+
+.team-name,
+.seat-who,
+.car-pick span,
+.r-team,
+.r-points,
+.sb-team,
+.sb-gap,
+.l-name,
+.l-rank,
+.award-who,
+.step .block span,
+.menu-car b {
+  unicode-bidi: plaintext;
+}
+
+/* …but in an Arabic page they still line up on the right like the text around them. */
+[dir='rtl'] :is(.team-name, .r-team, .sb-team, .l-name, .award-who) {
+  text-align: right;
+}
+
+[dir='rtl'] .keys-page dt {
+  font-family: inherit;
+}

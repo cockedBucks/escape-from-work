@@ -22,7 +22,7 @@ Left in "Later ideas" for the human to decide.
   players already finished and spectators; drivers still racing get a toast.
 - [x] **P11.3 Seasonal decorations.** Date ranges in config (winter, Halloween, Ramadan, …) put
   original decoration props beside every track (and snow in winter). Settings: Auto / Off / pick one.
-- [ ] **P11.4 Arabic UI.** All screens in English or Arabic (right-to-left), language picker in
+- [x] **P11.4 Arabic UI.** All screens in English or Arabic (right-to-left), language picker in
   settings (default: the browser's language).
 - [ ] **P11.5 Phones as controllers.** A phone opens the same URL and becomes a controller: pick a
   car and seat, then big touch buttons for that role (the teammate's laptop shows the race). Two

@@ -1,6 +1,7 @@
 // Spectator cam (P3.5): when you are not in a car, the camera follows one car and moves to
 // the next every few seconds; A/D or ←/→ switch by hand (then it waits longer before
 // cycling again). A label says whom you are watching.
+import { t } from '../i18n';
 
 /** Auto-cycle to the next car this often (ms). */
 const CYCLE_MS = 8000;
@@ -68,7 +69,7 @@ export class Spectator {
   }
 
   private showLabel(): void {
-    const text = this.watched ? `👀 Watching ${this.nameOf(this.watched)} · A/D to switch` : '';
+    const text = this.watched ? t('hud.watching', { name: this.nameOf(this.watched) }) : '';
     if (this.label.textContent !== text) this.label.textContent = text;
     this.label.hidden = !this.active || this.watched === null;
   }

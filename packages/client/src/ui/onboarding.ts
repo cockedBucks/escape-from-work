@@ -1,7 +1,8 @@
 // First-time help (P8.3), once per browser: the role card during your first countdown, and a
 // hint the first time the swap lane opens and the first time you pick up an item.
 import { escapeHtml } from './html';
-import { HOW_TO_CARDS } from './roleKeys';
+import { howToCards } from './roleKeys';
+import { t } from '../i18n';
 
 export const HINTS = ['roleCard', 'swap', 'item'] as const;
 export type Hint = (typeof HINTS)[number];
@@ -46,11 +47,8 @@ export class Onboarding {
   }
 }
 
-/** One-time hint texts (HTML-safe constants). */
-export const HINT_TEXT = {
-  swap: '🟪 The purple <b>SWAP lane</b> is open: drive through it to trade seats and cool the engine!',
-  item: '📦 Items: the <b>Engineer</b> presses <b>Space</b> to use it · the <b>Pilot</b> holds <b>Q</b> to aim it back',
-} as const;
+/** One-time hint texts (HTML-safe, in the page's language). */
+export const hintText = (hint: 'swap' | 'item'): string => t(hint === 'swap' ? 'hint.swap' : 'hint.item');
 
 /** The big "this is you" card during your first countdown: your role, its job and its keys. */
 export class RoleCard {
@@ -65,7 +63,7 @@ export class RoleCard {
 
   /** Show the card for `role` ('pilot' | 'engineer' | 'solo'), or hide it (null). */
   set(role: string | null): void {
-    const card = HOW_TO_CARDS.find((c) => c.role === role);
+    const card = howToCards().find((c) => c.role === role);
     if (!card) {
       this.el.hidden = true;
       this.shown = '';
@@ -76,7 +74,7 @@ export class RoleCard {
     this.shown = card.role;
     this.el.dataset.role = card.role;
     const keys = card.keys.map(([k, what]) => `<li><kbd>${escapeHtml(k)}</kbd> ${escapeHtml(what)}</li>`).join('');
-    this.el.innerHTML = `<span class="you">You are the</span><strong>${escapeHtml(card.title)}</strong><p>${escapeHtml(card.job)}</p><ul>${keys}</ul><span class="more">Press <kbd>?</kbd> for all keys</span>`;
+    this.el.innerHTML = `<span class="you">${t('card.youAre')}</span><strong>${escapeHtml(card.title)}</strong><p>${escapeHtml(card.job)}</p><ul>${keys}</ul><span class="more">${t('card.more')}</span>`;
   }
 
   dispose(): void {

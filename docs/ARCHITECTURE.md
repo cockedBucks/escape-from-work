@@ -70,6 +70,7 @@ escape-from-work/
                        props/ (prop kit), effects/
       cameras/         chase, cockpit, spectator, showroom
       ui/              menu, lobby, hud, results, settings, overlays (blue screen…)
+      i18n/            UI strings: en.ts (every string), ar.ts (Arabic, type-checked complete), t() (P11.4)
       audio/           procedural Web Audio: engine, horns, sfx
       debug/           F3 overlay, F2 tuning panel (dev)
       test-hooks.ts    ?scenario= handling + window.__game

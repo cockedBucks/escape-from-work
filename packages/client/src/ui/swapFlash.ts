@@ -1,6 +1,7 @@
 // Big center flash when your car takes the swap lane: the new role and its keys, so the
 // player who was steering knows at once they now run the pedals (and the other way round).
 import { roleText } from './roleKeys';
+import { t as tr } from '../i18n';
 
 /** How long the flash stays up (ms). */
 const SHOW_MS = 2600;
@@ -18,8 +19,8 @@ export class SwapFlash {
   /** Show "SWAP!" with `role` ('pilot' | 'engineer' | 'solo'). Solo only gets the cooled engine. */
   show(role: string): void {
     const t = roleText(role);
-    const line = role === 'solo' ? 'Engine cooled!' : `You're the ${t.title} now`;
-    this.el.innerHTML = `<strong>SWAP!</strong><span class="who">${line}</span><span class="keys">${t.keys}</span>`;
+    const line = role === 'solo' ? tr('swap.cooled') : tr('swap.youAre', { role: t.title });
+    this.el.innerHTML = `<strong>${tr('swap.title')}</strong><span class="who">${line}</span><span class="keys">${t.keys}</span>`;
     this.el.dataset['role'] = role;
     this.el.hidden = false;
     // Restart the pop-in animation even if a flash is already showing.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HINT_TEXT, parseSeen } from './onboarding';
+import { hintText, parseSeen } from './onboarding';
 
 describe('first-time hints', () => {
   it('remembers the hints already seen, ignoring junk', () => {
@@ -9,8 +9,8 @@ describe('first-time hints', () => {
   });
 
   it('the hints name the keys they teach', () => {
-    expect(HINT_TEXT.item).toContain('Space');
-    expect(HINT_TEXT.item).toContain('Q');
-    expect(HINT_TEXT.swap).toContain('SWAP');
+    expect(hintText('item')).toContain('Space');
+    expect(hintText('item')).toContain('Q');
+    expect(hintText('swap')).toContain('SWAP');
   });
 });

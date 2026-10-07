@@ -3,10 +3,11 @@
 import type { LeagueTables, PlayerRow } from '@escape/shared';
 import { escapeHtml } from './html';
 import { raceTime } from './scoreboard';
+import { lang, t as tr, type StringKey } from '../i18n';
 
 export const LEAGUE_TABS = ['week', 'allTime', 'duos', 'laps'] as const;
 export type LeagueTab = (typeof LEAGUE_TABS)[number];
-const TAB_LABEL: Record<LeagueTab, string> = { week: 'This week', allTime: 'All time', duos: 'Best duos', laps: 'Lap records' };
+const TAB_LABEL: Record<LeagueTab, StringKey> = { week: 'league.week', allTime: 'league.allTime', duos: 'league.duos', laps: 'league.laps' };
 
 /** What the host sends: tables, or `enabled: false` when it keeps no league (dev, tests). */
 export type LeagueResponse = ({ enabled: true } & LeagueTables) | { enabled: false };
@@ -18,34 +19,34 @@ function playersHtml(rows: readonly PlayerRow[], empty: string): string {
   const body = rows
     .map((r, i) => `<tr><td class="l-rank">${medal(i)}</td><td class="l-name">${escapeHtml(r.name)}</td><td class="l-pts">${r.points}</td><td>${r.wins}</td><td>${r.podiums}</td><td>${r.races}</td></tr>`)
     .join('');
-  return `<table class="league-table"><thead><tr><th></th><th>Player</th><th>Points</th><th>Wins</th><th>Podiums</th><th>Races</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<table class="league-table"><thead><tr><th></th><th>${tr('league.player')}</th><th>${tr('league.points')}</th><th>${tr('league.wins')}</th><th>${tr('league.podiums')}</th><th>${tr('league.races')}</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
 /** "2026-10-04" → "Sun 4 Oct" (the week's first day). */
 export function dayLabel(date: string): string {
   const d = new Date(`${date}T12:00:00Z`);
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  return d.toLocaleDateString(lang() === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
 /** One tab's HTML. `carName` turns a roster car id into its name; `trackName` likewise. Pure, tested. */
 export function leagueTabHtml(t: LeagueTables, tab: LeagueTab, carName: (id: string) => string, trackName: (id: string) => string): string {
-  if (tab === 'week') return `<p class="league-note">Weekly cup since ${escapeHtml(dayLabel(t.week.start))}</p>${playersHtml(t.week.rows, 'No races this week yet. Go race!')}`;
-  if (tab === 'allTime') return `<p class="league-note">${t.races} races so far</p>${playersHtml(t.allTime, 'No races yet.')}`;
+  if (tab === 'week') return `<p class="league-note">${tr('league.weekSince', { day: escapeHtml(dayLabel(t.week.start)) })}</p>${playersHtml(t.week.rows, tr('league.noWeek'))}`;
+  if (tab === 'allTime') return `<p class="league-note">${tr('league.racesSoFar', { n: t.races })}</p>${playersHtml(t.allTime, tr('league.noRaces'))}`;
   if (tab === 'duos') {
-    if (t.duos.length === 0) return '<p class="empty">No duos yet: share a car with someone!</p>';
+    if (t.duos.length === 0) return `<p class="empty">${tr('league.noDuos')}</p>`;
     const body = t.duos
       .map((d, i) => `<tr><td class="l-rank">${medal(i)}</td><td class="l-name">${escapeHtml(d.names[0])} &amp; ${escapeHtml(d.names[1])}</td><td>${d.wins}</td><td class="l-pts">${d.points}</td><td>${d.races}</td></tr>`)
       .join('');
-    return `<table class="league-table"><thead><tr><th></th><th>Duo</th><th>Wins</th><th>Points</th><th>Races</th></tr></thead><tbody>${body}</tbody></table>`;
+    return `<table class="league-table"><thead><tr><th></th><th>${tr('league.duo')}</th><th>${tr('league.wins')}</th><th>${tr('league.points')}</th><th>${tr('league.races')}</th></tr></thead><tbody>${body}</tbody></table>`;
   }
-  if (t.laps.length === 0) return '<p class="empty">No laps yet.</p>';
+  if (t.laps.length === 0) return `<p class="empty">${tr('league.noLaps')}</p>`;
   const body = t.laps
     .map((l) => {
-      const who = l.bot ? '🤖 a bot (beat it!)' : escapeHtml(l.names.join(' & '));
+      const who = l.bot ? tr('league.botLap') : escapeHtml(l.names.join(' & '));
       return `<tr><td class="l-name">${escapeHtml(trackName(l.track))}</td><td class="l-pts">${raceTime(l.ms)}</td><td>${who}</td><td>${escapeHtml(carName(l.car))}</td></tr>`;
     })
     .join('');
-  return `<table class="league-table"><thead><tr><th>Track</th><th>Best lap</th><th>Who</th><th>Car</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<table class="league-table"><thead><tr><th>${tr('league.track')}</th><th>${tr('league.bestLap')}</th><th>${tr('league.who')}</th><th>${tr('league.car')}</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
 export class LeagueScreen {
@@ -68,7 +69,7 @@ export class LeagueScreen {
     close.addEventListener('click', () => this.close());
     const title = document.createElement('h2');
     title.className = 'league-title';
-    title.textContent = '🏆 The League';
+    title.textContent = tr('league.title');
     const tabs = document.createElement('div');
     tabs.className = 'tab-row';
     for (const t of LEAGUE_TABS) {
@@ -76,7 +77,7 @@ export class LeagueScreen {
       b.type = 'button';
       b.className = 'tab';
       b.dataset.tab = t;
-      b.textContent = TAB_LABEL[t];
+      b.textContent = tr(TAB_LABEL[t]);
       b.addEventListener('click', () => {
         b.blur();
         this.show(t);
@@ -97,7 +98,7 @@ export class LeagueScreen {
   /** Open with fresh tables from the host (or the given ones, for screenshots). */
   async open(tables?: LeagueResponse): Promise<void> {
     this.root.hidden = false;
-    this.body.innerHTML = '<p class="empty">Asking the host…</p>';
+    this.body.innerHTML = `<p class="empty">${tr('league.asking')}</p>`;
     this.tables = tables ?? (await fetchLeague());
     this.show(this.tab);
   }
@@ -106,8 +107,8 @@ export class LeagueScreen {
     this.tab = tab;
     for (const [t, b] of this.tabButtons) b.classList.toggle('on', t === tab);
     const t = this.tables;
-    if (!t) this.body.innerHTML = '<p class="empty">Could not reach the host.</p>';
-    else if (!t.enabled) this.body.innerHTML = '<p class="empty">This server keeps no league.</p>';
+    if (!t) this.body.innerHTML = `<p class="empty">${tr('league.unreachable')}</p>`;
+    else if (!t.enabled) this.body.innerHTML = `<p class="empty">${tr('league.off')}</p>`;
     else this.body.innerHTML = leagueTabHtml(t, tab, this.carName, this.trackName);
   }
 

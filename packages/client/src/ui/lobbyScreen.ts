@@ -3,7 +3,8 @@
 // you are typing in one of its text fields (live updates must not steal your keystrokes).
 import { NAME_MAX_LENGTH, TEAM_NAME_MAX_LENGTH, type RacePhase, type Seat } from '@escape/shared';
 import { TEAM_COLORS } from '../render/look';
-import { HOW_TO_CARDS, TEAM_TIP } from './roleKeys';
+import { howToCards, teamTip } from './roleKeys';
+import { t } from '../i18n';
 import { escapeHtml } from './html';
 
 export interface LobbyPlayer {
@@ -97,8 +98,8 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
     const mine = me?.face ?? '';
     const pick = (file: string, label: string, inner: string): string =>
       `<button class="face${file === mine ? ' mine' : ''}" data-action="face" data-face="${escapeHtml(file)}" title="${escapeHtml(label)}">${inner}</button>`;
-    html.push('<div class="face-picker"><span>Your face</span>');
-    html.push(pick('', 'Smiley', '<span class="face-smiley">🤓</span>'));
+    html.push(`<div class="face-picker"><span>${t('lobby.yourFace')}</span>`);
+    html.push(pick('', t('lobby.smiley'), '<span class="face-smiley">🤓</span>'));
     for (const f of faces) {
       html.push(pick(f.file, f.name, `<img src="/faces/${encodeURIComponent(f.file)}" alt="${escapeHtml(f.name)}">`));
     }
@@ -109,30 +110,30 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
     const inCar = v.players.filter((p) => p.slot === slot && p.seat !== '');
     const solo = inCar.find((p) => p.seat === 'solo');
     const mineCar = me?.slot === slot;
-    const team = escapeHtml(v.teams[slot] ?? `Team ${slot + 1}`);
+    const team = escapeHtml(v.teams[slot] ?? t('team.default', { n: slot + 1 }));
     const seatBtn = (seat: Seat, label: string): string => {
       const who = seat === 'solo' ? solo : inCar.find((p) => p.seat === seat) ?? solo;
       const mine = who?.id === v.myId;
       const taken = who !== undefined && !mine;
       const blocked = seat === 'solo' && inCar.some((p) => p.id !== v.myId);
       const bot = !who && v.botSlots.includes(slot) && seat !== 'solo';
-      const name = who ? `${who.ready ? '✓ ' : ''}${escapeHtml(who.name)}${who.connected ? '' : ' (away)'}` : bot ? '🤖 bot' : 'free';
+      const name = who ? `${who.ready ? '✓ ' : ''}${escapeHtml(who.name)}${who.connected ? '' : t('lobby.away')}` : bot ? t('lobby.bot') : t('lobby.free');
       return `<button class="seat${mine ? ' mine' : ''}" data-slot="${slot}" data-seat="${seat}" ${taken || blocked ? 'disabled' : ''}>
         <span class="seat-role">${label}</span><span class="seat-who">${name}</span></button>`;
     };
     const head = mineCar || iAmHost
-      ? `<input class="team-name" data-slot="${slot}" maxlength="${TEAM_NAME_MAX_LENGTH}" value="${team}" aria-label="Team name">`
+      ? `<input class="team-name" data-slot="${slot}" maxlength="${TEAM_NAME_MAX_LENGTH}" value="${team}" dir="auto" aria-label="${t('lobby.teamName')}">`
       : `<div class="team-name">${team}</div>`;
     // The car this team drives: its own players flip through the roster with ◀ ▶.
     const model = v.roster?.find((d) => d.id === v.carModels?.[slot]);
     const carRow = !model
       ? ''
       : mineCar && v.phase !== 'racing' && v.phase !== 'countdown'
-        ? `<div class="car-pick"><button data-action="car-prev" data-slot="${slot}" aria-label="Previous car">◀</button><span>${escapeHtml(model.name)}</span><button data-action="car-next" data-slot="${slot}" aria-label="Next car">▶</button></div>`
+        ? `<div class="car-pick"><button data-action="car-prev" data-slot="${slot}" aria-label="${t('lobby.prevCar')}">◀</button><span>${escapeHtml(model.name)}</span><button data-action="car-next" data-slot="${slot}" aria-label="${t('lobby.nextCar')}">▶</button></div>`
         : `<div class="car-pick"><span>${escapeHtml(model.name)}</span></div>`;
     html.push(`<div class="join-card${mineCar ? ' my-team' : ''}" style="--team:${hex(TEAM_COLORS[slot % TEAM_COLORS.length]!)}">
-      <div class="join-card-head"><span>Car ${slot + 1}</span>${carRow}</div>${head}
-      ${seatBtn('pilot', 'Pilot')}${seatBtn('engineer', 'Engineer')}${seatBtn('solo', 'Solo')}
+      <div class="join-card-head"><span>${t('lobby.car', { n: slot + 1 })}</span>${carRow}</div>${head}
+      ${seatBtn('pilot', t('seat.pilot'))}${seatBtn('engineer', t('seat.engineer'))}${seatBtn('solo', t('seat.solo'))}
     </div>`);
   }
   html.push('</div>');
@@ -143,22 +144,22 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
   const seated = me !== undefined && me.slot >= 0;
   html.push('<div class="lobby-actions">');
   if (seated) {
-    html.push(`<button class="big ready${ready ? ' on' : ''}" data-action="ready">${ready ? '✓ Ready' : 'Ready?'}</button>`);
-    html.push('<button class="watch" data-action="watch">Leave my seat and watch</button>');
+    html.push(`<button class="big ready${ready ? ' on' : ''}" data-action="ready">${ready ? t('lobby.ready') : t('lobby.notReady')}</button>`);
+    html.push(`<button class="watch" data-action="watch">${t('lobby.watch')}</button>`);
   }
   if (iAmHost) {
-    html.push(`<div class="host-controls"><span class="host-badge">HOST</span>
-      <span class="laps">Laps <button data-action="laps-down" ${v.laps <= limits.minLaps ? 'disabled' : ''}>−</button>
+    html.push(`<div class="host-controls"><span class="host-badge">${t('lobby.host')}</span>
+      <span class="laps">${t('lobby.laps')} <button data-action="laps-down" ${v.laps <= limits.minLaps ? 'disabled' : ''}>−</button>
       <strong>${v.laps}</strong>
       <button data-action="laps-up" ${v.laps >= limits.maxLaps ? 'disabled' : ''}>+</button></span>
-      <button data-action="shuffle">🔀 Shuffle</button>
-      <button data-action="bots" class="${v.bots ? 'on' : ''}">🤖 Bots: ${v.bots ? 'on' : 'off'}</button>
-      <button data-action="chaos" class="${chaos ? 'on' : ''}" title="Item boxes and items">💥 Chaos: ${chaos ? 'on' : 'off'}</button>
-      <button class="big start" data-action="start">${v.phase === 'results' ? 'REMATCH' : 'START RACE'}</button>
+      <button data-action="shuffle">${t('lobby.shuffle')}</button>
+      <button data-action="bots" class="${v.bots ? 'on' : ''}">${v.bots ? t('lobby.botsOn') : t('lobby.botsOff')}</button>
+      <button data-action="chaos" class="${chaos ? 'on' : ''}" title="${t('lobby.chaosTitle')}">${chaos ? t('lobby.chaosOn') : t('lobby.chaosOff')}</button>
+      <button class="big start" data-action="start">${v.phase === 'results' ? t('lobby.rematch') : t('lobby.start')}</button>
     </div>`);
   } else {
     const host = v.players.find((p) => p.id === v.host);
-    html.push(`<p class="waiting">${laps(v.laps)} · waiting for <strong>${escapeHtml(host?.name ?? 'the host')}</strong> to start</p>`);
+    html.push(`<p class="waiting">${t('lobby.waiting', { laps: laps(v.laps), host: escapeHtml(host?.name ?? t('lobby.theHost')) })}</p>`);
   }
   html.push('</div>');
   return html.join('');
@@ -172,22 +173,22 @@ export function trackHtml(v: LobbyView): string {
   const tracks = v.tracks ?? [];
   const name = escapeHtml(tracks.find((t) => t.id === v.track)?.name ?? v.track ?? '');
   if (!name) return '';
-  if (v.myId !== v.host || tracks.length < 2) return `<span class="track-label">Track</span><strong>${name}</strong>`;
+  if (v.myId !== v.host || tracks.length < 2) return `<span class="track-label">${t('lobby.track')}</span><strong>${name}</strong>`;
   const options = tracks
     .map((t) => `<option value="${escapeHtml(t.id)}"${t.id === v.track ? ' selected' : ''}>${escapeHtml(t.name)}</option>`)
     .join('');
-  return `<span class="track-label">Track</span><select data-action="track" title="Race this track next (everyone's page reloads)">${options}</select>`;
+  return `<span class="track-label">${t('lobby.track')}</span><select data-action="track" title="${escapeHtml(t('lobby.trackTitle'))}">${options}</select>`;
 }
 
-const laps = (n: number): string => `${n} lap${n === 1 ? '' : 's'}`;
+const laps = (n: number): string => t(n === 1 ? 'lobby.lap' : 'lobby.lapsN', { n });
 
 /** How-to-play: one short card per role (yours highlighted) and the team loop in a line. */
 function howToHtml(mySeat: string): string {
-  const cards = HOW_TO_CARDS.map((c) => {
+  const cards = howToCards().map((c) => {
     const keys = c.keys.map(([k, what]) => `<li><kbd>${k}</kbd> ${what}</li>`).join('');
     return `<div class="howto-card${c.role === mySeat ? ' mine' : ''}" data-role="${c.role}"><strong>${c.title}</strong><p>${c.job}</p><ul>${keys}</ul></div>`;
   });
-  return `<div class="howto">${cards.join('')}<p class="howto-tip">${TEAM_TIP}</p></div>`;
+  return `<div class="howto">${cards.join('')}<p class="howto-tip">${teamTip()}</p></div>`;
 }
 
 /**
@@ -212,12 +213,13 @@ export class LobbyScreen {
     const panel = document.createElement('div');
     panel.className = 'join-panel';
     const title = document.createElement('h2');
-    title.textContent = 'Lobby — pick a car and a seat';
+    title.textContent = t('lobby.title');
     const nameRow = document.createElement('label');
     nameRow.className = 'join-name';
-    nameRow.textContent = 'Your name ';
+    nameRow.textContent = t('lobby.yourName');
     this.nameInput.maxLength = NAME_MAX_LENGTH;
-    this.nameInput.placeholder = 'Name';
+    this.nameInput.dir = 'auto';
+    this.nameInput.placeholder = t('lobby.namePlaceholder');
     this.nameInput.addEventListener('change', () => this.commitName());
     nameRow.appendChild(this.nameInput);
     const topRow = document.createElement('div');
@@ -230,11 +232,7 @@ export class LobbyScreen {
     this.error.className = 'join-error';
     const help = document.createElement('div');
     help.className = 'lobby-help';
-    help.innerHTML =
-      '<div><strong>Pilot</strong> steers with A / D</div>' +
-      '<div><strong>Engineer</strong> gas W · brake / reverse S</div>' +
-      '<div><strong>Solo</strong> does both</div>' +
-      '<div>R respawn · Esc hide the lobby and drive around</div>';
+    help.innerHTML = t('lobby.help');
     panel.append(title, topRow, this.body, this.error, help);
     this.root.appendChild(panel);
     parent.appendChild(this.root);
@@ -321,7 +319,7 @@ export class LobbyScreen {
   }
 
   showError(reason: string): void {
-    this.error.textContent = `Not possible: ${reason}.`;
+    this.error.textContent = t('lobby.notPossible', { reason });
   }
 
   /** New state from the server. Opens between races, closes when the countdown starts. */
