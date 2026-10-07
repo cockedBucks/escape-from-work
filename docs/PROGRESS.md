@@ -6,8 +6,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Now
 - Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
   the human's request of 2026-10-07 (cloud).
-- Next task: none planned. P12 done; waiting for the human's playtest (see "Deferred human tests").
-- Status: P12 done (host/join, real-life cars, garage), reviewed and fixed (D128). `npm run verify` passes.
+- Next task: none planned. All phases done; next is running the "Deferred human tests" with the human.
+- Status: back local (2026-10-07). Cloud work merged into `main`, tags p7–p12 + v1.0 re-made locally,
+  `npm run verify` passes on Windows. The human pushes `main` and the tags.
 
 ## P12 phase report (cloud, 2026-10-07)
 - Works: HOST (name, track, mode, laps, bots, chaos) and JOIN (live list of every game on the
@@ -69,28 +70,9 @@ roll old "Last sessions" lines into one summary line per finished phase.
   3. Garage and seats: click your car's picture in the lobby, Honk a few, pick one; sit as Pilot,
      Engineer and Solo. Reply: clear and fun? does the lobby fit your screen without scrolling?
 
-## Cloud session (read me first, local Claude)
-- 2026-10-06: local Claude Code hit its usage limit after P7.4. Work continues in a claude.ai cloud
-  session (Linux container, Node 22, no GPU, no speakers, no LAN) on the session's branch, now
-  `claude/keen-edison-iupozz` (it contains `cloud-work`, D093), pushed after each task (never `main`; D090).
-- **When back local (after P10.7 is done in the cloud)** — local Claude, walk the human through this:
-  1. `git status` must be clean on `main` (commit or stash local changes first).
-  2. `git fetch origin` then `git log --oneline main..origin/claude/keen-edison-iupozz` (what is new).
-  3. `git checkout -b cloud-review origin/claude/keen-edison-iupozz`, then `npm install`,
-     `npm run verify`, `npm run shots -- menu lobby chase`, and `npm start` for a quick look (Windows).
-  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P12)"`
-     (no rebase, no reset). If a conflict appears, stop and ask the human.
-  5. `npm run verify` again on `main`, then the HUMAN pushes `main` (`git push origin main`).
-  6. Tags (cloud tags were never pushed): `git tag p7-done <hash of "P7.9">`, the same for
-     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the "P10.7" commit), `p11-done` ("P11.7"),
-     `p12-done` ("P12.4");
-     find hashes with `git log --oneline --grep "^P9.5"`. The human may `git push origin --tags`.
-  7. Delete the review branch (`git branch -d cloud-review`), remove this "Cloud session" section,
-     commit "docs: back local", then run the "Deferred human tests" with the human (LOCAL: lines too).
-- Works in the cloud: `verify`, `track:check`, `test:load`, `bots`, `shots` (Playwright Chromium,
-  software WebGL: images are fine, the fps number is NOT real).
-- Cannot be done in the cloud (do on the Windows laptop): real FPS, listening to audio,
-  LAN/firewall, real `npm run jitter` numbers. Look for "LOCAL:" lines in this file.
+## Built in the cloud (P7.5–P12, 2026-10-06/07)
+- Cloud had no GPU, speakers or LAN: real FPS, audio, LAN/firewall and `npm run jitter` numbers are
+  checked only on the Windows laptop (see "LOCAL:" lines and the deferred tests).
 
 ## Environment
 - OS: Windows 11 Pro 10.0.22631
