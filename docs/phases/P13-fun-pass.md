@@ -32,7 +32,7 @@ tricks fill the nitro meter). **Solo**: Space drifts/tricks, **E** uses items.
   held, three mini-turbo levels, release = boost + nitro. Visual hop, solo items on E, bots, pad.
 - [x] **P13.3 Rocket start.** Engineer (or Solo) presses gas in the last moment before "CLOCK
   OUT!": boost; too early: the engine floods (short sputter). Bots by skill. HUD + sound.
-- [ ] **P13.4 Slipstream.** Close behind a rival at speed: wind lines charge, then a boost.
+- [x] **P13.4 Slipstream.** Close behind a rival at speed: wind lines charge, then a boost.
 - [ ] **P13.5 Jump tricks.** Space in the air (Pilot / Solo): the car flips; landing = boost.
 - [ ] **P13.6 Boost pads.** A `boost` track zone (arrows on the road) on every track; bot laps ok.
 - [ ] **P13.7 Review and ship.** Reviewer on the phase diff, fixes, docs, `/shots`, tag.

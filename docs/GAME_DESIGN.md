@@ -105,6 +105,11 @@ Arcade, not simulation. Fast acceleration, strong grip, small slides, big forgiv
 - Too slow ends it with nothing; a spin-out or respawn cancels it.
 - Teamwork stays: the Pilot's drifts fill the nitro that the Engineer burns (and must keep cool).
 
+### Slipstream (automatic) — P13.4
+- Tuck in close behind a rival at speed (within ~12 m, nearly in line): wind lines appear and a
+  charge builds; after 2 s in the wake the car shoots out with a 1 s boost ("WHOOSH!"). Then a
+  4 s cooldown, so a train of cars does not boost forever. Keeps the pack close and rewards chasing.
+
 ### Nitro (Engineer)
 - A meter filled by drifting (and a little by item boxes). Shift burns it: strong speed boost,
   flames, and extra heat.

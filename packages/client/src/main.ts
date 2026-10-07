@@ -850,6 +850,12 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
         if (e.car === myCarId) toasts.show(t(rocket ? 'toast.rocket' : 'toast.flooded'), rocket ? 'good' : 'bad');
         continue;
       }
+      if (e.type === 'slipstream') {
+        game.say(e.car, t('bubble.slipstream'));
+        horns.playSound(DRIFT_SOUNDS.slip, heardFrom(e.car));
+        if (e.car === myCarId) toasts.show(t('toast.slipstream'), 'good');
+        continue;
+      }
       if (e.type === 'driftStart') {
         horns.playSound(DRIFT_SOUNDS.hop, heardFrom(e.car));
         continue;

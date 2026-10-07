@@ -18,6 +18,8 @@ export interface CarSnap {
   boosting: boolean;
   /** Burning nitro (big flames). */
   nitroOn: boolean;
+  /** In a rival's wake, charging a slipstream (wind lines). Optional: scenarios leave it out. */
+  drafting?: boolean;
   /** Firewall up (bubble). */
   shielded: boolean;
 }
@@ -108,6 +110,7 @@ export class SnapshotBuffer {
       o.driftLevel = cb.driftLevel;
       o.boosting = cb.boosting;
       o.nitroOn = cb.nitroOn;
+      o.drafting = cb.drafting ?? false;
       o.shielded = cb.shielded;
     }
   }

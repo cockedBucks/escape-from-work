@@ -15,6 +15,7 @@ import { useItems } from '../items/index';
 import { stepEnvelopes } from '../items/replyAll';
 import { TAU, dot, forward, wrapAngle } from '../util/math';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
+import { stepSlipstream } from './slipstream';
 import { collideWalls } from './walls';
 
 /** Inputs for this tick by car id. A missing car gets no input (coasts). */
@@ -34,6 +35,7 @@ export function step(world: World, inputs: InputsByCar, cfg: Tuning): SimEvent[]
     const raw = inputs[car.id] ?? NO_INPUT;
     stepCar(world, car, world.chaos ? applyControlEffects(world.chaos, car, raw, cfg) : raw, cfg, now, events);
   }
+  stepSlipstream(world.cars, cfg, now, events);
   collideCars(world.cars, now, cfg.car, events);
   if (world.chaos) {
     stepEnvelopes(world, world.chaos, cfg, now, events);

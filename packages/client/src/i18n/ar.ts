@@ -162,6 +162,8 @@ export const AR: Record<StringKey, string> = {
   'gauge.item': 'الأداة',
   'bubble.honk': 'بيب!',
   'bubble.rocket': '🚀 صاروخ!',
+  'bubble.slipstream': '💨 ووووش!',
+  'toast.slipstream': '💨 <b>سحب هوائي!</b> امشِ ورا منافس قريب لتشحنه.',
   'bubble.flooded': '💦 غرق الموتور!',
   'toast.rocket': '🚀 <b>انطلاقة صاروخية!</b> توقيت ممتاز على البنزين.',
   'toast.flooded': '💦 <b>غرق الموتور</b>: ضغطت البنزين بدري. المرة الجاية اضغطه على <b>1</b>!',

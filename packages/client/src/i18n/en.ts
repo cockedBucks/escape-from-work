@@ -170,6 +170,8 @@ export const EN = {
   'bubble.honk': 'HONK!',
   'bubble.stall': 'STALL!',
   'bubble.rocket': '🚀 ROCKET!',
+  'bubble.slipstream': '💨 WHOOSH!',
+  'toast.slipstream': '💨 <b>SLIPSTREAM!</b> Tuck in behind a rival to charge it.',
   'bubble.flooded': '💦 FLOODED!',
   'toast.rocket': '🚀 <b>ROCKET START!</b> Perfect timing on the gas.',
   'toast.flooded': '💦 Engine <b>FLOODED</b>: gas held too early. Next time hit it on <b>1</b>!',

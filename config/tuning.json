@@ -107,6 +107,16 @@
     "floodStallSeconds": 1,
     "botSkill": 2
   },
+  "slipstream": {
+    "range": 12,
+    "width": 1.8,
+    "maxAngle": 0.6,
+    "minSpeedRatio": 0.5,
+    "chargeSeconds": 2,
+    "decayPerSec": 1.5,
+    "boostSeconds": 1,
+    "cooldownSeconds": 4
+  },
   "solo": {
     "speedMultiplier": 1
   },

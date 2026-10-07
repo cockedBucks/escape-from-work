@@ -219,6 +219,23 @@ const NitroSchema = z.strictObject({
   topSpeed: z.number().min(1).max(3),
 });
 
+/** Slipstream (P13.4): tuck in close behind a rival to charge a boost. */
+const SlipstreamSchema = z.strictObject({
+  /** The rival must be ahead within this many m... */
+  range: pos(),
+  /** ...at most this far to either side (m)... */
+  width: pos(),
+  /** ...facing within this angle of your heading (rad), with you above this share of top speed. */
+  maxAngle: z.number().positive().max(Math.PI),
+  minSpeedRatio: fraction(),
+  /** Seconds in the wake to charge; the charge drains this fast (s per s) out of it. */
+  chargeSeconds: pos(),
+  decayPerSec: nonNeg(),
+  /** Boost length (s); it pushes like a drift boost. After one, no new charge for `cooldownSeconds`. */
+  boostSeconds: pos(),
+  cooldownSeconds: nonNeg(),
+});
+
 /** Rocket start (P13.3): time the gas in the countdown. */
 const RocketSchema = z.strictObject({
   /** Gas pressed at most this long before GO (s) and still held at GO = a rocket start... */
@@ -427,6 +444,7 @@ export const TuningSchema = z.strictObject({
   drift: DriftSchema,
   nitro: NitroSchema,
   rocket: RocketSchema,
+  slipstream: SlipstreamSchema,
   solo: SoloSchema,
   race: RaceSchema,
   battle: BattleSchema,

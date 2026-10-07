@@ -20,7 +20,7 @@ function state(over: Partial<CarState> = {}): CarState {
   return {
     id: 'a', stats: { speed: 1, grip: 1, weight: 1 }, x: 0, z: 0, y: 0, vy: 0, yaw: 0, vx: 0, vz: 0, steer: 0,
     segment: 0, progress: 0, lateral: 0, lastGate: 0, onSlick: false, onRamp: false, respawnAtTick: -1,
-    ghostUntilTick: 0, out: false, heat: 0, stallUntilTick: -1, driftDir: 0, driftCharge: 0, driftLevel: 0, driftKeyTicks: 0,
+    ghostUntilTick: 0, out: false, heat: 0, stallUntilTick: -1, driftDir: 0, driftCharge: 0, driftLevel: 0, driftKeyTicks: 0, slipCharge: 0,
     boostTicks: 0, nitro: 0, nitroOn: false, lap: 1, onSwap: false, swappedLap: 0, solo: false, item: '', spinTicks: 0, shieldTicks: 0, blueScreenTicks: 0, lagTicks: 0, controlSwapTicks: 0, updateTicks: 0,
     nextHonkTick: 0, ...over,
   };

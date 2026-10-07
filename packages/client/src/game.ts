@@ -395,7 +395,7 @@ export class Game {
         otherPose.speed = other.speed;
         break;
       }
-      this.speedLines.update(car ? speedLineStrength(car.speed / this.opts.tuning.car.topSpeed, car.boosting || car.nitroOn) : 0);
+      this.speedLines.update(car ? speedLineStrength(car.speed / this.opts.tuning.car.topSpeed, car.boosting || car.nitroOn || car.drafting === true) : 0);
       if (car) {
         focusPose.x = car.x;
         focusPose.z = car.z;

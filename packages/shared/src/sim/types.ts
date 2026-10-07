@@ -73,6 +73,9 @@ export interface CarState {
   driftLevel: number;
   /** Ticks the drift key has been held in a row (0 = up). Letting go ends a drift (boost). */
   driftKeyTicks: number;
+  /** Seconds charged in a rival's wake (slipstream, P13.4); a boost at `slipstream.chargeSeconds`.
+   *  Negative after a boost: the cooldown counting back up to 0. */
+  slipCharge: number;
   /** Ticks of drift boost left (0 = none). */
   boostTicks: number;
   /** Nitro meter 0–1 (filled by drifts, burned by holding nitro). */
@@ -125,6 +128,8 @@ export type SimEvent =
   /** At GO: a perfectly timed gas (boost), or gas held far too early (the engine floods, P13.3). */
   | { type: 'rocketStart'; car: string }
   | { type: 'flooded'; car: string }
+  /** A slipstream charged up: the car shoots out of the wake (P13.4). */
+  | { type: 'slipstream'; car: string }
   /** A drift began (the kart hops into it): `dir` -1 left / +1 right. */
   | { type: 'driftStart'; car: string; dir: number }
   | { type: 'driftLevel'; car: string; level: number }

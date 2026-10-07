@@ -379,6 +379,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | drift ends too easily (too slow) | `drift.exitSpeedRatio` (letting go of Space always ends it) |
 | spark levels too slow / boost too weak / nitro fills too fast | `drift.levelSeconds`, `drift.boostSeconds`, `drift.boostAccel`, `drift.boostTopSpeed`, `drift.nitroPerLevel` |
 | overheating too fast / never (P5) | `heat.nitroRisePerSec` (the main source), `heat.coolOnGasPerSec`, `heat.coolPerSec`; optional gas heat: `heat.risePerSec` (0 = off), `heat.hotSpeedFraction` |
+| slipstream too often / never / too strong (P13.4) | `slipstream.range`, `slipstream.width`, `slipstream.maxAngle`, `slipstream.minSpeedRatio`, `slipstream.chargeSeconds`, `slipstream.decayPerSec`, `slipstream.boostSeconds`, `slipstream.cooldownSeconds` |
 | rocket start too easy / too hard / too strong (P13.3) | `rocket.windowSeconds`, `rocket.floodSeconds`, `rocket.boostSeconds`, `rocket.floodStallSeconds`, `rocket.botSkill` |
 | nitro too weak / too strong / runs out too fast | `nitro.accel`, `nitro.topSpeed`, `nitro.burnPerSec` |
 | swap lane never worth it / always worth it | `car.swapLaneSpeed` (top-speed share inside the lane), zone `minLap`, `from`/`to` (track file) |
