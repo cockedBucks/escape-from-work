@@ -4,24 +4,22 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P10 — More tracks and ship v1.0 (`docs/phases/P10-tracks-and-ship.md`)
-- Next task: P10.7 Release (half done, see Half-done)
-- Status: P10.6 done. `npm run verify` passes (513 tests + bot race, best lap 35.52 s); `npm run test:load`
-  passes. The Office is the default track.
+- Phase: ALL PHASES BUILT (P0–P10). v1.0 = commit "P10.7: release" (tag it locally, see below).
+- Next task: run the "Deferred human tests" below with the human (first: merge the cloud branch
+  back on the local machine, see "Cloud session").
+- Status: `npm run verify` passes (516 tests + bot race, best lap 35.52 s). Four tracks: The Office (default), Server Room, Smart Oasis,
+  Motherboard.
 
 ## Half-done
-- P10.7 Release. DONE and committed ("P10.7 (part 1)"): reviewer ran on p9-done..HEAD — no
-  Critical. Fixed: host keeps host over a track-switch reload (`RaceSim.keepHostThroughReload`,
-  tests), a page on the wrong track reloads itself (main.ts), track picker is now a drop-down
-  (one pick = one reload; verified live in a browser), integration test for a successful switch
-  (tests/race-room.test.ts), hourly backup check, dune back slope 0.3, ARCHITECTURE protocol line.
-  LEFT TO DO: (1) glance at artifacts/shots/lobby.png (drop-down look; run `npm run shots -- lobby`);
-  (2) DECISIONS D115 line for these fixes (skipped: `LiveConfig.availableTracks()` caching);
-  (3) tick P10.7 in docs/phases/P10-tracks-and-ship.md, update "Now" here (all phases done);
-  (4) `npm run verify`, commit "P10.7: release", push; (5) tags: cloud tags are NOT pushed and
-  are lost with the container — make `git tag p10-done` and `git tag v1.0` on the final commit
-  (and re-tag p7/p8/p9-done locally, see the phase lines below); (6) final report to the human, then
-  run the "Deferred human tests" with them.
+- (none)
+
+## v1.0 phase report (P10)
+- Works: four tracks the host picks in the lobby (Track drop-down; everyone reloads into it,
+  seats and host kept), office start = double-click `start-server.bat` (or `./start-server.sh`),
+  daily league backups, 10-minute 16-bot soak with no leak, one lobby per server.
+- Try: `npm start` (or the start script), open the printed URL on 2+ laptops, pick each track.
+- Known issues: see below (bots and the sandstorm, real-hardware checks not done yet).
+- Next: the deferred human tests, then "Later ideas" in docs/ROADMAP.md.
 
 ## Deferred human tests (run all after the last phase; human's request 2026-10-06)
 - P2 FUN GATE step 3: close a tab mid-lap and reopen it (reconnect keeps your seat).
@@ -145,28 +143,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
   Shame, results points/awards, League screen (/league/tables.json). Gate deferred. Review fixes
   D107. Decisions D103–D107. Tag `p9-done` made in the cloud (re-tag locally).
 
-- 2026-10-06 (cloud): P10.0 Track picker — host picks the track in the lobby, server checks and loads it,
-  pages reload into it (seat held), pages load the server's track. D108.
-
-- 2026-10-06 (cloud): P10.1 Server Room — fan push zones, icy cold aisle (slick `look: ice`), rack /
-  cable tray / fan / AC props, 1.3 km serpentine, bot laps ~48 s; lobby track switch verified live. D109.
-
-- 2026-10-06 (cloud): P10.2 Smart Oasis — dune jumps (`look: dune`), Palm Oasis shortcut past the pond,
-  sandstorm on lap 2 (fog, toast; scenario `sandstorm`), palm/dune/rock/tent/pond props, bot laps ~44 s. D110.
-
-- 2026-10-06 (cloud): P10.3 Motherboard — copper trace roads on a green board, chip jumps between
-  capacitors, CPU-fan loop with a push zone, chip/capacitor/resistor/trace props, bot laps ~52 s. D111.
-
-- 2026-10-06 (cloud): P10.4 Office deployment — `start-server.bat`/`.sh` → `scripts/start-server.mjs`
-  (Node check, install if needed, build, start), daily league backups in `data/backups/`, LAN.md final.
-  LOCAL: double-click `start-server.bat` once on the Windows host to confirm it. D112.
-
-- 2026-10-06 (cloud): P10.5 Soak test — `npm run soak`: 16 bot clients, 10 min, 7 races; heap +0.2 MB,
-  tick avg 0.5 ms / worst 9.1 ms, 0 overruns, no leaks. D113.
-
-- 2026-10-06 (cloud): P10.6 Final pass — all 17 shots scenarios OK (no console errors), golden tests
-  in verify, props kept off the roads at drawn size (new test; 3 tracks fixed), one lobby per server
-  (a client's `create()` is refused), README rewritten for players, known issues listed. D114.
+- 2026-10-06/07: **P10 done** (cloud) — track picker (host, lobby drop-down, pages reload with seats
+  and host held), Server Room (fan push zones, icy aisle), Smart Oasis (dune jumps, Palm Oasis
+  shortcut, lap-2 sandstorm), Motherboard (chip jumps, CPU-fan loop), `start-server.bat/.sh` + daily
+  league backups, `npm run soak` (no leak), final pass (props off roads, one lobby per server,
+  README). Launch-party gate deferred. Review fixes D115. Decisions D108–D115. **v1.0.**
+  LOCAL: double-click `start-server.bat` once on the Windows host to confirm it.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

@@ -30,4 +30,4 @@ and a final stability pass.
 - [~] **HUMAN GATE — launch party.** (deferred)
   1. Host on the office PC with the start script. Get as many people as possible. Race all tracks.
   2. Reply: anything broken, plus the next features you want (see "Later ideas" in the roadmap).
-- [ ] **P10.7 Release.** Reviewer, fixes, `git tag v1.0`, final report.
+- [x] **P10.7 Release.** Reviewer, fixes, `git tag v1.0`, final report.
