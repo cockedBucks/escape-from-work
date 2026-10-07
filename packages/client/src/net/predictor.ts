@@ -247,6 +247,7 @@ export class OwnCarPredictor {
     // Your drift answers Space at once too (hop, sparks, boost flames), not a round trip later.
     out.drift = car.driftDir;
     out.driftLevel = car.driftLevel;
+    out.trick = car.trick === 1;
     if (car.boostTicks > 0) out.boosting = true;
     out.respawning = false;
     out.ghost = false;

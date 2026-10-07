@@ -105,6 +105,11 @@ Arcade, not simulation. Fast acceleration, strong grip, small slides, big forgiv
 - Too slow ends it with nothing; a spin-out or respawn cancels it.
 - Teamwork stays: the Pilot's drifts fill the nitro that the Engineer burns (and must keep cool).
 
+### Jump tricks (Pilot, Space in the air) — P13.5
+- Off a ramp, press Space once while high in the air: the car spins a full turn ("TRICK!").
+  Landing it = a short boost ("NAILED IT!"). One per jump; holding Space from the ground does
+  not count (it must be a fresh press in the air). Every track with a jump rewards it.
+
 ### Slipstream (automatic) — P13.4
 - Tuck in close behind a rival at speed (within ~12 m, nearly in line): wind lines appear and a
   charge builds; after 2 s in the wake the car shoots out with a 1 s boost ("WHOOSH!"). Then a

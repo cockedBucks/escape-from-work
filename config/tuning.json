@@ -117,6 +117,10 @@
     "boostSeconds": 1,
     "cooldownSeconds": 4
   },
+  "trick": {
+    "minHeight": 0.4,
+    "boostSeconds": 0.8
+  },
   "solo": {
     "speedMultiplier": 1
   },

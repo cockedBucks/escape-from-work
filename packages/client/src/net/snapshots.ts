@@ -20,6 +20,8 @@ export interface CarSnap {
   nitroOn: boolean;
   /** In a rival's wake, charging a slipstream (wind lines). Optional: scenarios leave it out. */
   drafting?: boolean;
+  /** Doing a jump trick (spins in the air). Optional: scenarios leave it out. */
+  trick?: boolean;
   /** Firewall up (bubble). */
   shielded: boolean;
 }
@@ -111,6 +113,7 @@ export class SnapshotBuffer {
       o.boosting = cb.boosting;
       o.nitroOn = cb.nitroOn;
       o.drafting = cb.drafting ?? false;
+      o.trick = cb.trick ?? false;
       o.shielded = cb.shielded;
     }
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { headKick, Shake, Squash } from './juice';
+import { DriftHop, headKick, Shake, Squash, TrickSpin } from './juice';
 import { JUICE } from './look';
 
 const run = (step: (dt: number) => void, seconds: number, dt = 1 / 60): void => {
@@ -68,4 +68,27 @@ describe('camera shake', () => {
 it('head kicks grow with the impact, capped', () => {
   expect(headKick(2)).toBeLessThan(headKick(10));
   expect(headKick(1e6)).toBe(JUICE.headKickMax);
+});
+
+describe('kart drift and trick looks (P13.2, P13.5)', () => {
+  it('a new drift hops once and leans out of the corner; no drift = flat', () => {
+    const hop = new DriftHop();
+    hop.step(-1, JUICE.hopSeconds / 2);
+    expect(hop.lift).toBeGreaterThan(JUICE.hopHeight * 0.9);
+    for (let i = 0; i < 30; i++) hop.step(-1, 1 / 60);
+    expect(hop.lift).toBe(0); // the hop is over while the drift goes on
+    expect(hop.roll).toBeGreaterThan(0); // drifting left leans right
+    for (let i = 0; i < 120; i++) hop.step(0, 1 / 60);
+    expect(Math.abs(hop.roll)).toBeLessThan(0.001);
+  });
+
+  it('a trick spins exactly once and ends straight', () => {
+    const spin = new TrickSpin();
+    spin.step(true, JUICE.trickSeconds / 2);
+    expect(spin.angle).toBeCloseTo(Math.PI);
+    spin.step(true, JUICE.trickSeconds);
+    expect(spin.angle).toBe(0);
+    spin.step(true, 0.1);
+    expect(spin.angle).toBe(0); // still the same trick: no second spin
+  });
 });

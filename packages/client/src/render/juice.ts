@@ -65,6 +65,30 @@ export class DriftHop {
   }
 }
 
+/** Jump trick look (P13.5): one full spin (rad, eased in and out) when a trick starts. */
+export class TrickSpin {
+  private t = -1;
+  private was = false;
+  angle = 0;
+
+  step(trick: boolean, dt: number): void {
+    if (trick && !this.was) this.t = 0;
+    this.was = trick;
+    if (this.t < 0) {
+      this.angle = 0;
+      return;
+    }
+    this.t += dt;
+    const k = Math.min(this.t / JUICE.trickSeconds, 1);
+    // Smoothstep: starts and ends gently, so the car settles straight for the landing.
+    this.angle = 2 * Math.PI * k * k * (3 - 2 * k);
+    if (k >= 1) {
+      this.t = -1;
+      this.angle = 0;
+    }
+  }
+}
+
 /** Camera shake after a hit: a decaying wobble on two axes (meters). */
 export class Shake {
   amp = 0;

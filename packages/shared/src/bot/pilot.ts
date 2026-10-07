@@ -1,6 +1,7 @@
 import type { Tuning } from '../config/tuning';
 import type { Track } from '../track/build';
 import { clamp, dot, forward, length } from '../util/math';
+import { isAirborne } from '../sim/air';
 import type { CarState } from '../sim/types';
 import { cornerAhead, cornerReverses } from './engineer';
 import { aimAngle, shortcutAhead } from './route';
@@ -22,10 +23,13 @@ export function botSteer(car: CarState, track: Track, cfg: Tuning, route: readon
  * The bot Pilot's drift key (P13.2), skill ≥ 1: held from just before a tight corner (not an
  * S-bend, which would carry the drift into the next wall, nor a narrow shortcut) while already
  * steering into it or not yet steering, so the drift goes the right way; kept down while the
- * road still bends that way; let go when the corner is over = boost.
+ * road still bends that way; let go when the corner is over = boost. In the air it presses once
+ * high enough for a trick.
  */
 export function botDrift(car: CarState, track: Track, cfg: Tuning, steer: number, skill: number, route: readonly number[] = []): boolean {
   if (skill < 1) return false;
+  // In the air: a fresh press once high enough = a trick (P13.5); let go before that.
+  if (isAirborne(car)) return car.trick === 0 && car.y >= cfg.trick.minHeight;
   const { bot, drift } = cfg;
   if (car.driftDir !== 0) {
     const here = cornerAhead(car, track, bot.driftHoldAhead, route);

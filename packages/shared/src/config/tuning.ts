@@ -236,6 +236,14 @@ const SlipstreamSchema = z.strictObject({
   cooldownSeconds: nonNeg(),
 });
 
+/** Jump tricks (P13.5): Space in the air spins the car; landing boosts. */
+const TrickSchema = z.strictObject({
+  /** The press counts this high in the air (m) or higher. */
+  minHeight: pos(),
+  /** Boost on landing (s); it pushes like a drift boost. */
+  boostSeconds: pos(),
+});
+
 /** Rocket start (P13.3): time the gas in the countdown. */
 const RocketSchema = z.strictObject({
   /** Gas pressed at most this long before GO (s) and still held at GO = a rocket start... */
@@ -445,6 +453,7 @@ export const TuningSchema = z.strictObject({
   nitro: NitroSchema,
   rocket: RocketSchema,
   slipstream: SlipstreamSchema,
+  trick: TrickSchema,
   solo: SoloSchema,
   race: RaceSchema,
   battle: BattleSchema,

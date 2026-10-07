@@ -348,6 +348,8 @@ export const JUICE = {
   hopSeconds: 0.22,
   driftLean: 0.07,
   driftLeanRate: 10,
+  /** Jump trick (P13.5): one full spin in this long (s). */
+  trickSeconds: 0.45,
   confettiColors: [0xff5a5f, 0xffd23f, 0x3bceac, 0x5b8cff, 0xc77dff, 0xffffff],
 } as const;
 

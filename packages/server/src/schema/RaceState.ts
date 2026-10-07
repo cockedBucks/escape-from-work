@@ -80,6 +80,8 @@ export const CarView = schema(
     driftLevel: t.uint8().default(0),
     driftCharge: t.float32().default(0),
     boostLeft: t.float32().default(0),
+    /** Doing a jump trick right now (the car spins in the air, P13.5). */
+    trick: t.boolean().default(false),
     /** Slipstream charge 0–1 (in a rival's wake: wind lines, P13.4). */
     slip: t.float32().default(0),
     /** Inside a swap lane (slower): lets prediction match the server there. */

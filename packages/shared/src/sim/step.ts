@@ -16,6 +16,7 @@ import { stepEnvelopes } from '../items/replyAll';
 import { TAU, dot, forward, wrapAngle } from '../util/math';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent, type World } from './types';
 import { stepSlipstream } from './slipstream';
+import { landTrick, stepTrick } from './trick';
 import { collideWalls } from './walls';
 
 /** Inputs for this tick by car id. A missing car gets no input (coasts). */
@@ -99,10 +100,13 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
   stepNitro(car, input, cfg, now, events);
   input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
   input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), track, cfg, events);
-  if (!isAirborne(car) && !spinning) drive(car, input, cfg.car, cfg, dt);
+  stepTrick(car, cfg, events);
+  const flying = isAirborne(car);
+  if (!flying && !spinning) drive(car, input, cfg.car, cfg, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;
   const impact = fall(car, cfg.car, dt);
+  if (flying && !isAirborne(car)) landTrick(car, cfg, events);
   if (impact > 0) events.push({ type: 'land', car: car.id, impact });
   const hit = collideWalls(car, track, cfg.car);
   if (hit > 0) events.push({ type: 'wallHit', car: car.id, speed: hit });

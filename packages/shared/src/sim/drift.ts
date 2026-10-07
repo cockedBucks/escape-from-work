@@ -7,8 +7,9 @@ import { clamp } from '../util/math';
 import { isAirborne } from './air';
 import type { CarInput, CarState, SimEvent } from './types';
 
-/** Forget any drift and boost (respawn). The nitro meter stays. */
+/** Forget any drift, trick and boost (respawn). The nitro meter stays. */
 export function resetDrift(car: CarState): void {
+  car.trick = 0;
   car.driftDir = 0;
   car.driftCharge = 0;
   car.driftLevel = 0;

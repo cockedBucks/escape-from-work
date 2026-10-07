@@ -850,6 +850,12 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
         if (e.car === myCarId) toasts.show(t(rocket ? 'toast.rocket' : 'toast.flooded'), rocket ? 'good' : 'bad');
         continue;
       }
+      if (e.type === 'trick' || e.type === 'trickLand') {
+        const land = e.type === 'trickLand';
+        game.say(e.car, t(land ? 'bubble.trickLand' : 'bubble.trick'));
+        horns.playSound(land ? DRIFT_SOUNDS.boost : DRIFT_SOUNDS.hop, heardFrom(e.car));
+        continue;
+      }
       if (e.type === 'slipstream') {
         game.say(e.car, t('bubble.slipstream'));
         horns.playSound(DRIFT_SOUNDS.slip, heardFrom(e.car));
