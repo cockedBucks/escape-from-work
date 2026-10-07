@@ -7,6 +7,7 @@ import { hudText } from '../ui/raceHud';
 import { savedName } from '../ui/lobbyScreen';
 import { PadControls } from './padControls';
 import { PadScreen, type PadPlayer, type PadView } from './padScreen';
+import { t } from '../i18n';
 
 /** Buzz patterns (ms): hit by an item, a hard wall hit, the swap lane. */
 const BUZZ = { hit: 160, wall: 40, swap: [60, 40, 60] } as const;
@@ -34,6 +35,16 @@ export async function showPad(container: HTMLElement, tuning: Tuning): Promise<v
     start: () => room.send(MSG.hostStart, {}),
   }, name);
   room.onMessage(MSG.lobbyError, (e: LobbyError) => screen.showError(e.reason));
+  // Wi-Fi blip: the SDK reconnects while the server holds the seat; say so, and let go of the gas.
+  room.onDrop(() => {
+    controls.releaseAll();
+    screen.setNotice(t('status.connectionLost'));
+  });
+  room.onReconnect(() => screen.setNotice(''));
+  room.onLeave(() => {
+    controls.dispose();
+    screen.setNotice(t('status.disconnected'));
+  });
   let myCarId: string | null = null;
   room.onMessage(MSG.events, (events: SimEvent[]) => {
     for (const e of events) {

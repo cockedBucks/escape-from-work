@@ -104,6 +104,11 @@ export interface CarState {
   respawnAtTick: number;
   /** Ghosted (no car-vs-car collisions) until this tick. */
   ghostUntilTick: number;
+  /**
+   * Out of a battle (P11.6, set by the server's battle rules): it picks up no item boxes. Always
+   * false in a race, so it is not part of the replay hash.
+   */
+  out: boolean;
 }
 
 /** Things that happened during a tick, for sound, effects, the HUD and the league. */

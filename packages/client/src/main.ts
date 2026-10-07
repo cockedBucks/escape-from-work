@@ -446,6 +446,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   let battleMode = false;
   let myOut = false;
   const outCars = new Set<string>();
+  /** The first state on this page: cars already out are not announced (opened mid-battle). */
+  let firstState = true;
   const ghostDraw: { look: CarLook; pose: GhostPose } = { look: loadCars().cars[0]!.look, pose: { x: 0, y: 0, z: 0, yaw: 0 } };
   // Photo finish (P11.2): the last seconds of every car as drawn, replayed when 1st and 2nd are close.
   const replayRec = new ReplayRecorder(race.maxCars, PHOTO.hz, PHOTO.bufferSeconds);
@@ -617,6 +619,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       ghostRecorder.start(now);
       ghostLapStart = now;
       ghostRun = bestGhost;
+      // Its look, once per lap (not looked up every frame).
+      if (ghostRun) {
+        const car = ghostRun.car;
+        ghostDraw.look = (roster.find((d) => d.id === car) ?? roster[0]!).look;
+      }
     } else if (lap.ended || lap.stopped) {
       ghostRecorder.abort();
       ghostRun = null;
@@ -636,10 +643,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
       // Battle: a car just went out (everyone hears it; your own car says so).
       if (state.phase === 'racing' && c.out && !outCars.has(id)) {
         outCars.add(id);
-        toasts.show(id === myCarId ? t('toast.youOut') : t('toast.out', { team: escapeHtml(teamNames[Number(id.slice('car'.length))] ?? id) }), id === myCarId ? 'bad' : 'info');
+        if (!firstState) toasts.show(id === myCarId ? t('toast.youOut') : t('toast.out', { team: escapeHtml(teamNames[Number(id.slice('car'.length))] ?? id) }), id === myCarId ? 'bad' : 'info');
       }
     });
     if (state.phase === 'countdown') outCars.clear();
+    firstState = false;
     battleMode = state.mode === 'battle';
     myOut = myCar?.out ?? false;
     board.update(boardRows(boardCars, players, teamNames, state.laps, state.phase, state.mode), state.mode);
@@ -754,10 +762,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     recordCars: (now, cars) => replayRec.record(now, cars),
     lapGhost: (now) => {
       if (!ghostOn || ghostRun === null || phase !== 'racing' || myCarId === null || battleMode) return null;
-      if (!ghostPoseAt(ghostRun, now - ghostLapStart, ghostDraw.pose)) return null;
-      const run = ghostRun;
-      ghostDraw.look = (roster.find((d) => d.id === run.car) ?? roster[0]!).look;
-      return ghostDraw;
+      return ghostPoseAt(ghostRun, now - ghostLapStart, ghostDraw.pose) ? ghostDraw : null;
     },
     onFrame: (now) => {
       // Chase-cam gauges for your car (the cockpit has its dashboard screen instead).
@@ -913,6 +918,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     toasts.dispose();
     mouseLook.dispose();
     endRace.remove();
+    photoBanner.dispose();
     board.dispose();
     resultsScreen.dispose();
     spectator.dispose();

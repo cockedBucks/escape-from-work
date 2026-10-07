@@ -162,8 +162,13 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const trackOf = (s: BotStateView): Track => {
     const id = s.track || DEFAULT_TRACK;
     if (id !== trackId) {
-      track = opts.loadTrack(id);
-      trackId = id;
+      trackId = id; // tried once, loaded or not
+      try {
+        track = opts.loadTrack(id);
+      } catch (err) {
+        // A track this checkout does not have (another version on the server): keep driving the old one.
+        console.warn(`bot: cannot load track "${id}" (${err instanceof Error ? err.message : String(err)}); still driving the last one`);
+      }
     }
     return track;
   };

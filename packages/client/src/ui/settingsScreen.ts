@@ -183,7 +183,16 @@ export class SettingsScreen {
     decorNote.textContent = t('settings.decorNote');
     // Language: the whole page is built in it, so a change always needs a reload.
     const langReload = reload.cloneNode(true) as HTMLButtonElement;
-    langReload.addEventListener('click', () => window.location.reload());
+    langReload.addEventListener('click', () => {
+      // A `?lang=` in the address (screenshots) would win over the new choice: drop it.
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('lang')) {
+        params.delete('lang');
+        window.location.search = params.toString();
+      } else {
+        window.location.reload();
+      }
+    });
     const language = choices(LANG_SETTINGS, (l) => (l === 'auto' ? t('settings.auto') : LANG_NAMES[l]), this.settings.lang, (l) => {
       this.settings = { ...this.settings, lang: l };
       this.h.onSettings(this.settings);

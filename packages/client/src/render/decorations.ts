@@ -122,7 +122,7 @@ export class Snowfall {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
-    this.points = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: SNOW.size, sizeAttenuation: true }));
+    this.points = new THREE.Points(geo, new THREE.PointsMaterial({ color: SNOW.color, size: SNOW.size, sizeAttenuation: true }));
     this.points.frustumCulled = false; // the flakes follow the camera; the bounding box would be stale
     this.points.name = 'snow';
   }

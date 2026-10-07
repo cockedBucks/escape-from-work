@@ -343,8 +343,14 @@ export class Game {
     const view = this.opts.view;
     if (replay) {
       const { from, at } = replay.camera;
-      this.stage.camera.position.set(from[0], from[1], from[2]);
-      this.stage.camera.lookAt(at[0], at[1], at[2]);
+      const cam = this.stage.camera;
+      cam.position.set(from[0], from[1], from[2]);
+      cam.lookAt(at[0], at[1], at[2]);
+      // The plain field of view (not the cockpit's or a speed-widened one).
+      if (cam.fov !== this.opts.tuning.camera.fov) {
+        cam.fov = this.opts.tuning.camera.fov;
+        cam.updateProjectionMatrix();
+      }
       this.setBackdrop(false);
       this.showDash(null);
       this.speedLines.update(0);
@@ -475,7 +481,8 @@ export class Game {
     m.speed = s.speed;
     m.yaw = s.yaw;
     const seats = this.opts.occupants?.(id) ?? null;
-    const inCockpit = this.opts.view === 'cockpit';
+    // A replay looks at the cars from outside: your own head shows too.
+    const inCockpit = this.opts.view === 'cockpit' && this.replay === null;
     for (let i = 0; i < SIDES.length; i++) {
       const side = SIDES[i]!;
       const who = seats?.[side] ?? null;

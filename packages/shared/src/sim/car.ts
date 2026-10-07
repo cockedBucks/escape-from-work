@@ -48,6 +48,7 @@ export function createCar(id: string, stats: CarStats, track: Track, gateIndex =
     onRamp: false,
     respawnAtTick: -1,
     ghostUntilTick: 0,
+    out: false,
     heat: 0,
     stallUntilTick: -1,
     driftDir: 0,

@@ -779,6 +779,7 @@ export const SNOW = {
   /** Fall speed (m/s) and sideways drift. */
   fall: 2.2,
   drift: 0.6,
-  /** Flake size (world units). */
+  /** Flake size (world units) and color. */
   size: 0.22,
+  color: 0xffffff,
 } as const;

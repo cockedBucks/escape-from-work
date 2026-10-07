@@ -702,7 +702,7 @@ describe('RaceSim battle mode (P11.6)', () => {
     expect(sim.chaos).toBe(true);
     expect(sim.startRace('a')).toBeNull();
     toRacing(sim);
-    expect(sim.setMode('a', 'race')).toMatch(/not during/);
+    expect(sim.setMode('a', 'race')).toMatch(/in the lobby/);
     expect(new RaceSim(track, cfg, stats).setMode('x', 'battle')).not.toBeNull();
   });
 
@@ -739,5 +739,54 @@ describe('RaceSim battle mode (P11.6)', () => {
     for (let i = 0; i < Math.round(cfg.battle.timeLimitSeconds / cfg.sim.dt) + 1 && sim.flow.phase === 'racing'; i++) sim.tick();
     expect(sim.flow.phase).toBe('results');
     expect(sim.lastResults?.map((r) => r.id)).toEqual(['car1', 'car2', 'car0']);
+  });
+});
+
+describe('RaceSim battle end (review fixes)', () => {
+  const items = loadItemsFile();
+  it('the final knockout and the results on the same tick: places come from the results', () => {
+    const sim = new RaceSim(track, cfg, stats, undefined, items);
+    for (const [id, slot] of [['a', 0], ['b', 1], ['c', 2]] as const) {
+      sim.addPlayer(id);
+      sim.setSeat(id, slot, 'solo');
+    }
+    sim.setMode('a', 'battle');
+    sim.startRace('a');
+    for (let i = 0; i < 10_000 && sim.flow.phase !== 'racing'; i++) sim.tick();
+    sim.tick(); // places now: everyone tied on lives, by id
+    // car0 and car1 go out together on the last tick: car2 wins.
+    for (const id of ['car0', 'car1']) {
+      sim.battle!.lives.set(id, 0);
+      sim.battle!.outTick.set(id, sim.world.tick);
+    }
+    sim.tick();
+    expect(sim.flow.phase).toBe('results');
+    expect(sim.carRace('car2')?.place).toBe(1);
+    expect(sim.lastResults?.[0]?.id).toBe('car2');
+  });
+
+  it('an out car picks up no item boxes; the mode changes only in the lobby', () => {
+    const sim = new RaceSim(track, cfg, stats, undefined, items);
+    for (const [id, slot] of [['a', 0], ['b', 1], ['c', 2]] as const) {
+      sim.addPlayer(id);
+      sim.setSeat(id, slot, 'solo');
+    }
+    sim.setMode('a', 'battle');
+    sim.startRace('a');
+    for (let i = 0; i < 10_000 && sim.flow.phase !== 'racing'; i++) sim.tick();
+    sim.battle!.lives.set('car1', 0);
+    sim.battle!.outTick.set('car1', sim.world.tick);
+    sim.tick();
+    const out = car(sim, 'car1');
+    expect(out.out).toBe(true);
+    // Park it on an item box: it must not take it.
+    const box = sim.world.chaos!.boxes[0]!;
+    out.x = box.x;
+    out.z = box.z;
+    out.item = '';
+    sim.tick();
+    expect(out.item).toBe('');
+    expect(box.respawnAtTick).toBe(0);
+    expect(sim.setMode('a', 'race')).toMatch(/lobby/);
   });
 });

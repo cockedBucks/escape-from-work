@@ -75,7 +75,9 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
       },
       onLeague: () => void leagueScreen.open(),
       onPad: () => {
-        window.location.search = '?pad';
+        const params = new URLSearchParams(window.location.search);
+        params.set('pad', '');
+        window.location.search = params.toString();
       },
       onSettings: () => settingsScreen.open('settings'),
       onKeys: () => settingsScreen.open('keys'),

@@ -155,7 +155,8 @@ export class RaceSim {
   /** Host: Race or Battle for the next race. */
   setMode(by: string, mode: RaceMode): string | null {
     if (by !== this.flow.host) return 'only the host can change the mode';
-    if (!seatChangesAllowed(this.flow.phase)) return 'not during a race';
+    // Not on the results screen either: it still shows the last race in its own mode.
+    if (this.flow.phase !== 'lobby') return 'change the mode in the lobby';
     if (mode === 'battle' && !this.items) return 'battle needs items (config/items.json)';
     this.mode = mode;
     this.battle = null;
@@ -626,10 +627,13 @@ export class RaceSim {
     const battle = this.flow.phase === 'racing' ? this.battle : null;
     if (battle) {
       for (const car of this.world.cars) {
-        if (!isOut(battle, car.id)) continue;
+        car.out = isOut(battle, car.id);
+        if (!car.out) continue;
         inputs[car.id] = NO_INPUT;
         car.ghostUntilTick = this.world.tick + 2;
       }
+    } else {
+      for (const car of this.world.cars) car.out = false; // between battles everyone drives again
     }
     this.lastInputs = inputs;
     const events = step(this.world, inputs, this.cfg);
@@ -642,7 +646,10 @@ export class RaceSim {
       countTick(this.counts, events, this.brakingCars(inputs), sim.dt);
       for (const id of applyBattleEvents(battle, events, tick, this.cfg.battle, sim.dt)) {
         const car = this.world.cars.find((c) => c.id === id);
-        if (car) car.item = '';
+        if (car) {
+          car.item = '';
+          car.out = true;
+        }
       }
       over = this.endRequested || battleOver(battle, tick, this.cfg.battle, sim.dt);
       this.endRequested = false;
@@ -666,10 +673,13 @@ export class RaceSim {
       this.lastResults = this.battle ? battleResults(this.battle, tick) : results(this.run, this.world);
       this.lastCounts = new Map([...this.counts].map(([id, c]) => [slotOfCar(id), { ...c }]));
     }
-    // Places after any phase change, so the first racing tick already has them.
-    if (this.run && this.flow.phase === 'racing') {
+    // Places after any phase change, so the first racing tick already has them, and once more
+    // from the final results on the tick the race ends (the last finish or knockout may be in it).
+    if (this.run && (this.flow.phase === 'racing' || changed === 'results')) {
       this.places.clear();
-      const order = this.battle ? battleStandings(this.battle) : standings(this.run, this.world);
+      const order = changed === 'results' && this.lastResults
+        ? this.lastResults.map((r) => r.id)
+        : this.battle ? battleStandings(this.battle) : standings(this.run, this.world);
       order.forEach((id, i) => this.places.set(id, i + 1));
       this.leaderId = order[0];
     }

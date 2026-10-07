@@ -56,7 +56,8 @@ export function createChaos(track: Track, cfg: ItemsConfig, seed: number): Chaos
   return { cfg, boxes: buildBoxes(track), rng: seed >>> 0, envelopes: [], puddles: [], history: {}, inputLog: {}, nextId: 1 };
 }
 
-const canPickUp = (car: CarState): boolean => car.respawnAtTick < 0;
+/** Not while fading out to respawn, and never once out of a battle. */
+const canPickUp = (car: CarState): boolean => car.respawnAtTick < 0 && !car.out;
 
 /**
  * Item boxes for one tick, after the cars moved: a car driving through a box breaks it (it

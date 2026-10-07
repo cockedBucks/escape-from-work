@@ -156,7 +156,7 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
     const battle = v.mode === 'battle';
     // Battle: no laps (lives and a time limit instead) and items are always on.
     const lapsOrRules = battle
-      ? `<span class="battle-rules">${t('lobby.battleRules', { lives: v.battle?.lives ?? 3, minutes: v.battle?.minutes ?? 2.5 })}</span>`
+      ? (v.battle ? `<span class="battle-rules">${t('lobby.battleRules', { lives: v.battle.lives, minutes: v.battle.minutes })}</span>` : '')
       : `<span class="laps">${t('lobby.laps')} <button data-action="laps-down" ${v.laps <= limits.minLaps ? 'disabled' : ''}>−</button>
       <strong>${v.laps}</strong>
       <button data-action="laps-up" ${v.laps >= limits.maxLaps ? 'disabled' : ''}>+</button></span>`;
@@ -164,7 +164,7 @@ export function lobbyHtml(v: LobbyView, limits: LobbyLimits): string {
       ? ''
       : `<button data-action="chaos" class="${chaos ? 'on' : ''}" title="${t('lobby.chaosTitle')}">${chaos ? t('lobby.chaosOn') : t('lobby.chaosOff')}</button>`;
     html.push(`<div class="host-controls"><span class="host-badge">${t('lobby.host')}</span>
-      <button data-action="mode" class="mode${battle ? ' on' : ''}" title="${t('mode.title')}">${battle ? t('mode.battle') : t('mode.race')}</button>
+      <button data-action="mode" class="mode${battle ? ' on' : ''}" title="${t('mode.title')}" ${v.phase === 'lobby' ? '' : 'disabled'}>${battle ? t('mode.battle') : t('mode.race')}</button>
       ${lapsOrRules}
       <button data-action="shuffle">${t('lobby.shuffle')}</button>
       <button data-action="bots" class="${v.bots ? 'on' : ''}">${v.bots ? t('lobby.botsOn') : t('lobby.botsOff')}</button>

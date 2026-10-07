@@ -96,6 +96,7 @@ export class PadScreen {
   private readonly actions = document.createElement('div');
   private readonly pad = document.createElement('div');
   private readonly error = document.createElement('p');
+  private readonly notice = document.createElement('p');
   private readonly nameInput = document.createElement('input');
   private view: PadView | null = null;
   private role: string | null = null;
@@ -136,9 +137,17 @@ export class PadScreen {
     const rotate = document.createElement('p');
     rotate.className = 'pad-rotate';
     rotate.textContent = t('pad.rotate');
-    this.root.append(this.status, this.actions, this.seatsBox, this.pad, rotate);
+    this.notice.className = 'pad-notice';
+    this.notice.hidden = true;
+    this.root.append(this.notice, this.status, this.actions, this.seatsBox, this.pad, rotate);
     this.root.addEventListener('contextmenu', (e) => e.preventDefault()); // long press must not open a menu
     parent.appendChild(this.root);
+  }
+
+  /** A line over everything (connection lost / gone); '' hides it. */
+  setNotice(text: string): void {
+    this.notice.textContent = text;
+    this.notice.hidden = text === '';
   }
 
   showError(reason: string): void {

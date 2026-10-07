@@ -2236,6 +2236,16 @@ body {
   }
 }
 
+.pad-notice {
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+}
+
 /* The pad is laid out by thumb (left = steer / brake, right = gas), never mirrored. */
 [dir='rtl'] .pad-buttons {
   direction: ltr;

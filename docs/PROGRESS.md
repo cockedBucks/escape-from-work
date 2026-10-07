@@ -4,9 +4,13 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P11 — Extras after v1.0 (`docs/phases/P11-extras.md`), human's request 2026-10-07 (D117).
-- Next task: P11.7 Final sweep
-- Status: v1.0 done (P0–P10 + P10.8 fixes). `npm run verify` passes (524 tests + bot race).
+- Phase: ALL BUILT — v1.0 (P0–P10) plus P11 extras (ghost lap, photo finish, seasonal decorations,
+  Arabic UI, phone controller, battle mode + The Break Room). Tag `p11-done` = commit "P11.7".
+- Next task: the "Deferred human tests" below with the human (first merge the cloud branch on the
+  laptop, see "Cloud session"). After that: ideas from playtests; a public internet server stays open.
+- Status: `npm run verify` passes (578 tests + bot race, best lap 35.52 s); `test:load` passes; soak
+  OK (7 races, heap +0.2 MB, worst tick 12.7 ms, 0 overruns); all 6 tracks pass `track:check`; all 20
+  shots scenarios OK.
 
 ## Half-done
 - (none)
@@ -61,11 +65,11 @@ roll old "Last sessions" lines into one summary line per finished phase.
   2. `git fetch origin` then `git log --oneline main..origin/claude/keen-edison-iupozz` (what is new).
   3. `git checkout -b cloud-review origin/claude/keen-edison-iupozz`, then `npm install`,
      `npm run verify`, `npm run shots -- menu lobby chase`, and `npm start` for a quick look (Windows).
-  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P10)"`
+  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P11)"`
      (no rebase, no reset). If a conflict appears, stop and ask the human.
   5. `npm run verify` again on `main`, then the HUMAN pushes `main` (`git push origin main`).
   6. Tags (cloud tags were never pushed): `git tag p7-done <hash of "P7.9">`, the same for
-     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the final "P10.7" commit);
+     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the "P10.7" commit), `p11-done` ("P11.7");
      find hashes with `git log --oneline --grep "^P9.5"`. The human may `git push origin --tags`.
   7. Delete the review branch (`git branch -d cloud-review`), remove this "Cloud session" section,
      commit "docs: back local", then run the "Deferred human tests" with the human (LOCAL: lines too).
@@ -88,6 +92,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - In dev (`npm run dev`), anyone on the LAN can use the F2 `/dev/tuning` endpoint (via Vite).
   Accepted for playtests; it never exists with `npm start`.
 - The sandstorm is drawn only (fog on every screen); bots do not slow down in it (by design, D110).
+- Battle: when time runs out with equal lives, the lower car number wins the tie. The server's lobby
+  refusal messages ("only the host…") stay English in the Arabic UI (D121).
+- Phone controller: the screen can lock mid-race on the office LAN (wake lock needs HTTPS); players
+  raise their screen timeout (the seat page says so).
 
 ## Last sessions
 - 2026-10-04: starter kit created (CLAUDE.md, rules, skills, reviewer agent, docs). No code yet.
@@ -157,24 +165,10 @@ roll old "Last sessions" lines into one summary line per finished phase.
   LOCAL: double-click `start-server.bat` once on the Windows host to confirm it.
 - 2026-10-07 (cloud): P10.8 known-issue fixes — network bots follow the server's track, busy port
   prints only the friendly line, `props` showroom off the roads. D116.
-- 2026-10-07 (cloud): P11.1 Ghost of your best lap — records your drawn car per lap, keeps the
-  best per track in the browser, see-through ghost car, Settings toggle, scenario `ghost`. D118.
-- 2026-10-07 (cloud): P11.2 Photo finish — 1st/2nd within 0.5 s: slow-motion replay of the last
-  seconds from a finish-line camera with flashes and a banner (finished players and spectators;
-  drivers get a toast), scenario `photo`. D119.
-- 2026-10-07 (cloud): P11.3 Seasonal decorations — config/seasons.json (Ramadan, Eid, Halloween, winter),
-  9 original decoration kits beside every track (off roads, clear of props, tested), snow in winter,
-  Settings → Decorations (Auto/Off/season), `shots --season <id>`. D120.
-- 2026-10-07 (cloud): P11.4 Arabic UI — every screen in English or Arabic (right-to-left), string tables in
-  `packages/client/src/i18n/` (Arabic must cover every key: typed + tested), Settings → Language,
-  `shots --lang ar`. Server refusal messages stay English. D121.
-- 2026-10-07 (cloud): P11.5 Phone controller — `?pad` (menu button on touch screens): seat list, big touch
-  buttons per role, status line, buzz on hits; same input messages (no server change); checked live
-  in a phone-sized browser (holding GAS drove the car). Scenario `pad`. D122.
-- 2026-10-07 (cloud): P11.6 Battle mode — host 🏁 Race / 💥 Battle, 3 lives, item hits take one (2 s grace),
-  last car standing or most lives at 2.5 min, out cars see-through; lives in HUD/scoreboard/results/pad;
-  not a league race; new arena track The Break Room (`battle: true`, ~22 s laps). A real 4-bot battle
-  in the browser ended in 116 s. D123.
+- 2026-10-07: **P11 done** (cloud, human's request: build the Later ideas, D117) — ghost of your best lap,
+  photo-finish replay, seasonal decorations (Ramadan/Eid/Halloween/winter + snow), Arabic UI (RTL),
+  phone controller (`?pad`), battle mode (lives, last car standing) + The Break Room arena. Every extra
+  has an off switch. Review fixes D124. Decisions D117–D124. Not built: a public internet server.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

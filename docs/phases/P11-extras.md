@@ -30,5 +30,5 @@ Left in "Later ideas" for the human to decide.
 - [x] **P11.6 Battle mode.** Host picks Race or Battle. Battle: every car has 3 lives, item hits take
   one, last car standing (or most lives at the time limit) wins. A small arena track. Bots play it.
   Battle results are not league races.
-- [ ] **P11.7 Final sweep.** All shots, all tracks, load + soak, reviewer on `p10-done..HEAD`, fixes,
+- [x] **P11.7 Final sweep.** All shots, all tracks, load + soak, reviewer on `p10-done..HEAD`, fixes,
   docs, final report, then the deferred human tests (with P11 checks added).

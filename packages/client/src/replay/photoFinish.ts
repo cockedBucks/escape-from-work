@@ -8,11 +8,21 @@ import { PHOTO } from '../render/look';
 /** Per car per frame: x, y, z, yaw, speed, steer, drift, driftLevel, boosting, nitroOn. */
 const F = 10;
 
-/** Car slot from a server car id ("car3" → 3), or -1. */
+/** Car slot from a server car id ("car3" → 3), or -1; cached, so recording allocates nothing per frame. */
+const slotCache = new Map<string, number>();
 const slotOfId = (id: string): number => {
-  const m = /^car(\d+)$/.exec(id);
-  return m ? Number(m[1]) : -1;
+  let slot = slotCache.get(id);
+  if (slot === undefined) {
+    const m = /^car(\d+)$/.exec(id);
+    slot = m ? Number(m[1]) : -1;
+    slotCache.set(id, slot);
+  }
+  return slot;
 };
+
+/** "car0", "car1", … built once (replay frames look cars up by slot). */
+const CAR_IDS: string[] = [];
+const carIdOf = (slot: number): string => (CAR_IDS[slot] ??= `car${slot}`);
 
 /** A cut of recorded frames, oldest first. */
 export interface ReplayClip {
@@ -47,26 +57,30 @@ export class ReplayRecorder {
     const i = this.head;
     this.times[i] = now;
     this.present.fill(0, i * this.maxCars, (i + 1) * this.maxCars);
-    for (const [id, s] of snaps) {
-      const slot = slotOfId(id);
-      if (slot < 0 || slot >= this.maxCars) continue;
-      this.present[i * this.maxCars + slot] = 1;
-      const o = (i * this.maxCars + slot) * F;
-      const d = this.data;
-      d[o] = s.x;
-      d[o + 1] = s.y;
-      d[o + 2] = s.z;
-      d[o + 3] = s.yaw;
-      d[o + 4] = s.speed;
-      d[o + 5] = s.steer;
-      d[o + 6] = s.drift;
-      d[o + 7] = s.driftLevel;
-      d[o + 8] = s.boosting ? 1 : 0;
-      d[o + 9] = s.nitroOn ? 1 : 0;
-    }
+    snaps.forEach(this.put);
     this.head = (this.head + 1) % this.cap;
     this.count = Math.min(this.count + 1, this.cap);
   }
+
+  /** One car into the frame at `head` (a bound method, so `forEach` allocates nothing). */
+  private readonly put = (s: CarSnap, id: string): void => {
+    const slot = slotOfId(id);
+    if (slot < 0 || slot >= this.maxCars) return;
+    const i = this.head;
+    this.present[i * this.maxCars + slot] = 1;
+    const o = (i * this.maxCars + slot) * F;
+    const d = this.data;
+    d[o] = s.x;
+    d[o + 1] = s.y;
+    d[o + 2] = s.z;
+    d[o + 3] = s.yaw;
+    d[o + 4] = s.speed;
+    d[o + 5] = s.steer;
+    d[o + 6] = s.drift;
+    d[o + 7] = s.driftLevel;
+    d[o + 8] = s.boosting ? 1 : 0;
+    d[o + 9] = s.nitroOn ? 1 : 0;
+  };
 
   /** A copy of everything kept (oldest first). */
   clip(): ReplayClip {
@@ -113,7 +127,7 @@ export function sampleClip(clip: ReplayClip, t: number, out: Map<string, CarSnap
     const both = clip.present[j * clip.maxCars + slot] === 1;
     const o = (i * clip.maxCars + slot) * F;
     const p = both ? (j * clip.maxCars + slot) * F : o;
-    const id = `car${slot}`;
+    const id = carIdOf(slot);
     let s = out.get(id);
     if (!s) {
       s = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, respawning: false, ghost: false, stalled: false, drift: 0, driftLevel: 0, boosting: false, nitroOn: false, shielded: false };
