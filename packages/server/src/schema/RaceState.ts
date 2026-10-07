@@ -63,6 +63,8 @@ export const CarView = schema(
     inGas: t.boolean().default(false),
     inBrake: t.boolean().default(false),
     inNitro: t.boolean().default(false),
+    /** The drift key (Space) as merged: held = no fresh press, so prediction matches the server. */
+    inDrift: t.boolean().default(false),
     /** Fading out before a respawn. */
     respawning: t.boolean().default(false),
     /** Ghosted after a respawn (drawn see-through). */
@@ -78,8 +80,6 @@ export const CarView = schema(
     driftLevel: t.uint8().default(0),
     driftCharge: t.float32().default(0),
     boostLeft: t.float32().default(0),
-    /** Seconds the steering has been straight in this drift (it lets go at drift.releaseMs). */
-    driftStraight: t.float32().default(0),
     /** Inside a swap lane (slower): lets prediction match the server there. */
     onSwap: t.boolean().default(false),
     nitro: t.float32().default(0),

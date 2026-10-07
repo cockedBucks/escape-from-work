@@ -31,6 +31,13 @@ describe('mergeCarInput', () => {
     expect(mergeCarInput([{ role: 'pilot', input: { ...nothing, respawn: true } }, { role: 'engineer', input: nothing }]).respawn).toBe(true);
   });
 
+  it('Space: only the Pilot (or Solo) drifts, only the Engineer (or Solo) fires', () => {
+    const space: CarInput = { ...nothing, drift: true, fire: true };
+    expect(mergeCarInput([{ role: 'pilot', input: space }])).toEqual({ ...nothing, drift: true });
+    expect(mergeCarInput([{ role: 'engineer', input: space }])).toEqual({ ...nothing, fire: true });
+    expect(mergeCarInput([{ role: 'solo', input: space }])).toEqual({ ...nothing, drift: true, fire: true });
+  });
+
   it('no players = no input', () => {
     expect(mergeCarInput([])).toEqual(nothing);
   });

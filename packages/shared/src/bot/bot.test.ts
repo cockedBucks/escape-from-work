@@ -11,7 +11,7 @@ import type { CarInput } from '../sim/types';
 import { buildTrack } from '../track/build';
 import { forward } from '../util/math';
 import { botPedals, cornerReverses, newBotMemory, plannedSpeed } from './engineer';
-import { botSteer } from './pilot';
+import { botDrift, botSteer } from './pilot';
 import { botInput } from './driver';
 import { runBotRace } from './race';
 
@@ -126,7 +126,7 @@ describe('golden: replay determinism', () => {
     // GOLDEN: any change to physics, bot or Test Loop changes this. Update it only when the
     // change is intended, and say so in the commit message.
     const race = runBotRace(track, cfg, { cars: 2, laps: 1, maxSeconds: 120 });
-    expect(race.hash).toBe('6c4b736e');
+    expect(race.hash).toBe('4f5b7d0e');
   });
 
   it('hash notices a tiny difference', () => {
@@ -157,31 +157,31 @@ describe('bot skills (drift, nitro)', () => {
   }
   const fast = cfg.car.topSpeed * cfg.drift.minSpeedRatio * 1.2;
 
-  it('a plain bot never taps for a drift or burns nitro', () => {
+  it('a plain bot never drifts or burns nitro', () => {
     const car = beforeHairpin(fast);
     car.nitro = 1;
     const p = botPedals(car, track, cfg, newBotMemory(0));
     expect(p.nitro).toBe(false);
-    expect(p.brake && p.gas).toBe(false);
+    expect(botDrift(car, track, cfg, car.steer, 0)).toBe(false);
   });
 
-  it('a skilled Engineer taps the brake for one tick into a tight corner, then holds the gas while drifting', () => {
+  it('a skilled Engineer holds the gas (no brake) while the Pilot drifts', () => {
     const car = beforeHairpin(fast);
     const memory = newBotMemory(1);
-    expect(botPedals(car, track, cfg, memory)).toMatchObject({ brake: true });
-    expect(botPedals(car, track, cfg, memory).brake).toBe(false); // a tap, not a hold
     car.driftDir = car.steer;
     car.heat = cfg.bot.heatLiftAt; // hot, but still under the drift limit
     expect(botPedals(car, track, cfg, memory)).toMatchObject({ gas: true, brake: false });
   });
 
-  it('a skilled Pilot turns in hard before a tight corner and never sits near straight mid-drift', () => {
+  it('a skilled Pilot holds Space before a tight corner (steering into it or straight), not when steering out', () => {
     const car = beforeHairpin(fast);
-    car.steer = 0;
     const into = -Math.sign(track.samples[hairpin]!.curvature);
-    expect(botSteer(car, track, cfg, 1) * into).toBeGreaterThanOrEqual(cfg.drift.minSteer);
+    expect(botDrift(car, track, cfg, into, 1)).toBe(true);
+    expect(botDrift(car, track, cfg, 0, 1)).toBe(true);
+    expect(botDrift(car, track, cfg, -into, 1)).toBe(false); // it would drift the wrong way
+    expect(botDrift(beforeHairpin(cfg.car.topSpeed * cfg.drift.minSpeedRatio * 0.5), track, cfg, into, 1)).toBe(false); // too slow
     car.driftDir = into;
-    expect(Math.abs(botSteer(car, track, cfg, 1))).toBeGreaterThan(cfg.drift.releaseSteer);
+    expect(botDrift(car, track, cfg, into, 1)).toBe(true); // keeps it down through the corner
   });
 
   it('skill 2 burns nitro only with meter, on a clear straight, with a cool engine', () => {
@@ -201,14 +201,13 @@ describe('bot skills (drift, nitro)', () => {
 describe('skilled bots on real corners', () => {
   const office = buildTrack(parseTrack(officeJson, 'office'), cfg.track);
 
-  it('a skilled Pilot straightens the wheel once the corner is over, even pointed sideways mid-drift', () => {
+  it('a skilled Pilot lets go of Space once the corner is over (boost)', () => {
     const car = createCar('a', STATS, track); // start line: a long straight ahead
     car.driftDir = 1;
-    car.yaw += 0.7; // the slide points the nose well off the road direction
     const f = forward(car.yaw);
     car.vx = f.x * 25;
     car.vz = f.z * 25;
-    expect(Math.abs(botSteer(car, track, cfg, 1))).toBeLessThan(cfg.drift.releaseSteer);
+    expect(botDrift(car, track, cfg, 0, 1)).toBe(false);
   });
 
   it('spots S-bends (a tight corner the other way soon after this one)', () => {

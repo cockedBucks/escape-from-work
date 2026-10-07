@@ -436,7 +436,7 @@ describe('RaceSim honk', () => {
   });
 });
 
-describe('RaceSim tandem drift (needs both players, or one solo)', () => {
+describe('RaceSim kart drift (Space: the Pilot, or one solo player)', () => {
   const seqs = new Map<string, number>();
   const send = (sim: RaceSim, id: string, msg: Record<string, unknown>): void => {
     const seq = (seqs.get(id) ?? 0) + 1;
@@ -447,10 +447,9 @@ describe('RaceSim tandem drift (needs both players, or one solo)', () => {
     for (let i = 0; i < n; i++) sim.tick();
   };
   const SPEED_UP = Math.round(1.2 / cfg.sim.dt);
-  const TURN_IN = Math.round(0.25 / cfg.sim.dt);
 
-  /** Pilot `p` steers right; Engineer `e` gets up to speed, then taps the brake. */
-  function duo(pilotBrakes: boolean, engineerSteers: boolean): RaceSim {
+  /** Engineer `e` gets up to speed; then `who` holds Space (drift key) while the Pilot steers right. */
+  function duo(who: 'p' | 'e'): RaceSim {
     seqs.clear();
     const sim = new RaceSim(track, cfg, stats);
     sim.addPlayer('p');
@@ -459,32 +458,27 @@ describe('RaceSim tandem drift (needs both players, or one solo)', () => {
     sim.setSeat('e', 0, 'engineer');
     send(sim, 'e', { gas: true });
     ticks(sim, SPEED_UP);
-    if (engineerSteers) send(sim, 'e', { gas: true, steer: 1 });
-    else send(sim, 'p', { steer: 1 });
-    ticks(sim, TURN_IN);
-    if (pilotBrakes) send(sim, 'p', { steer: 1, brake: true });
-    else send(sim, 'e', { gas: true, brake: true, ...(engineerSteers ? { steer: 1 } : {}) });
+    send(sim, 'p', { steer: 1 });
+    if (who === 'p') send(sim, 'p', { steer: 1, drift: true });
+    else send(sim, 'e', { gas: true, drift: true });
     ticks(sim, 2);
     return sim;
   }
 
-  it('Pilot steering + Engineer brake tap starts a drift', () => {
-    expect(car(duo(false, false), 'car0').driftDir).toBe(1);
+  it('the Pilot holding Space starts a drift', () => {
+    expect(car(duo('p'), 'car0').driftDir).toBe(1);
   });
 
-  it('neither half can do it alone (the Pilot has no brake, the Engineer no steering)', () => {
-    expect(car(duo(true, false), 'car0').driftDir).toBe(0);
-    expect(car(duo(false, true), 'car0').driftDir).toBe(0);
+  it("the Engineer's drift key does nothing (their Space uses the item)", () => {
+    expect(car(duo('e'), 'car0').driftDir).toBe(0);
   });
 
-  it('a solo player can drift with all the keys', () => {
+  it('a solo player drifts with Space', () => {
     seqs.clear();
     const sim = soloSim('s');
     send(sim, 's', { gas: true });
     ticks(sim, SPEED_UP);
-    send(sim, 's', { gas: true, steer: 1 });
-    ticks(sim, TURN_IN);
-    send(sim, 's', { gas: true, steer: 1, brake: true });
+    send(sim, 's', { gas: true, steer: 1, drift: true });
     ticks(sim, 2);
     expect(car(sim, 'car0').driftDir).toBe(1);
   });

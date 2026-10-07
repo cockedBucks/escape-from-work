@@ -52,7 +52,7 @@ export { bucketOf, racePlaces, rollItem } from './items/roll';
 export { ITEMS, useItems, type ItemDef } from './items/index';
 export type { Envelope } from './items/replyAll';
 export type { Puddle } from './items/coffeeSpill';
-export { botSteer, lookAheadPoint } from './bot/pilot';
+export { botDrift, botSteer, lookAheadPoint } from './bot/pilot';
 export { botRoute, routeSample } from './bot/route';
 export { botPedals, cornerAhead, newBotMemory, plannedSpeed, resetStuck, type BotMemory } from './bot/engineer';
 export { botItem } from './bot/items';

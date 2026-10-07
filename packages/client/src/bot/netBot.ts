@@ -9,6 +9,7 @@ import {
   botItem,
   botPedals,
   botRoute,
+  botDrift,
   botSteer,
   carIdForSlot,
   carStateFromView,
@@ -210,9 +211,9 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const halfFor = (track: Track, seat: string | undefined, car: CarState, memory: BotMemory, others: readonly CarState[]): Omit<InputMessage, 'seq'> => {
     const item = botItem(car, others, tuning, tuning.bot.skill);
     const route = botRoute(car, track, tuning, tuning.bot.skill);
-    return seat === 'engineer'
-      ? { ...botPedals(car, track, tuning, memory, route), fire: item.fire }
-      : { steer: botSteer(car, track, tuning, tuning.bot.skill, route), aimBack: item.aimBack };
+    if (seat === 'engineer') return { ...botPedals(car, track, tuning, memory, route), fire: item.fire };
+    const steer = botSteer(car, track, tuning, route);
+    return { steer, drift: botDrift(car, track, tuning, steer, tuning.bot.skill, route), aimBack: item.aimBack };
   };
   /** The other cars, rebuilt from synced state (positions are all the item aim needs). */
   const othersIn = (s: BotStateView, track: Track): CarState[] => {

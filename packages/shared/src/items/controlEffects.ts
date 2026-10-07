@@ -8,7 +8,7 @@ export interface InputLog {
   next: number;
 }
 
-const blank = (): CarInput => ({ steer: 0, gas: false, brake: false, respawn: false, nitro: false });
+const blank = (): CarInput => ({ steer: 0, gas: false, brake: false, respawn: false, nitro: false, drift: false });
 const SCRATCH: CarInput = blank();
 
 /**
@@ -21,6 +21,7 @@ export function swapControls(input: CarInput, out: CarInput, threshold: number):
   out.brake = input.steer < -threshold;
   out.nitro = input.nitro;
   out.respawn = input.respawn;
+  out.drift = input.drift ?? false; // the drift key stays with the Pilot
   return out;
 }
 
@@ -42,6 +43,7 @@ export function applyControlEffects(chaos: ChaosState, car: CarState, raw: CarIn
   slot.gas = raw.gas;
   slot.brake = raw.brake;
   slot.nitro = raw.nitro ?? false;
+  slot.drift = raw.drift ?? false;
   slot.respawn = raw.respawn;
   const size = log.inputs.length;
   log.next = (log.next + 1) % size;
@@ -63,7 +65,7 @@ export function applyControlEffects(chaos: ChaosState, car: CarState, raw: CarIn
     const mash = Math.round(chaos.cfg.items.forcedUpdate.mashSeconds / cfg.sim.dt);
     car.updateTicks = Math.max(0, car.updateTicks - 1 - (raw.mash ?? 0) * mash);
     // Gas + brake = brake to a stop and stay put (brake alone would reverse once stopped).
-    return Object.assign(SCRATCH, { steer: 0, gas: true, brake: true, respawn: raw.respawn, nitro: false, fire: false, aimBack: false });
+    return Object.assign(SCRATCH, { steer: 0, gas: true, brake: true, respawn: raw.respawn, nitro: false, drift: false, fire: false, aimBack: false });
   }
   return input;
 }

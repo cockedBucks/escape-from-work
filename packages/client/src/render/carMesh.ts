@@ -4,7 +4,7 @@ import { Bobblehead, makeDuck } from './bobblehead';
 import type { CockpitLift, SeatSide } from './cockpitCam';
 import type { CarLook } from '@escape/shared';
 import { buildCarShape, buildWheel, type CarShape } from './carKit';
-import { headKick, Squash } from './juice';
+import { DriftHop, headKick, Squash } from './juice';
 import { BOX_CAR, CAR_KIT, COCKPIT, DUCK, HEAD, MIRROR, PALETTE, TEAM_COLORS } from './look';
 
 /** A string that changes when a car's look does. */
@@ -160,6 +160,7 @@ export class CarMesh {
   private readonly frontWheels: THREE.Mesh[] = [];
   private spin = 0;
   private readonly squash = new Squash();
+  private readonly hop = new DriftHop();
   /** Your eye in this car (your own head's place) vs the box car's eye; the dash moves with it. */
   readonly cockpitLift: CockpitLift;
   /** Dashboard block, only for your own car while you sit in the cockpit cam. */
@@ -211,11 +212,15 @@ export class CarMesh {
    * Place the car. `y` is jump height; the blob shadow stays on the ground.
    * Wheels spin by distance driven (`speed × dt`) and front wheels turn with `steer`.
    */
-  update(x: number, y: number, z: number, yaw: number, speed: number, steer: number, dt: number, ghost: boolean): void {
+  update(x: number, y: number, z: number, yaw: number, speed: number, steer: number, dt: number, ghost: boolean, drift = 0): void {
     const r = this.shape.wheelRadius;
     this.root.position.set(x, 0, z);
     this.root.rotation.y = yaw;
+    // Kart drift: hop into it, lean out while sliding (P13.2). Wheels hop too.
+    this.hop.step(drift, dt);
+    y += this.hop.lift;
     this.body.position.y = y;
+    this.body.rotation.z = this.hop.roll;
     // Landing squash and stretch (the body is built standing on y = 0, so it squashes onto its wheels).
     this.squash.step(dt);
     this.body.scale.set(this.squash.scaleXZ, this.squash.scaleY, this.squash.scaleXZ);

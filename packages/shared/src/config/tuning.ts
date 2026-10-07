@@ -134,15 +134,15 @@ const BotSchema = z.strictObject({
   shortcutSkill: z.number().int().min(0).max(3),
   /** Look-ahead distance multiplier while aiming into a shortcut (narrow: aim closer). */
   shortcutLookAhead: z.number().min(0.1).max(1),
-  /** Skill 1+: tap for a drift when a corner this tight (1/m) is within `driftLookAhead` m... */
+  /** Skill 1+: hold the drift key when a corner this tight (1/m) is within `driftLookAhead` m... */
   driftMinCurvature: pos(),
   driftLookAhead: pos(),
-  /** ...and hold it only while the road within `driftHoldAhead` m still turns that way that tightly. */
+  /** ...and keep it down while the road within `driftHoldAhead` m still turns that way at least
+   *  `driftHoldCurvature` (lower than the start, so a drift does not flicker on and off). */
   driftHoldAhead: pos(),
+  driftHoldCurvature: pos(),
   /** No drift start when a tight corner the other way comes within this many meters (S-bends). */
   driftClearAhead: pos(),
-  /** Skill 1+: steer this much past the drift entry / release thresholds (0–1), to be sure. */
-  driftSteerMargin: fraction(),
   /** Skill 2: burn nitro on a clear straight while the engine is below this heat (0–1). */
   nitroMaxHeat: z.number().min(0).max(1),
   /** Items (skill 1+): Reply-All fires at a car within `itemAimCone` rad and `itemAimRange` m;
@@ -160,18 +160,20 @@ const BotSchema = z.strictObject({
 const perLevel = () => z.tuple([nonNeg(), nonNeg(), nonNeg()]);
 
 /** Tandem drift (GAME_DESIGN §5): Engineer taps brake while the Pilot steers hard. */
+/** Kart drift (P13.2, GAME_DESIGN §5): hold the drift key (Space, Pilot or Solo). */
 const DriftSchema = z.strictObject({
-  /** Entry: steering at least this hard (0–1)... */
-  minSteer: fraction(),
-  /** ...above this share of the car's top speed... */
+  /** A drift starts above this share of the car's top speed while the key is held... */
   minSpeedRatio: fraction(),
-  /** ...and a brake press. Held longer than this (ms), it is braking: the drift ends. */
-  brakeTapMaxMs: z.number().int().positive(),
-  /** The drift ends with no reward below this share of top speed. */
+  /** ...into the side you steer (more than this, 0–1)... */
+  steerPick: fraction(),
+  /** ...or, with no steering, into the bend ahead: the tightest within this many m that bends at
+   *  least this much (1/m). No bend and no steering: the key waits (armed) until there is one. */
+  autoLookAhead: pos(),
+  autoMinCurvature: pos(),
+  /** No steering key held while drifting: the car follows the road by itself (the bots' aim). */
+  assist: z.boolean(),
+  /** The drift ends with no reward below this share of top speed. Letting go of the key ends it with the boost. */
   exitSpeedRatio: fraction(),
-  /** Steering under this (0–1) for `releaseMs` releases the drift: boost if on the gas then. */
-  releaseSteer: fraction(),
-  releaseMs: z.number().int().nonnegative(),
   /** Turn while drifting = base + range × steer into the drift (−1..1): steer out to go wide. */
   steerBase: fraction(),
   steerRange: fraction(),

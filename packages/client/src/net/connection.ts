@@ -28,7 +28,6 @@ export interface CarViewState {
   driftLevel: number;
   driftCharge: number;
   boostLeft: number;
-  driftStraight: number;
   onSwap: boolean;
   nitro: number;
   nitroOn: boolean;
@@ -47,6 +46,7 @@ export interface CarViewState {
   inSteer: number;
   inGas: boolean;
   inBrake: boolean;
+  inDrift: boolean;
   bot: boolean;
   lapsDone: number;
   place: number;

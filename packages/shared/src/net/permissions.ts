@@ -2,17 +2,17 @@ import type { Role } from '../race/seats';
 import { NO_INPUT, type CarInput } from '../sim/types';
 
 /** Controls that belong to a seat (ARCHITECTURE §6 input merge table). */
-export type Control = 'steer' | 'gas' | 'brake' | 'nitro' | 'fire' | 'aim' | 'respawn' | 'honk';
+export type Control = 'steer' | 'drift' | 'gas' | 'brake' | 'nitro' | 'fire' | 'aim' | 'respawn' | 'honk';
 
 /**
  * Which role may use which control. The Pilot steers, the Engineer runs the pedals, Solo
- * does everything, and anyone in the car may respawn it or honk. The Engineer fires items,
- * the Pilot aims them backward.
+ * does everything, and anyone in the car may respawn it or honk. The Pilot drifts (Space, P13.2);
+ * the Engineer fires items, the Pilot aims them backward.
  */
 export const ROLE_CONTROLS: Readonly<Record<Role, readonly Control[]>> = {
-  pilot: ['steer', 'aim', 'respawn', 'honk'],
+  pilot: ['steer', 'drift', 'aim', 'respawn', 'honk'],
   engineer: ['gas', 'brake', 'nitro', 'fire', 'respawn', 'honk'],
-  solo: ['steer', 'gas', 'brake', 'nitro', 'fire', 'aim', 'respawn', 'honk'],
+  solo: ['steer', 'drift', 'gas', 'brake', 'nitro', 'fire', 'aim', 'respawn', 'honk'],
 };
 
 export const mayUse = (role: Role, control: Control): boolean => ROLE_CONTROLS[role].includes(control);
@@ -31,6 +31,7 @@ export function mergeCarInput(parts: readonly InputPart[]): CarInput {
   const out: CarInput = { ...NO_INPUT };
   for (const { role, input } of parts) {
     if (mayUse(role, 'steer')) out.steer = input.steer;
+    if (mayUse(role, 'drift') && input.drift) out.drift = true;
     if (mayUse(role, 'gas')) out.gas = input.gas;
     if (mayUse(role, 'brake')) out.brake = input.brake;
     if (mayUse(role, 'nitro') && input.nitro) out.nitro = true;

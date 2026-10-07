@@ -58,11 +58,13 @@ export const DRIFT_SOUNDS = {
     { voices: [{ type: 'triangle', from: 784, to: 784 }, { type: 'triangle', from: 1568, to: 1568 }], duration: 0.18, vibrato: 0, vibratoRate: 0, gain: 0.18 },
   ],
   boost: { voices: [{ type: 'sawtooth', from: 160, to: 620 }], duration: 0.4, vibrato: 12, vibratoRate: 30, gain: 0.14 },
+  /** Kart drift starts (P13.2): a springy "boing" hop and a tire chirp. */
+  hop: { voices: [{ type: 'sine', from: 260, to: 520 }], noise: { from: 3000, to: 1200, level: 0.4 }, duration: 0.14, vibrato: 0, vibratoRate: 0, gain: 0.14 },
   /** Swap lane: a quick two-note "ta-da" (your car only). */
   swap: { voices: [{ type: 'square', from: 523, to: 784 }, { type: 'triangle', from: 1046, to: 1568 }], duration: 0.3, vibrato: 0, vibratoRate: 0, gain: 0.16 },
   /** Nitro lights: a low roaring whoosh. */
   nitro: { voices: [{ type: 'sawtooth', from: 90, to: 260 }, { type: 'square', from: 45, to: 130 }], duration: 0.6, vibrato: 20, vibratoRate: 40, gain: 0.16 },
-} as const satisfies { levels: readonly HornPreset[]; boost: HornPreset; swap: HornPreset; nitro: HornPreset };
+} as const satisfies { levels: readonly HornPreset[]; boost: HornPreset; hop: HornPreset; swap: HornPreset; nitro: HornPreset };
 
 /** Items: a rising "bling" on pickup (your car), a whoosh when used, a boing on a hit, a ding when a Firewall blocks. */
 export const ITEM_SOUNDS = {

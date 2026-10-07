@@ -18,6 +18,8 @@ export interface CarInput {
   fire?: boolean;
   /** Aim the item backward while held (Pilot or solo). */
   aimBack?: boolean;
+  /** Drift key held (Pilot or solo, Space): kart drift on the ground (P13.2). */
+  drift?: boolean;
   /** Key presses this tick by anyone in the car (Forced Update: mash to finish faster). */
   mash?: number;
 }
@@ -69,10 +71,8 @@ export interface CarState {
   /** Seconds charged in this drift, and the level reached (0–3: none, blue, orange, pink). */
   driftCharge: number;
   driftLevel: number;
-  /** Ticks the steering has been (nearly) straight during this drift: it ends after `drift.releaseMs`. */
-  straightTicks: number;
-  /** Ticks the brake has been held in a row (0 = not held): tells a tap from braking. */
-  brakeTicks: number;
+  /** Ticks the drift key has been held in a row (0 = up). Letting go ends a drift (boost). */
+  driftKeyTicks: number;
   /** Ticks of drift boost left (0 = none). */
   boostTicks: number;
   /** Nitro meter 0–1 (filled by drifts, burned by holding nitro). */
@@ -122,6 +122,8 @@ export type SimEvent =
   | { type: 'respawn'; car: string; gate: number }
   | { type: 'honk'; car: string }
   | { type: 'stall'; car: string }
+  /** A drift began (the kart hops into it): `dir` -1 left / +1 right. */
+  | { type: 'driftStart'; car: string; dir: number }
   | { type: 'driftLevel'; car: string; level: number }
   | { type: 'boost'; car: string; level: number }
   | { type: 'nitro'; car: string }

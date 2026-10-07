@@ -17,16 +17,17 @@ const B = (action: Action, label: PadButton['label'], zone: PadZone): PadButton 
 
 /** The buttons for a role as synced ('pilot' | 'engineer' | 'solo'); none when not in a car. */
 export function padButtons(role: string): PadButton[] {
+  // Pilot (P13.2): both arrows under the left thumb, the big DRIFT button under the right one.
   if (role === 'pilot') {
-    return [B('left', '◀', 'left'), B('aimBack', 'pad.aimBack', 'middle'), B('honk', 'pad.honk', 'middle'), B('respawn', 'pad.respawn', 'middle'), B('right', '▶', 'right')];
+    return [B('left', '◀', 'left'), B('right', '▶', 'left'), B('aimBack', 'pad.aimBack', 'middle'), B('honk', 'pad.honk', 'middle'), B('respawn', 'pad.respawn', 'middle'), B('space', 'pad.drift', 'right')];
   }
   if (role === 'engineer') {
-    return [B('brake', 'pad.brake', 'left'), B('nitro', 'pad.nitro', 'middle'), B('fire', 'pad.item', 'middle'), B('honk', 'pad.honk', 'middle'), B('respawn', 'pad.respawn', 'middle'), B('gas', 'pad.gas', 'right')];
+    return [B('brake', 'pad.brake', 'left'), B('nitro', 'pad.nitro', 'middle'), B('item', 'pad.item', 'middle'), B('honk', 'pad.honk', 'middle'), B('respawn', 'pad.respawn', 'middle'), B('gas', 'pad.gas', 'right')];
   }
   if (role === 'solo') {
     return [
       B('left', '◀', 'left'), B('right', '▶', 'left'),
-      B('nitro', 'pad.nitro', 'middle'), B('fire', 'pad.item', 'middle'), B('aimBack', 'pad.aimBack', 'middle'), B('honk', 'pad.honk', 'middle'), B('respawn', 'pad.respawn', 'middle'),
+      B('space', 'pad.drift', 'middle'), B('nitro', 'pad.nitro', 'middle'), B('item', 'pad.item', 'middle'), B('aimBack', 'pad.aimBack', 'middle'), B('honk', 'pad.honk', 'middle'), B('respawn', 'pad.respawn', 'middle'),
       B('brake', 'pad.brake', 'right'), B('gas', 'pad.gas', 'right'),
     ];
   }

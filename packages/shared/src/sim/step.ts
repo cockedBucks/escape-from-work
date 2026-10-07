@@ -4,7 +4,7 @@ import { fall, isAirborne, launch } from './air';
 import { placeAtGate } from './car';
 import { collideCars } from './carCollisions';
 import { drive } from './drive';
-import { resetDrift, stepDrift } from './drift';
+import { cancelDrift, resetDrift, stepDrift } from './drift';
 import { stepHeat } from './heat';
 import { stepNitro } from './nitro';
 import { stepBoxes } from '../items/chaos';
@@ -89,11 +89,14 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     }
   }
 
-  // 2. Nitro, engine heat (a stalled engine gives no gas), drift (a tap does not brake), then drive
+  // Spun out or fading to a respawn: a drift ends with no boost (letting go of the key would reward it).
+  if (spinning || car.respawnAtTick >= 0) cancelDrift(car, cfg, events);
+
+  // 2. Nitro, engine heat (a stalled engine gives no gas), drift (Space held), then drive
   // (on the ground only), move, fall, hit walls.
   stepNitro(car, input, cfg, now, events);
   input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
-  input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), cfg, events);
+  input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), track, cfg, events);
   if (!isAirborne(car) && !spinning) drive(car, input, cfg.car, cfg, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;

@@ -617,6 +617,7 @@ export class RaceRoom extends Room<{ state: RaceState; metadata: GameMeta }> {
       view.inGas = input?.gas ?? false;
       view.inBrake = input?.brake ?? false;
       view.inNitro = input?.nitro ?? false;
+      view.inDrift = input?.drift ?? false;
       view.respawning = car.respawnAtTick >= 0;
       view.ghost = car.ghostUntilTick > world.tick;
       const fight = this.sim.carBattle(car.id);
@@ -628,7 +629,6 @@ export class RaceRoom extends Room<{ state: RaceState; metadata: GameMeta }> {
       view.driftLevel = car.driftLevel;
       view.driftCharge = car.driftCharge;
       view.boostLeft = car.boostTicks * this.tuning.sim.dt;
-      view.driftStraight = car.straightTicks * this.tuning.sim.dt;
       view.onSwap = car.onSwap;
       view.nitro = car.nitro;
       view.nitroOn = car.nitroOn;

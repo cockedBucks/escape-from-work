@@ -583,6 +583,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
     mySlot = me?.slot ?? -1;
     myCarId = mySlot >= 0 ? carIdForSlot(mySlot) : null;
     myRole = me && me.role !== '' ? (me.role as Role) : null;
+    if (keyboard) keyboard.role = myRole; // Space drifts or uses the item, by seat
     mySeat = me?.seat ?? '';
     const myCar = mySlot >= 0 ? state.cars.get(carIdForSlot(mySlot)) : undefined;
     serverGas = myCar?.inGas ?? false;
@@ -841,6 +842,10 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
         horns.playSound(ENGINE_SOUNDS[e.type], heardFrom(e.car));
         continue;
       }
+      if (e.type === 'driftStart') {
+        horns.playSound(DRIFT_SOUNDS.hop, heardFrom(e.car));
+        continue;
+      }
       if (e.type === 'driftLevel') {
         const ding = DRIFT_SOUNDS.levels[e.level - 1];
         if (ding && e.car === myCarId) horns.playSound(ding, 0);
@@ -905,6 +910,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
     delayMeter.sentInput(msg.seq, performance.now());
     room.send(MSG.input, msg);
   }, latestTuning.net.inputResendMs);
+  keyboard.role = myRole;
   if (import.meta.env.DEV) {
     // Dev only: the F2 panel (lil-gui is not in production builds).
     const { TuningPanel } = await import('./ui/tuningPanel');

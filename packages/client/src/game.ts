@@ -533,7 +533,7 @@ export class Game {
         this.cars.set(id, mesh);
         this.stage.scene.add(mesh.root);
       }
-      mesh.update(s.x, s.y, s.z, s.yaw, s.speed, s.steer, dt, s.ghost || s.respawning);
+      mesh.update(s.x, s.y, s.z, s.yaw, s.speed, s.steer, dt, s.ghost || s.respawning, s.drift);
       this.updateSeats(id, mesh, s, dt);
     }
   }

@@ -35,9 +35,8 @@ export interface OwnCarView {
   drift: number;
   driftLevel: number;
   driftCharge: number;
-  /** Seconds of drift boost left; seconds the steering has been straight in this drift. */
+  /** Seconds of drift boost left. */
   boostLeft: number;
-  driftStraight: number;
   onSwap: boolean;
   nitro: number;
   nitroOn: boolean;
@@ -53,6 +52,7 @@ export interface OwnCarView {
   inGas: boolean;
   inBrake: boolean;
   inNitro: boolean;
+  inDrift: boolean;
 }
 
 /** A server update this far (m) from the last one is a teleport: do not reuse the track hint. */
@@ -76,7 +76,6 @@ interface Base {
   time: number;
   stallLeft: number;
   boostLeft: number;
-  straight: number;
 }
 
 export class OwnCarPredictor {
@@ -142,19 +141,20 @@ export class OwnCarPredictor {
     car.onSwap = view.onSwap;
     // Item effects the prediction doesn't model: draw the server's car while they last.
     car.spinTicks = view.spinLeft > 0 || view.lagLeft > 0 || view.swapLeft > 0 || view.updateLeft > 0 ? 1 : 0;
-    // The brake as the server last applied it: held = no fresh press to start a drift with.
-    car.brakeTicks = view.inBrake ? 1 : 0;
+    // The drift key as the server last applied it (held or not).
+    car.driftKeyTicks = view.inDrift ? 1 : 0;
     const loc = locateOnTrack(this.track, { x: view.x, z: view.z }, near ? prev.segment : undefined);
     car.segment = loc.segment;
     car.progress = lapProgress(this.track, loc.progress);
     car.lateral = loc.lateral;
     // Two updates before a frame was drawn: keep blending from the one actually drawn last.
     if (!this.needOffset) this.prev = this.base;
-    this.base = { car, time, stallLeft: view.stallLeft, boostLeft: view.boostLeft, straight: view.driftStraight };
+    this.base = { car, time, stallLeft: view.stallLeft, boostLeft: view.boostLeft };
     this.serverInput.steer = view.inSteer;
     this.serverInput.gas = view.inGas;
     this.serverInput.brake = view.inBrake;
     this.serverInput.nitro = view.inNitro;
+    this.serverInput.drift = view.inDrift;
     this.needOffset = this.shown;
   }
 
@@ -174,7 +174,6 @@ export class OwnCarPredictor {
     world.tick = 0;
     car.stallUntilTick = base.stallLeft > 0 ? Math.round(base.stallLeft / cfg.sim.dt) : -1;
     car.boostTicks = Math.round(base.boostLeft / cfg.sim.dt);
-    car.straightTicks = Math.round(base.straight / cfg.sim.dt);
     for (let i = 0; i < whole; i++) step(world, this.inputs, cfg);
     const ax = car.x;
     const az = car.z;
@@ -206,6 +205,7 @@ export class OwnCarPredictor {
     input.gas = mayUse(role, 'gas') ? local.gas : this.serverInput.gas;
     input.brake = mayUse(role, 'brake') ? local.brake : this.serverInput.brake;
     input.nitro = mayUse(role, 'nitro') ? (local.nitro ?? false) : (this.serverInput.nitro ?? false);
+    input.drift = mayUse(role, 'drift') ? (local.drift ?? false) : (this.serverInput.drift ?? false);
     input.respawn = false;
 
     // Disagreements with the server fade out at `net.predictCorrectionRate`.
@@ -244,6 +244,10 @@ export class OwnCarPredictor {
     out.yaw = this.pose.yaw + this.off.yaw;
     out.speed = Math.hypot(car.vx, car.vz);
     out.steer = car.steer;
+    // Your drift answers Space at once too (hop, sparks, boost flames), not a round trip later.
+    out.drift = car.driftDir;
+    out.driftLevel = car.driftLevel;
+    if (car.boostTicks > 0) out.boosting = true;
     out.respawning = false;
     out.ghost = false;
     this.shown = true;

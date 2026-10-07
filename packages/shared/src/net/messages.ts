@@ -71,6 +71,8 @@ export const InputMessageSchema = z.strictObject({
   nitro: z.boolean().optional(),
   fire: z.boolean().optional(),
   aimBack: z.boolean().optional(),
+  /** Drift key (Space) held: kart drift (Pilot / Solo, P13.2). */
+  drift: z.boolean().optional(),
   /** How many keys this client has pressed so far (Forced Update mashing); the server counts the rise. */
   mash: z.number().int().nonnegative().optional(),
 });
@@ -94,6 +96,7 @@ export function toCarInput(msg: InputMessage): CarInput {
     nitro: msg.nitro ?? false,
     fire: msg.fire ?? false,
     aimBack: msg.aimBack ?? false,
+    drift: msg.drift ?? false,
   };
 }
 

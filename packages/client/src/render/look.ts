@@ -343,6 +343,11 @@ export const JUICE = {
   confettiFall: 7,
   confettiSize: 0.2,
   confettiHeight: 1.5,
+  /** Kart drift (P13.2): the little hop into a drift (m, s), and how far the body leans out while sliding (rad), eased (1/s). */
+  hopHeight: 0.35,
+  hopSeconds: 0.22,
+  driftLean: 0.07,
+  driftLeanRate: 10,
   confettiColors: [0xff5a5f, 0xffd23f, 0x3bceac, 0x5b8cff, 0xc77dff, 0xffffff],
 } as const;
 

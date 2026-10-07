@@ -6,13 +6,14 @@ import { padButtons } from './padLayout';
 describe('phone controller (P11.5)', () => {
   it('each role gets only its own controls (the same split as the keyboard)', () => {
     const actions = (role: string): string[] => padButtons(role).map((b) => b.action).sort();
-    expect(actions('pilot')).toEqual(['aimBack', 'honk', 'left', 'respawn', 'right']);
-    expect(actions('engineer')).toEqual(['brake', 'fire', 'gas', 'honk', 'nitro', 'respawn']);
-    expect(actions('solo')).toEqual(['aimBack', 'brake', 'fire', 'gas', 'honk', 'left', 'nitro', 'respawn', 'right']);
+    expect(actions('pilot')).toEqual(['aimBack', 'honk', 'left', 'respawn', 'right', 'space']);
+    expect(actions('engineer')).toEqual(['brake', 'gas', 'honk', 'item', 'nitro', 'respawn']);
+    expect(actions('solo')).toEqual(['aimBack', 'brake', 'gas', 'honk', 'item', 'left', 'nitro', 'respawn', 'right', 'space']);
     expect(padButtons('')).toEqual([]);
     // Thumbs: steering on the left, gas on the right.
     expect(padButtons('solo').find((b) => b.action === 'gas')?.zone).toBe('right');
     expect(padButtons('pilot').find((b) => b.action === 'left')?.zone).toBe('left');
+    expect(padButtons('pilot').find((b) => b.action === 'space')?.zone).toBe('right'); // DRIFT under the right thumb
   });
 
   describe('touch buttons', () => {

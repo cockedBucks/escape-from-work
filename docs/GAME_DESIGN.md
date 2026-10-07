@@ -50,10 +50,11 @@ first. Use it for flavor everywhere:
 | Action | Pilot | Engineer | Solo |
 |---|---|---|---|
 | Steer | A / D or ← / → | — | A / D or ← / → |
+| Drift (hold) / trick in the air | Space | — | Space |
 | Gas | — | W or ↑ | W or ↑ |
 | Brake / reverse | — | S or ↓ | S or ↓ |
 | Nitro | — | Shift | Shift |
-| Fire item | — | Space | Space |
+| Fire item | — | Space (or E) | E |
 | Aim item backward (hold) | Q | — | Q |
 | Honk | H | H | H |
 | Respawn on track | R | R | R |
@@ -70,7 +71,7 @@ Steering strength drops a little at high speed so the car stays controllable.
 The core loop ties both roles together:
 
 ```
-Pilot steers hard  +  Engineer taps brake  →  DRIFT  →  fills NITRO
+Pilot holds Space into a corner  →  DRIFT  →  let go = BOOST + fills NITRO
 Engineer fires NITRO  →  big speed  →  but heats the ENGINE
 ENGINE at 100%  →  stall for ~2 s  →  Engineer must manage heat
 SWAP LANE  →  roles swap + engine fully cooled  →  a strategic choice
@@ -91,15 +92,18 @@ Arcade, not simulation. Fast acceleration, strong grip, small slides, big forgiv
 - (First duo playtest, 2026-10-06: heat from plain full gas was "not fun" and was removed;
   `heat.risePerSec` can switch it back on.)
 
-### Tandem drift (needs both players)
-- Entry: the Engineer **taps** brake (short press) while the Pilot holds steering hard
-  (≥ 70%) above 40% of top speed.
-- While drifting the car slides wider and charges a **mini-turbo** in three levels, shown by
-  spark colors: blue → orange → pink.
-- Release: when the Pilot straightens out (for a quarter second, so a quick key tap does not
-  end it) and the Engineer is on the gas, the car gets a short boost (longer for higher
-  levels), and nitro charges.
-- Solo players can do it alone, but it is harder with one hand set.
+### Kart drift (Pilot, Space) — P13.2, the human's request of 2026-10-07
+- (Was a tandem drift: the Engineer tapped brake while the Pilot steered hard. Playtest: hard to
+  do and "not fun"; the human asked for a go-kart drift on Space that needs no turning.)
+- Hold **Space** above ~35% of top speed: the car **hops** into a drift toward the side you
+  steer. Not steering? It drifts into the bend ahead. On a straight with no steering, the held
+  key waits and drifts as soon as you steer or a bend comes.
+- While drifting, steering only shapes it: into the drift = tighter, out of it = wider. With no
+  steering key held, the car follows the road by itself (`drift.assist`).
+- It charges a **mini-turbo** in three levels, shown by spark colors: blue → orange → pink.
+  **Let go of Space** = a boost (longer for higher levels) and nitro for the Engineer.
+- Too slow ends it with nothing; a spin-out or respawn cancels it.
+- Teamwork stays: the Pilot's drifts fill the nitro that the Engineer burns (and must keep cool).
 
 ### Nitro (Engineer)
 - A meter filled by drifting (and a little by item boxes). Shift burns it: strong speed boost,

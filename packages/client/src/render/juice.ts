@@ -39,6 +39,32 @@ export class Squash {
   }
 }
 
+/**
+ * Kart drift look (P13.2): a quick hop when a drift starts (cosmetic: the sim stays on the
+ * ground) and a lean out of the corner while drifting, eased in and out.
+ */
+export class DriftHop {
+  private t = -1;
+  private dir = 0;
+  /** Body lift (m) and roll (rad, + = lean right) for this frame. */
+  lift = 0;
+  roll = 0;
+
+  /** The car's drift this frame (-1 left / 0 / +1 right): a new drift hops. */
+  step(drift: number, dt: number): void {
+    if (drift !== 0 && this.dir === 0) this.t = 0;
+    this.dir = drift;
+    if (this.t >= 0) {
+      this.t += dt;
+      this.lift = this.t < JUICE.hopSeconds ? JUICE.hopHeight * Math.sin((Math.PI * this.t) / JUICE.hopSeconds) : 0;
+      if (this.t >= JUICE.hopSeconds) this.t = -1;
+    } else this.lift = 0;
+    // Drifting left leans the body right (out of the corner), and the other way round.
+    const want = -drift * JUICE.driftLean;
+    this.roll += (want - this.roll) * Math.min(1, JUICE.driftLeanRate * dt);
+  }
+}
+
 /** Camera shake after a hit: a decaying wobble on two axes (meters). */
 export class Shake {
   amp = 0;

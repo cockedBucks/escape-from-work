@@ -213,7 +213,7 @@ installed types for the API. Anything not on this list → ask the human first.
 
 | Message | Fields | Who may send |
 |---|---|---|
-| `input` | seq, steer (-1/0/1), aimBack | Pilot / Solo |
+| `input` | seq, steer (-1/0/1), drift (Space held), aimBack | Pilot / Solo |
 | `input` | seq, gas, brake, nitro, fire | Engineer / Solo |
 | `input` | honk, respawn, mash | anyone in a car |
 | `head` | yaw, pitch (about 20/s) | anyone in a car |
@@ -305,7 +305,7 @@ and Lag Spike change the role mapping or add an input delay queue on the server.
 
 ### Input merge per car
 
-| Seat state | steer/aim from | gas/brake/nitro/fire from |
+| Seat state | steer/drift/aim from | gas/brake/nitro/fire from |
 |---|---|---|
 | Pilot + Engineer | Pilot | Engineer |
 | Solo (one player) | that player | that player |
@@ -320,7 +320,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 ### State (synced) vs events (broadcast)
 - Synced: race phase, settings, players (name, team, seat, connected, head angles),
   cars (transform, speed, heat, nitro, drift level, item, effects, lap, place), item boxes.
-- Events: honk, wall hit, drift level up, boost, item fired/hit, stall, lap, finish, award.
+- Events: honk, wall hit, drift start (hop), drift level up, boost, item fired/hit, stall, lap, finish, award.
 
 ## 7. Configuration and tuning
 

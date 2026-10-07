@@ -1,13 +1,18 @@
-import type { CarInput, InputMessage } from '@escape/shared';
+import type { CarInput, InputMessage, Role } from '@escape/shared';
 
-/** Solo controls (GAME_DESIGN §4), by physical key (`KeyboardEvent.code`), so any layout works. */
+/**
+ * Controls (GAME_DESIGN §4), by physical key (`KeyboardEvent.code`), so any layout works.
+ * Space is each role's big button (P13.2): the Pilot (and Solo) drifts with it, the Engineer
+ * uses the item. Solo uses items with E (Engineers may use E too).
+ */
 const KEYS = {
   left: ['KeyA', 'ArrowLeft'],
   right: ['KeyD', 'ArrowRight'],
   gas: ['KeyW', 'ArrowUp'],
   brake: ['KeyS', 'ArrowDown'],
   nitro: ['ShiftLeft', 'ShiftRight'],
-  fire: ['Space'],
+  space: ['Space'],
+  item: ['KeyE'],
   aimBack: ['KeyQ'],
   respawn: ['KeyR'],
   honk: ['KeyH'],
@@ -19,14 +24,19 @@ const ACTION_BY_CODE = new Map<string, Action>(
   (Object.entries(KEYS) as [Action, readonly string[]][]).flatMap(([action, codes]) => codes.map((c) => [c, action] as const)),
 );
 
-/** Which actions are held, as an input message body (without `seq`). */
-export function controlsFrom(held: ReadonlySet<Action>): Omit<InputMessage, 'seq'> {
+/** Space drifts for everyone but the Engineer, who uses the item with it. */
+const spaceDrifts = (role: Role | null): boolean => role !== 'engineer';
+
+/** Which actions are held, as an input message body (without `seq`), for your seat. */
+export function controlsFrom(held: ReadonlySet<Action>, role: Role | null = null): Omit<InputMessage, 'seq'> {
+  const space = held.has('space');
   return {
     steer: (held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0),
     gas: held.has('gas'),
     brake: held.has('brake'),
     nitro: held.has('nitro'),
-    fire: held.has('fire'),
+    drift: space && spaceDrifts(role),
+    fire: held.has('item') || (space && !spaceDrifts(role)),
     aimBack: held.has('aimBack'),
     respawn: held.has('respawn'),
     honk: held.has('honk'),
@@ -52,6 +62,7 @@ export class KeyboardControls {
   /** Every key press so far (any key): a Forced Update counts down faster when you mash. */
   private mash = 0;
   private readonly resendTimer: number;
+  private seat: Role | null = null;
 
   constructor(
     private readonly send: (msg: InputMessage) => void,
@@ -62,6 +73,13 @@ export class KeyboardControls {
     window.addEventListener('keydown', this.onDown);
     window.addEventListener('keyup', this.onUp);
     window.addEventListener('blur', this.onBlur);
+  }
+
+  /** Your seat: what Space does depends on it (a swap lane changes it mid-race). */
+  set role(role: Role | null) {
+    if (role === this.seat) return;
+    this.seat = role;
+    if (this.held.size > 0) this.emit();
   }
 
   private readonly onDown = (e: KeyboardEvent): void => {
@@ -101,7 +119,9 @@ export class KeyboardControls {
     out.gas = this.held.has('gas');
     out.brake = this.held.has('brake');
     out.nitro = this.held.has('nitro');
-    out.fire = this.held.has('fire');
+    const space = this.held.has('space');
+    out.drift = space && spaceDrifts(this.seat);
+    out.fire = this.held.has('item') || (space && !spaceDrifts(this.seat));
     out.aimBack = this.held.has('aimBack');
     out.respawn = this.held.has('respawn');
     out.honk = this.held.has('honk');
@@ -110,7 +130,7 @@ export class KeyboardControls {
 
   private emit(): void {
     this.seq++;
-    this.send({ seq: this.seq, ...controlsFrom(this.held), mash: this.mash });
+    this.send({ seq: this.seq, ...controlsFrom(this.held, this.seat), mash: this.mash });
   }
 
   dispose(): void {

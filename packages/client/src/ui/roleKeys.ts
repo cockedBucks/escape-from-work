@@ -31,19 +31,19 @@ export function howToCards(): readonly HowToCard[] {
       role: 'pilot',
       title: t('role.pilot'),
       job: t('howto.pilot.job'),
-      keys: [['A / D', t('howto.steer')], ['C', t('howto.cockpit')], ['H', t('howto.honk')], ['R', t('howto.respawn')]],
+      keys: [['A / D', t('howto.steer')], [t('howto.holdSpace'), t('howto.driftBoost')], ['C', t('howto.cockpit')], ['H', t('howto.honk')], ['R', t('howto.respawn')]],
     },
     {
       role: 'engineer',
       title: t('role.engineer'),
       job: t('howto.engineer.job'),
-      keys: [['W', t('howto.gas')], ['S', t('howto.brakeDrift')], ['Shift', t('howto.nitroHeat')], ['H', t('howto.honk')]],
+      keys: [['W', t('howto.gas')], ['S', t('howto.brake')], ['Shift', t('howto.nitroHeat')], ['Space', t('howto.item')], ['H', t('howto.honk')]],
     },
     {
       role: 'solo',
       title: t('role.solo'),
       job: t('howto.solo.job'),
-      keys: [['W / S', t('howto.gasBrake')], ['A / D', t('howto.steer')], [t('howto.tapS'), t('howto.whileTurning')], ['Shift', t('howto.nitro')], ['Space', t('howto.item')]],
+      keys: [['W / S', t('howto.gasBrake')], ['A / D', t('howto.steer')], [t('howto.holdSpace'), t('howto.driftBoost')], ['Shift', t('howto.nitro')], ['E', t('howto.item')]],
     },
   ];
 }
@@ -59,7 +59,7 @@ export function keyHelp(): readonly { title: string; keys: readonly (readonly [s
   return [
     {
       title: t('keys.pilot'),
-      keys: [[t('keys.steerKeys'), t('howto.steer')], [t('keys.driftCombo'), t('keys.driftFills')], [t('keys.qHold'), t('keys.aimBack')]],
+      keys: [[t('keys.steerKeys'), t('howto.steer')], [t('keys.spaceHold'), t('keys.driftLetGo')], [t('keys.qHold'), t('keys.aimBack')]],
     },
     {
       title: t('keys.engineer'),
@@ -80,7 +80,7 @@ export function keyHelp(): readonly { title: string; keys: readonly (readonly [s
     },
     {
       title: t('keys.solo'),
-      keys: [['W A S D + Shift + Space + Q', t('keys.all')]],
+      keys: [['W A S D + Shift + Space + E + Q', t('keys.all')]],
     },
   ];
 }
