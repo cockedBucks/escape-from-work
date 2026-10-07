@@ -169,11 +169,19 @@ export async function reconnectSaved(tuning: Tuning): Promise<Room<unknown, Race
   }
 }
 
-/** Leaving on purpose (Leave game): free the seat at once and do not come back on reload. */
+/** How long Leave waits for the server to confirm before the page moves on anyway (ms). */
+const LEAVE_WAIT_MS = 1500;
+
+/**
+ * Leaving on purpose (Leave game): free the seat at once and do not come back on reload.
+ * Never hangs: a dropped connection skips the goodbye (the SDK would wait forever for it),
+ * and a slow server gets `LEAVE_WAIT_MS` (it frees the seat on its own when the socket closes).
+ */
 export async function leaveGame(room: Room<unknown, RaceStateView>): Promise<void> {
   leaving = true;
   clearSession();
-  await room.leave(true).catch(() => {});
+  if (!room.connection.isOpen) return;
+  await Promise.race([room.leave(true).catch(() => {}), new Promise<void>((resolve) => setTimeout(resolve, LEAVE_WAIT_MS))]);
 }
 
 /** Set by `leaveGame`: the page going away must not save the seat to come back to. */

@@ -21,4 +21,4 @@ fun, more visual and clear." One task = one commit, pushed to the cloud branch.
   sports car, van, …), lights, rims, windows; cars.json looks; budgets; `/shots garage`.
 - [x] **P12.3 Visual garage and seats.** Car pictures (rendered once, team colors) on the lobby
   cards, a garage window with stats to pick your team's car, big clear seat buttons.
-- [ ] **P12.4 Review and ship.** Reviewer, fixes, docs, push, how to pull and start.
+- [x] **P12.4 Review and ship.** Reviewer, fixes, docs, push, how to pull and start.

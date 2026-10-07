@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { serverEndpoint, usableSession } from './connection';
+import { describe, expect, it, vi } from 'vitest';
+import type { Room } from '@colyseus/sdk';
+import { leaveGame, serverEndpoint, usableSession, type RaceStateView } from './connection';
 
 describe('serverEndpoint', () => {
   it('dev: same hostname, game port (Vite serves the page on another port)', () => {
@@ -29,5 +30,33 @@ describe('usableSession', () => {
     expect(usableSession(saved, 1_000 + 31_000, 30)).toBeNull();
     expect(usableSession(null, 0, 30)).toBeNull();
     expect(usableSession({ token: 5, leftAt: 0 } as unknown as { token: string; leftAt: number }, 0, 30)).toBeNull();
+  });
+});
+
+describe('leaveGame (P12.4)', () => {
+  /** A room whose leave() never answers (the SDK waits for an onLeave that may never come). */
+  const stuckRoom = (isOpen: boolean): { room: Room<unknown, RaceStateView>; left: () => number } => {
+    let calls = 0;
+    const room = { connection: { isOpen }, leave: () => { calls++; return new Promise<number>(() => {}); } };
+    return { room: room as unknown as Room<unknown, RaceStateView>, left: () => calls };
+  };
+
+  it('a dropped connection does not wait for a goodbye', async () => {
+    const r = stuckRoom(false);
+    await expect(leaveGame(r.room)).resolves.toBeUndefined();
+    expect(r.left()).toBe(0);
+  });
+
+  it('a server that never confirms is given up on after a moment', async () => {
+    vi.useFakeTimers();
+    try {
+      const r = stuckRoom(true);
+      const done = leaveGame(r.room);
+      expect(r.left()).toBe(1);
+      await vi.advanceTimersByTimeAsync(5000);
+      await expect(done).resolves.toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

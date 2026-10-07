@@ -47,6 +47,8 @@ export class JoinScreen {
   private joining: string | null = null;
   private timer = 0;
   private last = '';
+  /** A list request is on its way (a slow reply must not overwrite a newer one). */
+  private fetching = false;
 
   constructor(parent: HTMLElement, private readonly d: JoinDeps, fullScreen = false) {
     this.root.className = fullScreen ? 'modal join-page' : 'modal';
@@ -88,7 +90,13 @@ export class JoinScreen {
   }
 
   private async refresh(): Promise<void> {
-    this.games = await this.d.fetchGames();
+    if (this.fetching) return;
+    this.fetching = true;
+    try {
+      this.games = await this.d.fetchGames();
+    } finally {
+      this.fetching = false;
+    }
     this.loaded = true;
     this.render();
   }

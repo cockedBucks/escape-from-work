@@ -66,9 +66,10 @@ export class LiveConfig {
    * (unknown / dev / broken track) as a string.
    */
   trackById(id: string): Track | string {
+    // Checked first: a dev edit may have cached a track no game may pick (the Test Loop).
+    if (!this.availableTracks().includes(id)) return 'there is no such track';
     const cached = this.trackCache.get(id);
     if (cached) return cached;
-    if (!this.availableTracks().includes(id)) return 'there is no such track';
     try {
       const track = this.loadChecked(id);
       this.trackCache.set(id, track);

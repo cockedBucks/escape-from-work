@@ -49,13 +49,21 @@ async function fetchMenuImages(): Promise<string[]> {
   }
 }
 
+/** Mini maps by track id: building a track is slow, and the JOIN list asks every 2 s. */
+const maps = new Map<string, string>();
+
 /** A track's mini map, '' for a track this page does not know (another server version). */
 export function trackMap(id: string, tuning: Tuning): string {
-  try {
-    return trackMapSvg(loadTrack(id, tuning));
-  } catch {
-    return '';
+  let svg = maps.get(id);
+  if (svg === undefined) {
+    try {
+      svg = trackMapSvg(loadTrack(id, tuning));
+    } catch {
+      svg = '';
+    }
+    maps.set(id, svg);
   }
+  return svg;
 }
 
 /** Why a host/join failed, in one short line. */
@@ -146,9 +154,15 @@ export function showMainMenu(opts: MenuOptions): Promise<Room<unknown, RaceState
     if (opts.open === 'join') joinScreen.open();
     // Music starts once the browser allows sound (first click or key); retried each frame.
     let first = true;
+    /** The car whose name the menu shows (the label is built once per car, not per frame). */
+    let shownCar: CarDef | undefined;
     const loop = (now: number): void => {
       showroom.render(now);
-      menu.setCar(showroom.current ? carLabel(showroom.current) : '');
+      const car = showroom.current;
+      if (car !== shownCar) {
+        shownCar = car;
+        menu.setCar(car ? carLabel(car) : '');
+      }
       menu.update(now);
       music.setPlaying(true);
       if (first) {

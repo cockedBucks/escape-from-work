@@ -62,7 +62,6 @@ export const AR: Record<StringKey, string> = {
   'keys.mash': 'اضغط بسرعة لتعدّي «التحديث الإجباري»',
   'keys.all': 'كل اللي فوق، لوحدك',
 
-  'menu.play': 'العب',
   'menu.honk': 'بيب!',
   'menu.league': '🏆 الدوري',
   'menu.settings': '⚙ الإعدادات',

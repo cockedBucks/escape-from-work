@@ -3,7 +3,7 @@
 import type { Track } from '@escape/shared';
 
 /** The map's box (SVG units) and how many points the outline keeps at most. */
-const MAP = { width: 100, height: 64, pad: 6, maxPoints: 90 } as const;
+const MAP = { width: 100, height: 64, pad: 6, maxPoints: 90, line: 5, startRadius: 3.5 } as const;
 
 const cache = new Map<string, string>();
 
@@ -31,8 +31,8 @@ export function trackMapSvg(track: Track): string {
   const [sx, sy] = at(start.x, start.z).split(' ');
   const svg =
     `<svg class="track-map" viewBox="0 0 ${MAP.width} ${MAP.height}" aria-hidden="true">` +
-    `<path d="${d.join('')}Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>` +
-    `<circle cx="${sx}" cy="${sy}" r="3.5" class="track-map-start"/></svg>`;
+    `<path d="${d.join('')}Z" fill="none" stroke="currentColor" stroke-width="${MAP.line}" stroke-linejoin="round"/>` +
+    `<circle cx="${sx}" cy="${sy}" r="${MAP.startRadius}" class="track-map-start"/></svg>`;
   cache.set(id, svg);
   return svg;
 }

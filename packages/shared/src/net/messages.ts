@@ -107,9 +107,14 @@ export const TuningPostSchema = z.strictObject({
 /** Longest player name shown in the join screen and HUD. */
 export const NAME_MAX_LENGTH = 16;
 
+/** A typed name (player, team, game): trimmed, not empty, no control characters (line breaks
+ * could fake lines in the server log), any script. */
+const typedName = (max: number) =>
+  z.string().trim().min(1).max(max).regex(/^\P{Cc}*$/u, 'no control characters');
+
 /** `lobby:setName` (client → server). Whitespace is trimmed; empty names are refused. */
 export const SetNameSchema = z.strictObject({
-  name: z.string().trim().min(1).max(NAME_MAX_LENGTH),
+  name: typedName(NAME_MAX_LENGTH),
 });
 
 /** `lobby:setSeat` (client → server): take a seat in a car slot (rules in race/seats.ts). */
@@ -141,7 +146,7 @@ export const GAME_NAME_MAX_LENGTH = 32;
  * the config by the server; the track must be one the host may pick.
  */
 export const CreateGameSchema = z.strictObject({
-  name: z.string().trim().min(1).max(GAME_NAME_MAX_LENGTH),
+  name: typedName(GAME_NAME_MAX_LENGTH),
   track: z.string().regex(/^[a-z0-9-]{1,40}$/),
   mode: z.enum(RACE_MODES),
   laps: z.number().int(),
@@ -173,7 +178,7 @@ export const SetCarSchema = z.strictObject({ slot: z.number().int().nonnegative(
 /** `lobby:setTeamName` (client → server). */
 export const SetTeamNameSchema = z.strictObject({
   slot: z.number().int().nonnegative(),
-  name: z.string().trim().min(1).max(TEAM_NAME_MAX_LENGTH),
+  name: typedName(TEAM_NAME_MAX_LENGTH),
 });
 
 /** `lobby:ready` (client → server). */

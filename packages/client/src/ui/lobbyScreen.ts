@@ -516,8 +516,8 @@ export class LobbyScreen {
     for (const img of this.body.querySelectorAll<HTMLImageElement>('img[data-pic]')) {
       const [car = '', slot = '0'] = (img.dataset['pic'] ?? '').split('|');
       const url = this.pictures(car, Number(slot));
-      if (url) img.src = url;
-      else img.hidden = true;
+      if (!url) img.hidden = true;
+      else if (img.getAttribute('src') !== url) img.src = url;
     }
   }
 

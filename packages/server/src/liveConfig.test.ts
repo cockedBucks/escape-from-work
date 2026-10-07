@@ -59,6 +59,9 @@ describe('track picker (P10.0)', () => {
     live.reloadTrack('office-two');
     expect(heard.map((c) => (c.kind === 'track' ? c.id : c.kind))).toEqual(['office-two']);
     expect(live.trackId).toBe('office'); // the always-open game's start track is untouched
+    // A dev edit of the Test Loop caches it, but no game may pick it (P12.4).
+    live.reloadTrack('test-loop');
+    expect(live.trackById('test-loop')).toMatch(/no such track/);
   });
 });
 

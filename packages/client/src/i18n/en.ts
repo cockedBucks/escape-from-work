@@ -65,7 +65,6 @@ export const EN = {
   'keys.all': 'all of the above, by yourself',
 
   // Main menu
-  'menu.play': 'PLAY',
   'menu.honk': 'HONK!',
   'menu.league': '🏆 League',
   'menu.settings': '⚙ Settings',

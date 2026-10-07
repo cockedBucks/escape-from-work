@@ -64,6 +64,8 @@ export class CarPictures {
   }
 
   dispose(): void {
+    // Give the second WebGL context back now, not whenever the garbage collector runs.
+    this.renderer?.forceContextLoss();
     this.renderer?.dispose();
     this.renderer = null;
     this.urls.clear();

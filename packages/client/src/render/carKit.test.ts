@@ -35,6 +35,20 @@ describe('car kit (real-life car types, P12.2)', () => {
     }
   });
 
+  it('any wheelScale the schema allows still fits under the arches (the wheel stops growing)', () => {
+    for (const body of BODY_PRESETS) {
+      const B = CAR_BODIES[body];
+      const shape = buildCarShape({ body, wheelScale: 1.8, parts: [] }, 0);
+      for (const z of [B.wheelBase, -B.wheelBase]) {
+        const arch = archRadius(B.outline, z, shape.wheelRadius);
+        expect(arch, body).toBeGreaterThanOrEqual(shape.wheelRadius + CAR_KIT.archGap - 1e-9);
+        expect(z + arch, body).toBeLessThan(B.outline[0]![0]);
+        expect(z - arch, body).toBeGreaterThan(B.outline[B.outline.length - 1]![0]);
+      }
+      shape.body.dispose();
+    }
+  });
+
   it('roster wheels clear their arches and the body keeps some metal above them', () => {
     for (const car of roster) {
       const B = CAR_BODIES[car.look.body];

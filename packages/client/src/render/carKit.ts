@@ -76,7 +76,10 @@ export function buildCarShape(look: CarLook, paint: number): CarShape {
   const topAt = (z: number): number => Math.max(bodyAt(z), heightAt(cabin, z));
   /** Highest point of the car's top over [z − half, z + half] (a flat part resting on it). */
   const restAt = (z: number, half: number): number => Math.max(topAt(z - half), topAt(z), topAt(z + half));
-  const wheelRadius = K.wheelRadius * look.wheelScale;
+  // A wheelScale too big for this body (cars.json allows up to 1.8) gets the biggest wheel its
+  // arches can take, so a tire never pokes through the fender.
+  const fit = Math.min(...[B.wheelBase, -B.wheelBase].map((z) => (bodyAt(z) - K.archSkin - K.archGap) / 2));
+  const wheelRadius = Math.min(K.wheelRadius * look.wheelScale, fit);
 
   // Body: the side outline with wheel arches, extruded across the car.
   const arches = [B.wheelBase, -B.wheelBase].map((z) => ({ z, centerY: wheelRadius, radius: archRadius(top, z, wheelRadius) }));
@@ -162,7 +165,7 @@ export function buildCarShape(look: CarLook, paint: number): CarShape {
         const z = roofPartZ(c.depth);
         const y = cabinAt(z);
         b.box(cw * c.widthShare, c.height, c.depth, K.signYellow, 0, y + c.height / 2, z);
-        b.box(cw * c.widthShare * 1.03, c.stripe, c.depth * 1.03, K.trim, 0, y + c.height / 2, z);
+        b.box(cw * c.widthShare * c.stripeOut, c.stripe, c.depth * c.stripeOut, K.trim, 0, y + c.height / 2, z);
         break;
       }
       case 'roofBox': {
@@ -190,7 +193,7 @@ export function buildCarShape(look: CarLook, paint: number): CarShape {
         const z = (roofFront[0] + roofBack[0]) / 2;
         const y = roofBack[1] + c.rail;
         for (const side of [-1, 1]) b.box(c.rail, c.rail, len, K.metal, x + side * c.gap, y, z);
-        for (let i = 0; i < c.rungs; i++) b.box(c.rungWidth, c.rail * 0.8, c.rail * 0.8, K.metal, x, y, z - len / 2 + (len * (i + 0.5)) / c.rungs);
+        for (let i = 0; i < c.rungs; i++) b.box(c.rungWidth, c.rail * c.rungShare, c.rail * c.rungShare, K.metal, x, y, z - len / 2 + (len * (i + 0.5)) / c.rungs);
         break;
       }
       case 'speakers': {

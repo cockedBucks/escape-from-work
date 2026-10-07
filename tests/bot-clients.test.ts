@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEFAULT_TRACK, MSG, ROOM_NAME } from '@escape/shared';
 import { loadCarsFile, loadTrackFile, loadTuningFile } from '../packages/server/src/config';
 import { startServer, type GameServer } from '../packages/server/src/app';
-import { startBotCar, type BotCar } from '../packages/client/src/bot/netBot';
+import { findGame, startBotCar, type BotCar } from '../packages/client/src/bot/netBot';
 import { waitForState } from './helpers';
 
 /** One lap of the default track takes about 45 s in real time (the server runs at real speed). */
@@ -101,6 +101,26 @@ describe('networked bots follow the track the server races', () => {
         }, 50);
       });
       expect(loaded).toEqual(['server-room', DEFAULT_TRACK]);
+    } finally {
+      await car.stop();
+      await host.leave();
+    }
+  });
+
+  it('both bots of a car sit in the game asked for: a hosted one by name (P12.4)', async () => {
+    const tuning = loadTuningFile();
+    const loadTrack = (id: string) => loadTrackFile(id, tuning);
+    const roster = loadCarsFile().cars;
+    const endpoint = { hostname: '127.0.0.1', port: game!.port, secure: false };
+    const host = await new Client(endpoint).create(ROOM_NAME, { name: 'Bot Cup', track: DEFAULT_TRACK, mode: 'race', laps: tuning.race.defaultLaps, bots: false, chaos: true });
+    host.onMessage(MSG.reload, () => {});
+    const id = await findGame(endpoint, 'Bot Cup');
+    expect(id).toBe(host.roomId);
+    expect(await findGame(endpoint, 'No Such Game')).toBeNull();
+    const car = await startBotCar({ endpoint, tuning, loadTrack, roster, game: id! });
+    try {
+      const res = (await (await fetch(`http://127.0.0.1:${game!.port}/games.json`)).json()) as { games: { id: string; players: number }[] };
+      expect(res.games.find((g) => g.id === host.roomId)?.players).toBe(3); // the host and both bots
     } finally {
       await car.stop();
       await host.leave();

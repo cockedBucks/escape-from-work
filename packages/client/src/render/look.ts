@@ -559,10 +559,10 @@ export const CAR_PARTS_LOOK = {
   /** On the hood, the number sits this share of the way from the nose to the windshield. */
   numberHoodAt: 0.35,
   spoiler: { back: 0.35, lift: 0.2, post: 0.07, postSideShare: 0.32, widthShare: 1.12, thick: 0.06, depth: 0.42, plate: 0.22 },
-  roofSign: { widthShare: 0.6, height: 0.36, depth: 0.4, stripe: 0.08 },
+  roofSign: { widthShare: 0.6, height: 0.36, depth: 0.4, stripe: 0.08, stripeOut: 1.03 },
   roofBox: { widthShare: 0.72, height: 0.36, length: 1.3, rail: 0.05, railSideShare: 0.42 },
   dish: { post: 0.05, postHeight: 0.4, radius: 0.55, rim: 0.15, thick: 0.12, tilt: -0.6, sideShare: 0.35 },
-  ladder: { rail: 0.06, gap: 0.18, rungWidth: 0.42, rungs: 6, sideShare: -0.4, lengthShare: 0.8 },
+  ladder: { rail: 0.06, gap: 0.18, rungWidth: 0.42, rungs: 6, rungShare: 0.8, sideShare: -0.4, lengthShare: 0.8 },
   speakers: { width: 0.62, height: 0.85, depth: 0.55, cone: 0.2, sideShare: 0.45, behindCabin: 0.5 },
   hoodScoop: { widthShare: 0.34, height: 0.16, length: 0.7, at: 0.7 },
   spareWheel: { share: 0.92, thick: 0.26 },

@@ -79,7 +79,7 @@ script).
 | `npm run soak` | 16 bot clients race back to back for 10 min: memory growth and tick times |
 | `npm run shots -- chase --track motherboard` | screenshots of a scenario → `artifacts/shots/` |
 | `npm run track:check -- smart-oasis` | check a track file and run bot laps on it |
-| `npm run bots -- --cars 4 --seconds 60` | bot players join a running game (`--url http://<ip>:<port>` for another PC) |
+| `npm run bots -- --cars 4 --seconds 60` | bot players join a running server's always-open game (`--url http://<ip>:<port>` for another PC, `--game "<name>"` for a hosted game) |
 | `npm run faces` | list the face photos in `assets/faces/` for the face picker (after adding photos) |
 | `npm run jitter` | how smoothly your car is drawn (stutter check, real browser) |
 

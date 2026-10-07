@@ -6,8 +6,16 @@ roll old "Last sessions" lines into one summary line per finished phase.
 ## Now
 - Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
   the human's request of 2026-10-07 (cloud).
-- Next task: P12.4 Review and ship
-- Status: P12.3 done: car pictures, garage window, big seat buttons. `npm run verify` passes.
+- Next task: none planned. P12 done; waiting for the human's playtest (see "Deferred human tests").
+- Status: P12 done (host/join, real-life cars, garage), reviewed and fixed (D128). `npm run verify` passes.
+
+## P12 phase report (cloud, 2026-10-07)
+- Works: HOST (name, track, mode, laps, bots, chaos) and JOIN (live list of every game on the
+  server, the office game always first), several games at once each on its own track, Leave game;
+  eight real-life car types (unbranded); lobby cards with car pictures in team colors, a garage
+  window (types, stat bars, Honk), big Pilot / Engineer / Solo buttons with faces.
+- Try: `start-server.bat`, open the printed address on two laptops: HOST on one, JOIN on the other.
+- Known issues: none new. Not checked on real hardware yet (FPS of the car pictures, LAN).
 
 ## Half-done
 - (none)
@@ -70,11 +78,12 @@ roll old "Last sessions" lines into one summary line per finished phase.
   2. `git fetch origin` then `git log --oneline main..origin/claude/keen-edison-iupozz` (what is new).
   3. `git checkout -b cloud-review origin/claude/keen-edison-iupozz`, then `npm install`,
      `npm run verify`, `npm run shots -- menu lobby chase`, and `npm start` for a quick look (Windows).
-  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P11)"`
+  4. If OK: `git checkout main` and `git merge --no-ff cloud-review -m "Merge cloud work (P7.5–P12)"`
      (no rebase, no reset). If a conflict appears, stop and ask the human.
   5. `npm run verify` again on `main`, then the HUMAN pushes `main` (`git push origin main`).
   6. Tags (cloud tags were never pushed): `git tag p7-done <hash of "P7.9">`, the same for
-     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the "P10.7" commit), `p11-done` ("P11.7");
+     `p8-done` ("P8.6"), `p9-done` ("P9.5"), `p10-done` and `v1.0` (the "P10.7" commit), `p11-done` ("P11.7"),
+     `p12-done` ("P12.4");
      find hashes with `git log --oneline --grep "^P9.5"`. The human may `git push origin --tags`.
   7. Delete the review branch (`git branch -d cloud-review`), remove this "Cloud session" section,
      commit "docs: back local", then run the "Deferred human tests" with the human (LOCAL: lines too).
@@ -184,6 +193,8 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-07 (cloud): P12.3 Visual garage and seats — rendered car pictures in team colors on the
   lobby cards, a garage window (types, stat bars, Honk), big Pilot / Engineer / Solo buttons with
   faces; checked in a real browser. D127.
+- 2026-10-07 (cloud): **P12 done** — review (no Critical) and fixes D128: Leave never hangs, cached
+  JOIN mini maps, wheels capped to their arches, bots stay in one game (`--game`), clean names.
 
 ## Playtest log
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.

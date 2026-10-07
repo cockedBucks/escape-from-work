@@ -16,6 +16,7 @@ import {
   resetStuck,
   type BotMemory,
   type CarDef,
+  type GameListing,
   type CarState,
   type CarStats,
   type CarViewLike,
@@ -62,6 +63,33 @@ export interface BotCarOptions {
   /** Tell the server these clients are bots, so the league never scores them (default true). */
   markBot?: boolean;
   name?: string;
+  /** The game (room id) to drive in; absent = the server's always-open game (P12.1). */
+  game?: string;
+}
+
+/** The server's games (`GET /games.json`), or null when it does not answer. */
+async function listGames(endpoint: EndpointSettings): Promise<GameListing[] | null> {
+  try {
+    const res = await fetch(`${endpoint.secure ? 'https' : 'http'}://${endpoint.hostname}:${endpoint.port}/games.json`);
+    if (!res.ok) return null;
+    const games = ((await res.json()) as { games?: unknown }).games;
+    return Array.isArray(games) ? (games as GameListing[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A game's room id by its id or name (`npm run bots -- --game "Lunch Cup"`); null if none. */
+export async function findGame(endpoint: EndpointSettings, idOrName: string): Promise<string | null> {
+  const games = (await listGames(endpoint)) ?? [];
+  return (games.find((g) => g.id === idOrName) ?? games.find((g) => g.name === idOrName))?.id ?? null;
+}
+
+/** Join a game by id, or the always-open one (older servers without a list: any race room). */
+async function joinBotGame(endpoint: EndpointSettings, game: string | undefined, bot: boolean): Promise<Room<BotStateView>> {
+  const id = game ?? (await listGames(endpoint))?.find((g) => g.isDefault)?.id;
+  const client = new Client(endpoint);
+  return id ? client.joinById<BotStateView>(id, { bot }) : client.join<BotStateView>(ROOM_NAME, { bot });
 }
 
 export interface BotCar {
@@ -132,7 +160,8 @@ async function takeSeat(room: Room<unknown, BotStateView>, slot: number, seat: '
 /** Start one bot car (two clients). Resolves once both bots are seated. */
 export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   const { endpoint, tuning, roster } = opts;
-  const pilot = await new Client(endpoint).join<BotStateView>(ROOM_NAME, { bot: opts.markBot ?? true });
+  const bot = opts.markBot ?? true;
+  const pilot = await joinBotGame(endpoint, opts.game, bot);
   ignoreBroadcasts(pilot);
   const first = await waitFor(pilot, (s) => s.players !== undefined, CONFIRM_MS);
   const slot = opts.slot !== undefined && opts.slot >= 0 ? opts.slot : freeSlot(first, tuning.race.maxCars);
@@ -142,7 +171,8 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
   }
   const label = opts.name ?? `Bot ${slot + 1}`;
   pilot.send(MSG.setName, { name: `${label} P` });
-  const engineer = await new Client(endpoint).join<BotStateView>(ROOM_NAME, { bot: opts.markBot ?? true });
+  // The Engineer sits in the Pilot's game, whatever game that is.
+  const engineer = await new Client(endpoint).joinById<BotStateView>(pilot.roomId, { bot });
   ignoreBroadcasts(engineer);
   engineer.send(MSG.setName, { name: `${label} E` });
   try {
