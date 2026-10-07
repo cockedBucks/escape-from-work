@@ -69,7 +69,8 @@ split-control networking end to end. Bots also fill empty cars in real races.
 | `juice` | same frozen race in chase view: confetti over car 1 (its finish), its body squashed by a landing, and a HONK! bubble over it (P7.6) |
 | `cockpit` | same frozen race from car 1's Pilot seat, head turned right at the teammate's bobblehead (placeholder face) |
 | `stall` | same frozen race in chase view, car 1's engine just stalled: smoke puffing from the hood (P5.1) |
-| `drift` | same frozen race in chase view, car 1 mid-drift with orange (level 2) sparks at the rear wheels (P5.2) |
+| `drift` | same frozen race in chase view, car 1 mid-drift with orange (level 2) sparks at the rear wheels, nose into the drift and the camera swung toward the slide (P5.2, P13.2) |
+| `countdown` | the grid on "1" with the race HUD countdown and the rocket-start tip under it, as the Engineer sees it (P13.3) |
 | `nitro` | same frozen race in chase view, car 1 burning nitro: big flames out the back (P5.3) |
 | `sandstorm` | same frozen race in chase view, the track's sandstorm blowing at full strength (thick sand fog; use `--track smart-oasis`) (P10.2) |
 | `items` | chaos on in the frozen race at 2.2 s: Mystery Packet boxes, a Reply-All envelope ahead of car 1, a coffee puddle, car 1's Firewall bubble, and the Forced Update overlay at 40% (P6.5) |

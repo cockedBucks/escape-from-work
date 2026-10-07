@@ -6,6 +6,12 @@ import type { CarState, SimEvent } from './types';
 /** Can this car take part in a slipstream (give or get one)? Not while fading, ghosted or out. */
 const inPlay = (car: CarState, now: number): boolean => car.respawnAtTick < 0 && car.ghostUntilTick <= now && !car.out && car.spinTicks === 0;
 
+/** Is `car` in the wake of any other car in play? */
+function inAnyWake(car: CarState, cars: readonly CarState[], cfg: Tuning, now: number): boolean {
+  for (const o of cars) if (o !== car && inPlay(o, now) && inWake(car, o, cfg)) return true;
+  return false;
+}
+
 /** Is `follower` in the wake of `leader`: right behind it, close, facing the same way? */
 export function inWake(follower: CarState, leader: CarState, cfg: Pick<Tuning, 'slipstream'>): boolean {
   const s = cfg.slipstream;
@@ -34,7 +40,7 @@ export function stepSlipstream(cars: readonly CarState[], cfg: Tuning, now: numb
     }
     const top = cfg.car.topSpeed * car.stats.speed;
     const fast = dot({ x: car.vx, z: car.vz }, forward(car.yaw)) >= s.minSpeedRatio * top;
-    const drafting = fast && !isAirborne(car) && inPlay(car, now) && cars.some((o) => o !== car && inPlay(o, now) && inWake(car, o, cfg));
+    const drafting = fast && !isAirborne(car) && inPlay(car, now) && car.stallUntilTick < 0 && inAnyWake(car, cars, cfg, now);
     if (!drafting) {
       car.slipCharge = Math.max(0, car.slipCharge - s.decayPerSec * dt);
       continue;

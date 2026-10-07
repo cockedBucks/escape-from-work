@@ -16,7 +16,7 @@ function view(speed: number, over: Partial<OwnCarView> = {}): OwnCarView {
   return {
     x: gate.pos.x, y: 0, z: gate.pos.z, yaw: gate.yaw, vx: f.x * speed, vz: f.z * speed, vy: 0, steer: 0,
     respawning: false, ghost: false, heat: 0, stallLeft: 0, drift: 0, driftLevel: 0, driftCharge: 0, boostLeft: 0, onSwap: false, spinLeft: 0, lagLeft: 0, swapLeft: 0, updateLeft: 0,
-    nitro: 0, nitroOn: false, solo: false, inSteer: 0, inGas: false, inBrake: false, inNitro: false, inDrift: false, ...over,
+    nitro: 0, nitroOn: false, solo: false, inSteer: 0, inGas: false, inBrake: false, inNitro: false, inDrift: false, trick: false, ...over,
   };
 }
 const out = (): CarSnap => ({ x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, respawning: false, ghost: false, stalled: false, drift: 0, driftLevel: 0, boosting: false, nitroOn: false, shielded: false });
@@ -106,7 +106,7 @@ describe('OwnCarPredictor smoothness', () => {
       return {
         x: c.x, y: c.y, z: c.z, yaw: c.yaw, vx: c.vx, vz: c.vz, vy: c.vy, steer: c.steer, respawning: false, ghost: false,
         heat: c.heat, stallLeft: 0, drift: 0, driftLevel: 0, driftCharge: 0, boostLeft: 0, onSwap: false, spinLeft: 0, lagLeft: 0, swapLeft: 0, updateLeft: 0,
-        nitro: 0, nitroOn: false, solo: false, inSteer: 0, inGas: true, inBrake: false, inNitro: false, inDrift: false,
+        nitro: 0, nitroOn: false, solo: false, inSteer: 0, inGas: true, inBrake: false, inNitro: false, inDrift: false, trick: false,
       };
     };
     // The server: 60 ticks/s, a state every 2 ticks. The client draws at 60 fps, half a frame off.
@@ -147,7 +147,7 @@ describe('OwnCarPredictor rebuilds timers from synced state', () => {
     p.onServer('car0', {
       x: c.x, y: c.y, z: c.z, yaw: c.yaw, vx: c.vx, vz: c.vz, vy: c.vy, steer: c.steer, respawning: false, ghost: false,
       heat: 1, stallLeft: 4 * dt, drift: 0, driftLevel: 0, driftCharge: 0, boostLeft: 7 * dt, onSwap: false, spinLeft: 0, lagLeft: 0, swapLeft: 0, updateLeft: 0,
-      nitro: 0, nitroOn: false, solo: false, inSteer: 0, inGas: true, inBrake: false, inNitro: false, inDrift: false,
+      nitro: 0, nitroOn: false, solo: false, inSteer: 0, inGas: true, inBrake: false, inNitro: false, inDrift: false, trick: false,
     }, 0);
     const o = out();
     expect(p.predict(11 * dt * 1000, GAS, 'solo', 0, cfg, o)).toBe(true); // within predictMaxMs

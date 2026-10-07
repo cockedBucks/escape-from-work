@@ -247,6 +247,11 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     const max = itemsCfg.items.forcedUpdate.maxSeconds;
     new ItemEffectsOverlay(container).set({ blueLeft: 0, lagLeft: 0, swapLeft: 0, updateLeft: max * 0.6 }, max);
   }
+  // `countdown`: the grid on "1" with the rocket-start tip (P13.3), as the Engineer sees it.
+  if (scenario === 'countdown') {
+    new RaceHud(container).set({ countdown: '1', tip: t('hud.rocketTip'), lap: null, place: null, banner: null, wrongWay: false });
+    container.querySelector('.hud-countdown')?.classList.remove('pop'); // the settled number, not mid pop-in
+  }
   if (scenario === 'stall' || scenario === 'drift' || scenario === 'nitro') game.warmEffects(SCENARIO_SMOKE_SECONDS, performance.now());
   if (scenario === 'juice') {
     // You just finished (confetti) after a jump (squash) and honk.

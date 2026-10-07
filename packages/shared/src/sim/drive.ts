@@ -75,7 +75,7 @@ export function drive(state: CarState, input: CarInput, car: CarTuning, boosts: 
 
   vF = longitudinal(vF, input, top, accel, car, dt);
   // Drift boost and nitro: extra pushes above top speed (speed settles back afterwards).
-  if (state.boostTicks > 0) vF = push(vF, drift.boostAccel, top * drift.boostTopSpeed, dt);
+  if (state.boostTicks > 0 && state.stallUntilTick < 0) vF = push(vF, drift.boostAccel, top * drift.boostTopSpeed, dt);
   if (state.nitroOn) vF = push(vF, nitro.accel, top * nitro.topSpeed, dt);
 
   const drifting = state.driftDir !== 0;

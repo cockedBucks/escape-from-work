@@ -15,10 +15,11 @@ export function stepTrick(car: CarState, cfg: Tuning, events: SimEvent[]): void 
   }
 }
 
-/** The car touched down this tick: a trick in the air pays out now. */
-export function landTrick(car: CarState, cfg: Tuning, events: SimEvent[]): void {
+/** The car touched down this tick: a trick in the air pays out now (`pays` = false: stalled, spun out, out of a battle…). */
+export function landTrick(car: CarState, cfg: Tuning, events: SimEvent[], pays = true): void {
   if (car.trick === 0) return;
   car.trick = 0;
+  if (!pays) return;
   car.boostTicks = Math.max(car.boostTicks, Math.round(cfg.trick.boostSeconds / cfg.sim.dt));
   events.push({ type: 'trickLand', car: car.id });
 }

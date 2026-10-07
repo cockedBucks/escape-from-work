@@ -7,6 +7,7 @@ import {
   locateOnTrack,
   mayUse,
   step,
+  zonesAt,
   type CarInput,
   type CarState,
   type CarStats,
@@ -37,6 +38,8 @@ export interface OwnCarView {
   driftCharge: number;
   /** Seconds of drift boost left. */
   boostLeft: number;
+  /** Doing a jump trick (it pays a boost on landing, P13.5). */
+  trick: boolean;
   onSwap: boolean;
   nitro: number;
   nitroOn: boolean;
@@ -135,6 +138,7 @@ export class OwnCarPredictor {
     car.driftDir = view.drift;
     car.driftLevel = view.driftLevel;
     car.driftCharge = view.driftCharge;
+    car.trick = view.trick ? 1 : 0;
     car.nitro = view.nitro;
     car.nitroOn = view.nitroOn;
     car.solo = view.solo;
@@ -147,6 +151,8 @@ export class OwnCarPredictor {
     car.segment = loc.segment;
     car.progress = lapProgress(this.track, loc.progress);
     car.lateral = loc.lateral;
+    // Already on a boost pad (the server gave its boost on entry): do not predict it again.
+    car.onPad = view.y <= 0 && zonesAt(this.track, loc).some((z) => z.type === 'boost');
     // Two updates before a frame was drawn: keep blending from the one actually drawn last.
     if (!this.needOffset) this.prev = this.base;
     this.base = { car, time, stallLeft: view.stallLeft, boostLeft: view.boostLeft };

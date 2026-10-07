@@ -110,9 +110,9 @@ export const TRACK_LOOK = {
   fanChevronThick: 0.35,
   fanChevronInset: 1,
   fanChevronColor: 0x4cc9f0,
-  /** Boost pads (P13.6): an orange plate with yellow arrows pointing ahead, every N samples (length, thickness, inset in m). */
+  /** Boost pads (P13.6): an orange plate with near-white arrows pointing ahead, every N samples (length, thickness, inset in m). */
   padColor: 0xfb8500,
-  padArrowColor: 0xffd60a,
+  padArrowColor: 0xfff8e1,
   padArrowEvery: 2,
   padArrowLength: 1.4,
   padArrowThick: 0.45,

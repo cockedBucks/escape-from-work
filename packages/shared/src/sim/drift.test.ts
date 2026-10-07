@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import realTuning from '../../../../config/tuning.json';
 import { parseTuning } from '../config/tuning';
-import { createCar } from './car';
+import { createCar, createWorld } from './car';
+import { step } from './step';
 import { driftSteer, drive } from './drive';
 import { cancelDrift, stepDrift } from './drift';
 import { NO_INPUT, type CarInput, type CarState, type SimEvent } from './types';
@@ -147,6 +148,31 @@ describe('kart drift (Space)', () => {
     expect(vS(drifting)).toBeGreaterThan(vS(normal) * 2);
     expect(Math.abs(driftSteer(1, -1, d))).toBeLessThan(Math.abs(driftSteer(1, 1, d)));
     expect(Math.sign(driftSteer(1, -1, d))).toBe(1); // still turning into the drift
+  });
+
+  it('a stalled engine (or Forced Update) ends the drift with no boost, and none starts while it lasts', () => {
+    const c = fastCar();
+    run(c, SPACE_R, secs(d.levelSeconds[1] + 0.05));
+    const world = createWorld(track, [c]);
+    c.stallUntilTick = world.tick + 100;
+    const ev = step(world, { a: GAS }, cfg); // Space let go while stalled
+    expect(ev.some((e) => e.type === 'boost')).toBe(false);
+    expect(c.driftDir).toBe(0);
+    expect(c.boostTicks).toBe(0);
+    expect(step(world, { a: SPACE_R }, cfg).some((e) => e.type === 'driftStart')).toBe(false);
+  });
+
+  it('the assist does not steer under Control Swap, Lag Spike or Blue Screen (holding Space must not undo the item)', () => {
+    const c = fastCar(top * 0.8, 0, beforeBend);
+    run(c, { ...GAS, drift: true }, 1);
+    expect(c.driftDir).not.toBe(0);
+    const assisted = stepDrift(c, { ...GAS, drift: true }, vF(c), track, cfg, []);
+    expect(assisted.steer).not.toBe(0);
+    for (const effect of ['controlSwapTicks', 'lagTicks', 'blueScreenTicks'] as const) {
+      c[effect] = 10;
+      expect(stepDrift(c, { ...GAS, drift: true }, vF(c), track, cfg, []).steer).toBe(0);
+      c[effect] = 0;
+    }
   });
 
   it('nitro never goes past a full meter', () => {

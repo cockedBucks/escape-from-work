@@ -4,18 +4,17 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P13 — Smooth online play + kart fun pass (`docs/phases/P13-fun-pass.md`), the human's request
-  of 2026-10-07 after the first real test (friend saw lag; drift on Space; more fun mechanics).
-- Next task: P13.7 Review and ship.
-- Status: P13.1 (smooth online play, D129) P13.2 (kart drift on Space, D130), P13.3 (rocket start, D131), P13.4 (slipstream, D132), P13.5 (jump tricks, D133), P13.6 (boost pads, D134) done; /shots batched at P13.7. `npm run verify` passes.
+- Phase: P13 done (smooth online play + kart fun pass, `docs/phases/P13-fun-pass.md`), the human's
+  request of 2026-10-07 after the first real test.
+- Next task: none planned. Run the "Deferred human tests" with the human (P13 ones first).
+- Status: P13 done, reviewed and fixed (D135), tag `p13-done`. `npm run verify` passes.
 
-## P12 phase report (cloud, 2026-10-07)
-- Works: HOST (name, track, mode, laps, bots, chaos) and JOIN (live list of every game on the
-  server, the office game always first), several games at once each on its own track, Leave game;
-  eight real-life car types (unbranded); lobby cards with car pictures in team colors, a garage
-  window (types, stat bars, Honk), big Pilot / Engineer / Solo buttons with faces.
-- Try: `start-server.bat`, open the printed address on two laptops: HOST on one, JOIN on the other.
-- Known issues: none new. Not checked on real hardware yet (FPS of the car pictures, LAN).
+## P13 phase report (local, 2026-10-07)
+- Works: other cars stay smooth on jittery Wi-Fi (adaptive buffer); kart drift on Space (Pilot/Solo,
+  no turning needed, let go = boost); rocket start (Engineer, gas right before GO); slipstream;
+  jump tricks (Space in the air); boost pads on every race track. Bots use all of them.
+- Try: `npm start`, race with bots; F3 shows the network line. `npm run jitter -- 8 --lag 10 --jitter 60`.
+- Known issues: none new. Real Wi-Fi with the friend's laptop not re-tested yet.
 
 ## Half-done
 - (none)
@@ -68,6 +67,15 @@ roll old "Last sessions" lines into one summary line per finished phase.
      Reply: do they read as real car types? any you dislike? (shapes: CAR_BODIES in look.ts)
   3. Garage and seats: click your car's picture in the lobby, Honk a few, pick one; sit as Pilot,
      Engineer and Solo. Reply: clear and fun? does the lobby fit your screen without scrolling?
+- P13 fun pass (built locally 2026-10-07, after the first real test; replaces the P5 "tap S" drift):
+  1. Lag: your friend plays again on Wi-Fi with F3 open. Reply: any stutter left? the "net" line
+     (jitter ms, late frames %).
+  2. Kart drift: as Pilot (or Solo) hold Space into a corner without turning; then try steering
+     into / out of it; let go for the boost. Reply: fun? too easy? (`drift.assist` = false turns off
+     the self-steering.)
+  3. Rocket start: as Engineer hit W on "1"; once hold W from "3" (floods). Reply: timing fair?
+  4. Slipstream: follow a car closely for 2 s ("WHOOSH!"). Tricks: Space in the air off a ramp.
+     Boost pads: orange plates with arrows. Reply: which of these are fun, which unnoticed?
 
 ## Built in the cloud (P7.5–P12, 2026-10-06/07)
 - Cloud had no GPU, speakers or LAN: real FPS, audio, LAN/firewall and `npm run jitter` numbers are
@@ -177,7 +185,13 @@ roll old "Last sessions" lines into one summary line per finished phase.
 - 2026-10-07 (cloud): **P12 done** — review (no Critical) and fixes D128: Leave never hangs, cached
   JOIN mini maps, wheels capped to their arches, bots stay in one game (`--game`), clean names.
 
+- 2026-10-07 (local): **P13 done** — the human's first real test: sound ok, FPS ok, a friend saw lag;
+  asked for drift on Space like a go-kart and researched fun mechanics. Adaptive interpolation (D129),
+  kart drift (D130), rocket start (D131), slipstream (D132), tricks (D133), boost pads (D134). Review D135.
+
 ## Playtest log
+- 2026-10-07 first real test (local, after the cloud work was merged): "sound alright, fps test good
+  kinda"; a friend experienced lag and stuttering → P13.1. Drift on S "not fun" → P13.2 (Space).
 - 2026-10-04 P0 gate "first contact": `npm run dev` page showed the live count on the host.
   Second laptop on office Wi-Fi first got "site can't be reached": Wi-Fi is a Public network
   and Node is only allowed on Private/Domain. Human added the game-ports firewall rule (D030)

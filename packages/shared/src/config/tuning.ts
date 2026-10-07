@@ -158,7 +158,6 @@ const BotSchema = z.strictObject({
 
 /** Three increasing values, one per drift level (blue, orange, pink). */
 const perLevel = () => z.tuple([nonNeg(), nonNeg(), nonNeg()]);
-
 /** Tandem drift (GAME_DESIGN §5): Engineer taps brake while the Pilot steers hard. */
 /** Kart drift (P13.2, GAME_DESIGN §5): hold the drift key (Space, Pilot or Solo). */
 const DriftSchema = z.strictObject({
@@ -328,6 +327,10 @@ const CameraSchema = z.strictObject({
    * speed, starting from `speedFovFrom` × top speed. Nitro/boost speed widens it a bit more. */
   speedFov: nonNeg(),
   speedFovFrom: fraction(),
+  /** While drifting the chase cam swings this far (rad) toward where the car slides, so you see
+   *  the kart sideways (P13.2), easing at `driftAngleRate` (1/s). */
+  driftAngle: nonNeg(),
+  driftAngleRate: pos(),
   /** Cockpit cam: field of view (degrees). */
   cockpitFov: z.number().min(30).max(120),
   /** Mouse look: radians of head turn per pixel of mouse movement. */
@@ -413,7 +416,7 @@ const NetSchema = z.strictObject({
   inputResendMs: z.number().int().min(50),
   /** Games players may host at the same time on one server (P12.1), on top of the always-open one. */
   maxGames: z.number().int().min(1).max(32),
-});
+}).refine((n) => n.interpDelayMaxMs >= n.interpDelayMs, 'net.interpDelayMaxMs must be at least net.interpDelayMs');
 
 /** Days of the week, Sunday first (the same order as `Date.getUTCDay()`). */
 export const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;

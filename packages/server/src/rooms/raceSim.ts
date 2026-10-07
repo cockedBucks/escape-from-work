@@ -629,7 +629,7 @@ export class RaceSim {
       const wanted = this.carInput(slot, seating);
       inputs[carIdForSlot(slot)] = live ? wanted : NO_INPUT;
       // The car waits on the grid, but the Engineer's gas timing counts (rocket start).
-      if (this.flow.phase === 'countdown') trackCountdownGas(this.rocket, carIdForSlot(slot), wanted.gas, this.world.tick);
+      if (this.flow.phase === 'countdown') trackCountdownGas(this.rocket, carIdForSlot(slot), wanted.gas, this.world.tick + 1);
       // One player driving alone: the optional solo handicap applies (solo.speedMultiplier).
       const car = this.world.cars.find((c) => c.id === carIdForSlot(slot));
       if (car) car.solo = occupants(seating, slot).some((s) => s.connected && effectiveRole(seating, s.id) === 'solo');

@@ -218,6 +218,15 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     const steer = botSteer(car, track, tuning, route);
     return { steer, drift: botDrift(car, track, tuning, steer, tuning.bot.skill, route), aimBack: item.aimBack };
   };
+  /**
+   * Countdown: whichever client has the pedals (seats stay swapped after a swap lane) hits the
+   * gas just before GO if skilled enough (rocket start, P13.3), and otherwise waits.
+   */
+  const countdownGas = (s: BotStateView, half: Omit<InputMessage, 'seq'>): Omit<InputMessage, 'seq'> => {
+    if (s.phase !== 'countdown' || half.gas === undefined) return half;
+    const left = tuning.race.countdownSeconds - ((s.tick ?? 0) - (s.phaseTick ?? 0)) * tuning.sim.dt;
+    return { ...half, gas: tuning.bot.skill >= tuning.rocket.botSkill && left <= tuning.rocket.windowSeconds / 2 };
+  };
   /** The other cars, rebuilt from synced state (positions are all the item aim needs). */
   const othersIn = (s: BotStateView, track: Track): CarState[] => {
     const out: CarState[] = [];
@@ -243,7 +252,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     const car = carStateFromView(carId, view, t, slotStats(roster, s.carModels, slot), pilotHint);
     pilotHint = car.segment;
     if (s.phase !== 'racing') resetStuck(pilotMemory);
-    pilot.send(MSG.input, { seq: ++pilotSeq, ...halfFor(t, s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s, t)) });
+    pilot.send(MSG.input, { seq: ++pilotSeq, ...countdownGas(s, halfFor(t, s.players?.get(pilot.sessionId)?.seat, car, pilotMemory, othersIn(s, t))) });
   });
 
   // Engineer half: gas/brake for the next corners, respawn when stuck; also counts laps.
@@ -270,13 +279,7 @@ export async function startBotCar(opts: BotCarOptions): Promise<BotCar> {
     if (s.phase !== 'racing') resetStuck(memory);
     // Engineer half (until a swap): pedals, heat, nitro.
     const seat = s.players?.get(engineer.sessionId)?.seat;
-    const half = halfFor(t, seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s, t));
-    // Countdown: a skilled bot hits the gas just before GO (rocket start, P13.3); others wait.
-    if (s.phase === 'countdown' && half.gas !== undefined) {
-      const left = tuning.race.countdownSeconds - ((s.tick ?? 0) - (s.phaseTick ?? 0)) * tuning.sim.dt;
-      half.gas = tuning.bot.skill >= tuning.rocket.botSkill && left <= tuning.rocket.windowSeconds / 2;
-    }
-    engineer.send(MSG.input, { seq: ++engSeq, ...half });
+    engineer.send(MSG.input, { seq: ++engSeq, ...countdownGas(s, halfFor(t, seat === 'pilot' ? 'pilot' : 'engineer', car, memory, othersIn(s, t))) });
     if (lastProgress > WRAP && view.progress < 1 - WRAP) {
       wraps++;
       const now = performance.now();

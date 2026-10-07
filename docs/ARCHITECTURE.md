@@ -369,6 +369,7 @@ it is ignored (clients may send everything). Respawn: any player in the car.
 | low FPS / blurry | `quality.default`, `quality.presets.*` (budgets used by /shots); try `?quality=low` in the URL |
 | chase cam too close / too far / too stiff / floaty | `camera.chaseDistance`, `camera.chaseHeight`, `camera.followRate` |
 | chase cam looks at the wrong spot / feels slow | `camera.lookAhead`, `camera.lookHeight`, `camera.fov` |
+| drifts do not look sideways / camera swings too much (P13.2) | `camera.driftAngle`, `camera.driftAngleRate` |
 | no sense of speed / view warps too much when fast | `camera.speedFov` (extra degrees at top speed, 0 = off), `camera.speedFovFrom` |
 | cockpit too narrow / wide, mouse look too fast / slow | `camera.cockpitFov`, `camera.mouseSensitivity` |
 | can turn your head too far / not far enough, head snaps back | `camera.headYawLimit`, `camera.headPitchLimit`, `camera.headRecenterRate` |

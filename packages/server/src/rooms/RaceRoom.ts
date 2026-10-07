@@ -631,7 +631,7 @@ export class RaceRoom extends Room<{ state: RaceState; metadata: GameMeta }> {
       view.boostLeft = car.boostTicks * this.tuning.sim.dt;
       view.trick = car.trick === 1;
       // Rounded: a draining charge must not send a patch every tick for a tiny change.
-      view.slip = Math.round((car.slipCharge / this.tuning.slipstream.chargeSeconds) * 20) / 20;
+      view.slip = Math.round((Math.max(car.slipCharge, 0) / this.tuning.slipstream.chargeSeconds) * 20) / 20;
       view.onSwap = car.onSwap;
       view.nitro = car.nitro;
       view.nitroOn = car.nitroOn;

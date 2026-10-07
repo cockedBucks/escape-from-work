@@ -103,8 +103,10 @@ export class SnapshotBuffer {
       o.y = Math.max(lerp(ca.y, cb.y, alpha), 0); // extrapolating a landing car: not below the ground
       o.z = lerp(ca.z, cb.z, alpha);
       o.yaw = ca.yaw + angleDiff(ca.yaw, cb.yaw) * alpha;
-      o.speed = lerp(ca.speed, cb.speed, alpha);
-      o.steer = lerp(ca.steer, cb.steer, alpha);
+      // Past the newest snapshot only the pose is extrapolated; speed and steering hold.
+      const k = Math.min(alpha, 1);
+      o.speed = lerp(ca.speed, cb.speed, k);
+      o.steer = lerp(ca.steer, cb.steer, k);
       o.respawning = cb.respawning;
       o.ghost = cb.ghost;
       o.stalled = cb.stalled;

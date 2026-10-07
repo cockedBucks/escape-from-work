@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { controlsFrom, isTyping } from './keyboard';
+import { describe, expect, it, vi } from 'vitest';
+import type { InputMessage } from '@escape/shared';
+import { KeyboardControls, controlsFrom, isTyping } from './keyboard';
 
 describe('controlsFrom', () => {
   it('maps held actions to the input message', () => {
@@ -46,5 +47,32 @@ describe('isTyping', () => {
       g.HTMLInputElement = saved.input;
       g.HTMLTextAreaElement = saved.area;
     }
+  });
+});
+
+describe('KeyboardControls seat change (P13.2)', () => {
+  it('Space held through a swap lane does not fire the item (or drift) until it is let go', () => {
+    const handlers: Record<string, (e: unknown) => void> = {};
+    vi.stubGlobal('window', {
+      setInterval: () => 1,
+      clearInterval: () => {},
+      addEventListener: (type: string, fn: (e: unknown) => void) => (handlers[type] = fn),
+      removeEventListener: () => {},
+    });
+    const sent: InputMessage[] = [];
+    const kb = new KeyboardControls((m) => sent.push(m), 100);
+    kb.role = 'pilot';
+    const key = (type: 'keydown' | 'keyup', code: string): void => handlers[type]!({ code, repeat: false, target: null, preventDefault: () => {} });
+    key('keydown', 'Space');
+    expect(sent.at(-1)).toMatchObject({ drift: true, fire: false });
+    kb.role = 'engineer'; // swap lane
+    expect(sent.at(-1)).toMatchObject({ drift: false, fire: false });
+    key('keydown', 'Space'); // key repeat while still held
+    expect(sent.at(-1)).toMatchObject({ fire: false });
+    key('keyup', 'Space');
+    key('keydown', 'Space');
+    expect(sent.at(-1)).toMatchObject({ drift: false, fire: true });
+    kb.dispose();
+    vi.unstubAllGlobals();
   });
 });

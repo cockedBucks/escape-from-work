@@ -63,6 +63,8 @@ export class KeyboardControls {
   private mash = 0;
   private readonly resendTimer: number;
   private seat: Role | null = null;
+  /** Keys that count again only after they are let go (Space held through a seat change). */
+  private readonly ignored = new Set<Action>();
 
   constructor(
     private readonly send: (msg: InputMessage) => void,
@@ -79,7 +81,10 @@ export class KeyboardControls {
   set role(role: Role | null) {
     if (role === this.seat) return;
     this.seat = role;
-    if (this.held.size > 0) this.emit();
+    // Space held through a swap lane would turn the Pilot's drift into the Engineer's item (or
+    // back): it counts again only after it is let go.
+    if (this.held.delete('space')) this.ignored.add('space');
+    if (this.held.size > 0 || this.ignored.size > 0) this.emit();
   }
 
   private readonly onDown = (e: KeyboardEvent): void => {
@@ -96,18 +101,20 @@ export class KeyboardControls {
     }
     e.preventDefault(); // arrow keys must not scroll the page
     if (!e.repeat) this.mash++;
-    if (this.held.has(action)) return; // key repeat
+    if (this.held.has(action) || this.ignored.has(action)) return; // key repeat, or held through a seat change
     this.held.add(action);
     this.emit();
   };
 
   private readonly onUp = (e: KeyboardEvent): void => {
     const action = ACTION_BY_CODE.get(e.code);
+    if (action) this.ignored.delete(action);
     if (!action || !this.held.delete(action)) return;
     this.emit();
   };
 
   private readonly onBlur = (): void => {
+    this.ignored.clear();
     if (this.held.size === 0) return;
     this.held.clear();
     this.emit();

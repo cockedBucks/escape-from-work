@@ -165,6 +165,8 @@ export class Game {
   private replay: { play: ReplayPlay; startedAt: number; nextMark: number } | null = null;
   /** Snap the chase cam on the next frame (after a replay moved the camera away). */
   private snapNext = false;
+  /** Chase-cam swing toward a drift (rad), eased. */
+  private driftSwing = 0;
 
   constructor(private readonly opts: GameOptions) {
     this.stage = createStage(opts.container, opts.tuning, opts.quality);
@@ -365,7 +367,10 @@ export class Game {
         const locked = this.opts.mouseLocked?.() ?? false;
         this.cockpit.update(cam, car.x, car.y, car.z, car.yaw, this.opts.seatSide?.() ?? 'left', dt, locked, this.cars.get(id!)?.cockpitLift);
       } else if (car) {
-        this.chase.update(cam, car.x, car.y, car.z, car.yaw, dt, snapCamera || this.snapNext, car.speed / this.opts.tuning.car.topSpeed);
+        // Drifting: swing the camera toward the slide, so the car is seen at its drift angle.
+        const swing = car.drift * cam.driftAngle;
+        this.driftSwing = snapCamera || this.snapNext ? swing : this.driftSwing + (swing - this.driftSwing) * Math.min(1, cam.driftAngleRate * dt);
+        this.chase.update(cam, car.x, car.y, car.z, car.yaw + this.driftSwing, dt, snapCamera || this.snapNext, car.speed / this.opts.tuning.car.topSpeed);
         this.snapNext = false;
         this.shake.step(dt);
         if (this.shake.amp > 0) {

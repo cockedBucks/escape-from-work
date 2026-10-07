@@ -92,21 +92,23 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
     }
   }
 
-  // Spun out or fading to a respawn: a drift ends with no boost (letting go of the key would reward it).
-  if (spinning || car.respawnAtTick >= 0) cancelDrift(car, cfg, events);
 
   // 2. Nitro, engine heat (a stalled engine gives no gas), drift (Space held), then drive
   // (on the ground only), move, fall, hit walls.
   stepNitro(car, input, cfg, now, events);
   input = stepHeat(car, input, Math.hypot(car.vx, car.vz), cfg, now, events);
-  input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), track, cfg, events);
+  // Spun out, fading to a respawn, stalled or frozen by a Forced Update: no drift (it ends with no
+  // boost, and none starts), since letting go of the key would otherwise pay out.
+  const noDrift = spinning || car.respawnAtTick >= 0 || car.stallUntilTick >= 0 || car.updateTicks > 0;
+  if (noDrift) cancelDrift(car, cfg, events);
+  input = stepDrift(car, input, dot({ x: car.vx, z: car.vz }, forward(car.yaw)), track, cfg, events, noDrift);
   stepTrick(car, cfg, events);
   const flying = isAirborne(car);
   if (!flying && !spinning) drive(car, input, cfg.car, cfg, dt);
   car.x += car.vx * dt;
   car.z += car.vz * dt;
   const impact = fall(car, cfg.car, dt);
-  if (flying && !isAirborne(car)) landTrick(car, cfg, events);
+  if (flying && !isAirborne(car)) landTrick(car, cfg, events, !noDrift && !car.out);
   if (impact > 0) events.push({ type: 'land', car: car.id, impact });
   const hit = collideWalls(car, track, cfg.car);
   if (hit > 0) events.push({ type: 'wallHit', car: car.id, speed: hit });
@@ -127,7 +129,8 @@ function stepCar(world: World, car: CarState, rawInput: CarInput, cfg: Tuning, n
   car.onRamp = ramp !== undefined;
   // Boost pad: a boost on entry (on the ground only; flying over it does nothing).
   const pad = grounded && zones.some((z) => z.type === 'boost');
-  if (pad && !car.onPad) {
+  // Spun out, fading, stalled or out of a battle: rolling over a pad gives nothing.
+  if (pad && !car.onPad && !noDrift && !car.out) {
     car.boostTicks = Math.max(car.boostTicks, ticks(cfg.boostPad.boostSeconds, dt));
     events.push({ type: 'boostPad', car: car.id });
   }

@@ -20,7 +20,7 @@ function endDrift(car: CarState, reward: boolean, cfg: Tuning, events: SimEvent[
   const level = car.driftLevel;
   if (reward && level > 0) {
     const d = cfg.drift;
-    car.boostTicks = Math.round(d.boostSeconds[level - 1]! / cfg.sim.dt);
+    car.boostTicks = Math.max(car.boostTicks, Math.round(d.boostSeconds[level - 1]! / cfg.sim.dt)); // never cut a running boost short
     car.nitro = Math.min(1, car.nitro + d.nitroPerLevel[level - 1]!);
     events.push({ type: 'boost', car: car.id, level });
   }
@@ -34,11 +34,16 @@ export function cancelDrift(car: CarState, cfg: Tuning, events: SimEvent[]): voi
   if (car.driftDir !== 0) endDrift(car, false, cfg, events);
 }
 
+const MAIN_ROAD: readonly number[] = [];
+/** `[i]` per branch, made once (the assist runs every tick: no new arrays). */
+const BRANCH_ROUTES: number[][] = [];
+
 /** The shortcut the car is on right now (as a bot route), so the assist follows it, not the main road. */
-function routeOf(car: CarState, track: Track): number[] {
-  if (track.branches.length === 0) return [];
+function routeOf(car: CarState, track: Track): readonly number[] {
+  if (track.branches.length === 0) return MAIN_ROAD;
   const road = locateOnTrack(track, { x: car.x, z: car.z }, car.segment).road;
-  return road > 0 ? [road - 1] : [];
+  if (road <= 0) return MAIN_ROAD;
+  return (BRANCH_ROUTES[road - 1] ??= [road - 1]);
 }
 
 /**
@@ -61,15 +66,17 @@ function pickDirection(car: CarState, input: CarInput, track: Track, cfg: Tuning
  * mini-turbo in three levels while the key stays down. Steering only makes it tighter (into the
  * drift) or wider (out); with no steering key held it follows the road by itself (`drift.assist`).
  * Letting go of the key ends it: boost + nitro for the level reached. Too slow ends it with nothing.
- * `vF` = forward speed. Returns the input to drive with.
+ * `vF` = forward speed. `blocked`: no drift may start now (stalled, spun out…; the caller ended
+ * any drift). Returns the input to drive with.
  */
-export function stepDrift(car: CarState, input: CarInput, vF: number, track: Track, cfg: Tuning, events: SimEvent[]): CarInput {
+export function stepDrift(car: CarState, input: CarInput, vF: number, track: Track, cfg: Tuning, events: SimEvent[], blocked = false): CarInput {
   const d = cfg.drift;
   const dt = cfg.sim.dt;
   const top = cfg.car.topSpeed * car.stats.speed;
   if (car.boostTicks > 0) car.boostTicks--;
   const held = input.drift === true;
   car.driftKeyTicks = held ? car.driftKeyTicks + 1 : 0;
+  if (blocked) return input;
 
   if (car.driftDir === 0) {
     // Not drifting: the held key waits (armed) until the car is fast, on the ground, and has a side.
@@ -95,7 +102,9 @@ export function stepDrift(car: CarState, input: CarInput, vF: number, track: Tra
     car.driftLevel = level;
     events.push({ type: 'driftLevel', car: car.id, level });
   }
-  if (!d.assist || Math.abs(input.steer) > d.steerPick) return input;
+  // No assist while an item scrambles the controls (Control Swap, Lag Spike) or hides the road
+  // (Blue Screen): holding Space must not undo the item.
+  if (!d.assist || Math.abs(input.steer) > d.steerPick || car.controlSwapTicks > 0 || car.lagTicks > 0 || car.blueScreenTicks > 0) return input;
   // No steering key: aim along the road like a bot does (tighter or wider inside the drift).
   const steer = clamp(-aimAngle(car, track, cfg.bot, routeOf(car, track)) * cfg.bot.steerGain, -1, 1);
   return { ...input, steer };

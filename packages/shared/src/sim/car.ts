@@ -19,7 +19,7 @@ export function placeAtGate(state: CarState, track: Track, gate: SectorGate, lat
   state.lastGate = gate.index;
   state.onSlick = false;
   state.onRamp = false;
-  state.onPad = false;
+  state.onPad = true; // as if already on any pad here: respawning on one gives no free boost
   const loc = locateOnTrack(track, { x: state.x, z: state.z }, gate.sample);
   state.segment = loc.segment;
   state.progress = lapProgress(track, loc.progress);
