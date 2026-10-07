@@ -1,7 +1,8 @@
 export { DEFAULT_TRACK } from '@escape/shared';
-import { buildTrack, parseCars, parseItems, parseTrack, parseTuning, type CarsConfig, type ItemsConfig, type Track, type Tuning } from '@escape/shared';
+import { buildTrack, parseCars, parseItems, parseSeasons, parseTrack, parseTuning, type CarsConfig, type ItemsConfig, type SeasonsConfig, type Track, type Tuning } from '@escape/shared';
 import rawCars from '../../../config/cars.json';
 import rawItems from '../../../config/items.json';
+import rawSeasons from '../../../config/seasons.json';
 import rawTuning from '../../../config/tuning.json';
 
 // Config files are bundled into the page at build time (offline, no fetches).
@@ -24,6 +25,10 @@ export function loadCars(): CarsConfig {
 
 export function loadItems(): ItemsConfig {
   return parseItems(rawItems);
+}
+
+export function loadSeasons(): SeasonsConfig {
+  return parseSeasons(rawSeasons);
 }
 
 export function trackIds(): string[] {

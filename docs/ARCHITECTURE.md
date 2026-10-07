@@ -34,6 +34,7 @@ escape-from-work/
     tuning.json        car, sim, track, bot, heat, drift, nitro, solo, race, net, league, quality
     cars.json          roster: stats, visual spec, horn and engine presets
     teams.json         default team names (IT puns), one per car slot
+    seasons.json       holiday decorations: date ranges, decoration kits, snow (P11.3)
     items.json         item params + roll weights
     tracks/<id>.json   track data
   assets/

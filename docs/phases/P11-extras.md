@@ -20,7 +20,7 @@ Left in "Later ideas" for the human to decide.
 - [x] **P11.2 Photo-finish replay.** When 2nd place finishes within a few tenths of the winner, a
   slow-motion replay from a camera at the finish line, with "PHOTO FINISH! by 0.12 s", for
   players already finished and spectators; drivers still racing get a toast.
-- [ ] **P11.3 Seasonal decorations.** Date ranges in config (winter, Halloween, Ramadan, …) put
+- [x] **P11.3 Seasonal decorations.** Date ranges in config (winter, Halloween, Ramadan, …) put
   original decoration props beside every track (and snow in winter). Settings: Auto / Off / pick one.
 - [ ] **P11.4 Arabic UI.** All screens in English or Arabic (right-to-left), language picker in
   settings (default: the browser's language).

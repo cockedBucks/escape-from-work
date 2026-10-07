@@ -16,8 +16,10 @@ export interface SettingsHandlers {
   volumes: () => Volumes;
   /** The current camera mode (read on open: C may have switched it). */
   camera: () => CameraMode;
-  /** In a race: changing quality needs a reload. */
+  /** In a race: changing quality or decorations needs a reload. */
   inRace: boolean;
+  /** Seasonal decorations to offer (config/seasons.json). */
+  seasons: readonly { id: string; name: string }[];
   onSettings(s: Settings): void;
   onVolumes(v: Volumes): void;
   onCamera(mode: CameraMode): void;
@@ -166,6 +168,18 @@ export class SettingsScreen {
     const qualityNote = document.createElement('p');
     qualityNote.className = 'note';
     qualityNote.textContent = 'Low for slow laptops; Auto uses the host’s default.';
+    const decorReload = reload.cloneNode(true) as HTMLButtonElement;
+    decorReload.addEventListener('click', () => window.location.reload());
+    const seasonName = new Map(this.h.seasons.map((x) => [x.id, x.name]));
+    const decorOptions = ['auto', 'off', ...this.h.seasons.map((x) => x.id)];
+    const decor = choices(decorOptions, (d) => (d === 'auto' ? 'Auto' : d === 'off' ? 'Off' : (seasonName.get(d) ?? d)), this.settings.decor, (d) => {
+      this.settings = { ...this.settings, decor: d };
+      this.h.onSettings(this.settings);
+      decorReload.hidden = !this.h.inRace;
+    });
+    const decorNote = document.createElement('p');
+    decorNote.className = 'note';
+    decorNote.textContent = 'Holiday props beside the tracks. Auto: only on the holiday dates.';
     const camera = choices(['chase', 'cockpit'] as const, (c) => (c === 'chase' ? 'Behind the car' : 'Cockpit'), this.h.camera(), (c) => this.h.onCamera(c));
     this.cameraRow = camera;
     const volumes = volumeSliders(this.h.volumes, (v) => this.h.onVolumes(v));
@@ -177,6 +191,7 @@ export class SettingsScreen {
       section('Sound', volumes.el),
       section('Default camera (C switches any time)', camera),
       section('Screen', fpsLabel, ghostLabel),
+      section('Decorations', decor, decorNote, decorReload),
     );
     return page;
   }

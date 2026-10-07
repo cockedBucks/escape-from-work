@@ -5,7 +5,7 @@ import '@fontsource/fredoka/600.css';
 import '@fontsource/fredoka/700.css';
 import './style.css';
 import { GAME_TITLE, MSG, NO_INPUT, carIdForSlot, createWorld, inputsAllowed, mayUse, sandstormOn, type CarDef, type CarInput, type CarLook, type LobbyError, type RacePhase, type RaceRecord, type Role, type SimEvent, type Tuning, type World } from '@escape/shared';
-import { DEFAULT_TRACK, loadCars, loadItems, loadTrack, loadTuning, pickableTracks } from './content';
+import { DEFAULT_TRACK, loadCars, loadItems, loadSeasons, loadTrack, loadTuning, pickableTracks } from './content';
 import { Game, type CarSeats, type CarSource, type SeatPerson } from './game';
 import { countdownCue } from './audio/cues';
 import { EngineSound, squealing } from './audio/engine';
@@ -18,6 +18,7 @@ import { SettingsScreen } from './ui/settingsScreen';
 import { ReplayRecorder, crossingTime, photoCamera, photoFinishPair, replayWindow } from './replay/photoFinish';
 import { PhotoBanner } from './ui/photoBanner';
 import { PHOTO } from './render/look';
+import { decorationsFor, localDay, pickSeason } from './render/decorations';
 import { GhostRecorder, LapWatch, ghostPoseAt, keepIfBest, loadGhost, type GhostLap, type GhostPose } from './ghost/ghostLap';
 import { HINT_TEXT, Onboarding, RoleCard } from './ui/onboarding';
 import { VolumePanel } from './ui/volumePanel';
@@ -197,6 +198,10 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
   };
   const itemsView = frozenItems(world);
   const previewFace = new URLSearchParams(window.location.search).get('face') ?? '';
+  // `&season=<id>` decorates the scenario's track for that season (shots of P11.3).
+  const seasonParam = new URLSearchParams(window.location.search).get('season');
+  const seasonsCfg = loadSeasons();
+  const decorations = seasonParam ? decorationsFor(track, seasonsCfg, pickSeason(seasonsCfg, seasonParam, localDay())) : undefined;
   if (previewFace !== '') await fetchFaces(); // its framing
   const container = el('game');
   container.hidden = false;
@@ -205,6 +210,7 @@ async function showScenario(hooks: GameHooks, tuning: Tuning, scenario: RaceScen
     tuning,
     track,
     quality: pickQuality(window.location.search, tuning).preset,
+    decorations,
     source: frozenSource(world),
     items: () => itemsView,
     sandstorm: () => scenario === 'sandstorm',
@@ -429,6 +435,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
   const trackId = await serverTrack(room);
   const track = loadTrack(trackId, tuning);
   const trackChoices = pickableTracks();
+  const seasonsCfg = loadSeasons();
   // Ghost of your best lap (P11.1): record where your car is drawn, race your best lap here.
   let ghostOn = settings.ghost;
   const ghostRecorder = new GhostRecorder();
@@ -715,6 +722,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     track,
     quality: pickQuality(window.location.search, tuning, settings.quality).preset,
     showFps: settings.showFps,
+    // Seasonal decorations (P11.3): the setting, or today's holiday on Auto.
+    decorations: decorationsFor(track, seasonsCfg, pickSeason(seasonsCfg, settings.decor, localDay())),
     source: carSource,
     view: 'chase',
     // Follow your own car; while watching, the spectator cam picks the car.
@@ -769,6 +778,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer): Pr
     volumes: () => horns.volumes,
     camera: () => cameraToggle.mode,
     inRace: true,
+    seasons: seasonsCfg.seasons,
     onSettings: (s) => {
       saveSettings(s);
       game.setShowFps(s.showFps);

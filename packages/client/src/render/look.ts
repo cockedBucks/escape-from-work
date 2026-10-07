@@ -501,6 +501,10 @@ export const PROP_COLORS = {
   cloth: 0xe63946, water: 0x3fa7d6,
   chip: 0x1e2127, pin: 0xc9ced6, copper: 0xd09a45, capBlue: 0x2f4fa8, ceramic: 0xd8c08f,
   bandRed: 0xd62828, bandViolet: 0x7b2cbf, fin: 0x9aa3ad,
+  // Seasonal decorations (P11.3).
+  snow: 0xf7fbff, carrot: 0xf28c28, pine: 0x2e7d4f, gold: 0xf2c14e, pumpkin: 0xf08a24, stem: 0x5a7d2a,
+  flame: 0xffd23f, wax: 0xf6efe0, sheet: 0xf2f2f7, brass: 0xc8963e, glassRed: 0xd8343f, glassGreen: 0x2ea86b,
+  balloonPink: 0xff6fae,
 } as const;
 
 const box = (w: number, h: number, d: number, x: number, y: number, z: number, color: keyof typeof PROP_COLORS): PropPrim => ({ s: 'box', size: [w, h, d], at: [x, y, z], color });
@@ -676,3 +680,105 @@ export const PROP_SHAPES = {
     cyl(0.6, 0.05, 5, 0.025, 0, 'copper'),
   ],
 } as const satisfies Record<string, readonly PropPrim[]>;
+
+/**
+ * Seasonal decorations (P11.3) at real size (m; +Z = its front, toward the road). Built and
+ * scaled like the office props. Original shapes from boxes, cylinders and blobs.
+ */
+export const DECOR_SHAPES = {
+  // Three snowballs, coal eyes, a carrot nose, a red scarf and a top hat.
+  snowman: [
+    blob(0.45, 0.4, 0.45, 0, 0.4, 0, 'snow'),
+    blob(0.33, 0.3, 0.33, 0, 1.0, 0, 'snow'),
+    blob(0.24, 0.22, 0.24, 0, 1.45, 0, 'snow'),
+    cyl(0.27, 0.08, 0, 1.24, 0, 'accent'),
+    box(0.06, 0.06, 0.24, 0, 1.45, 0.3, 'carrot'),
+    ...[-1, 1].map((k) => box(0.05, 0.05, 0.04, k * 0.09, 1.53, 0.21, 'dark')),
+    ...[1.0, 0.82].map((y) => box(0.06, 0.06, 0.04, 0, y, 0.32, 'dark')),
+    cyl(0.2, 0.04, 0, 1.64, 0, 'dark'),
+    cyl(0.13, 0.26, 0, 1.79, 0, 'dark'),
+  ],
+  // A present: red paper, gold ribbon both ways and a bow on top.
+  giftBox: [
+    box(0.7, 0.55, 0.7, 0, 0.275, 0, 'accent'),
+    box(0.72, 0.56, 0.12, 0, 0.28, 0, 'gold'),
+    box(0.12, 0.56, 0.72, 0, 0.28, 0, 'gold'),
+    ...[-1, 1].map((k) => blob(0.12, 0.08, 0.06, k * 0.1, 0.6, 0, 'gold')),
+  ],
+  // A stacked pine tree with ornaments and a star.
+  pineTree: [
+    cyl(0.12, 0.4, 0, 0.2, 0, 'trunk'),
+    cyl(0.8, 0.5, 0, 0.6, 0, 'pine'),
+    cyl(0.6, 0.5, 0, 1.05, 0, 'pine'),
+    cyl(0.4, 0.5, 0, 1.5, 0, 'pine'),
+    cyl(0.2, 0.4, 0, 1.9, 0, 'pine'),
+    box(0.18, 0.18, 0.06, 0, 2.2, 0, 'flame'),
+    ...([[0.7, 0.62, 'accent'], [-0.5, 1.05, 'gold'], [0.35, 1.5, 'blue'], [-0.2, 1.92, 'accent']] as const).map(([x, y, c]) => blob(0.07, 0.07, 0.07, x, y, 0.3, c)),
+  ],
+  // A jack-o'-lantern: glowing eyes and grin, a green stem.
+  pumpkin: [
+    blob(0.45, 0.32, 0.42, 0, 0.32, 0, 'pumpkin'),
+    blob(0.32, 0.34, 0.44, 0, 0.33, 0, 'pumpkin'),
+    cyl(0.05, 0.16, 0, 0.7, 0, 'stem'),
+    ...[-1, 1].map((k) => box(0.1, 0.09, 0.08, k * 0.14, 0.42, 0.38, 'flame')),
+    box(0.3, 0.06, 0.08, 0, 0.24, 0.39, 'flame'),
+  ],
+  // A bedsheet ghost floating a little above the ground.
+  sheetGhost: [
+    blob(0.38, 0.62, 0.38, 0, 0.9, 0, 'sheet'),
+    blob(0.28, 0.28, 0.28, 0, 1.5, 0, 'sheet'),
+    ...[-1, 1].map((k) => box(0.08, 0.12, 0.04, k * 0.1, 1.55, 0.25, 'dark')),
+    box(0.1, 0.1, 0.04, 0, 1.38, 0.26, 'dark'),
+  ],
+  // A big candle on a dish.
+  candle: [
+    cyl(0.28, 0.05, 0, 0.025, 0, 'dark'),
+    cyl(0.15, 0.8, 0, 0.45, 0, 'wax'),
+    blob(0.06, 0.13, 0.06, 0, 0.98, 0, 'flame'),
+  ],
+  // A Ramadan lantern (fanous) hanging from a little post: brass caps, red glass.
+  lantern: [
+    cyl(0.05, 1.8, 0, 0.9, 0, 'dark'),
+    box(0.6, 0.05, 0.05, 0.3, 1.78, 0, 'dark'),
+    box(0.02, 0.12, 0.02, 0.55, 1.7, 0, 'brass'),
+    cyl(0.18, 0.06, 0.55, 1.6, 0, 'brass'),
+    blob(0.1, 0.1, 0.1, 0.55, 1.66, 0, 'brass'),
+    box(0.26, 0.36, 0.26, 0.55, 1.39, 0, 'glassRed'),
+    ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => box(0.03, 0.38, 0.03, 0.55 + sx * 0.13, 1.39, sz * 0.13, 'brass'))),
+    cyl(0.18, 0.06, 0.55, 1.18, 0, 'brass'),
+    blob(0.05, 0.08, 0.05, 0.55, 1.1, 0, 'brass'),
+  ],
+  // A crescent moon and a star on a tall brass pole.
+  crescent: [
+    cyl(0.05, 2.0, 0, 1.0, 0, 'brass'),
+    ...[50, 80, 110, 140, 170, 200, 230, 260, 290, 310].map((deg) => {
+      const a = (deg * Math.PI) / 180;
+      return box(0.13, 0.13, 0.08, Math.cos(a) * 0.36, 2.35 + Math.sin(a) * 0.36, 0, 'gold');
+    }),
+    box(0.12, 0.12, 0.08, 0.12, 2.38, 0, 'gold'),
+  ],
+  // A bunch of balloons tied to a little weight.
+  balloons: [
+    box(0.16, 0.12, 0.16, 0, 0.06, 0, 'dark'),
+    ...([[-0.2, 1.7, 'accent'], [0.18, 1.9, 'blue'], [0, 2.15, 'gold'], [0.3, 1.55, 'balloonPink']] as const).flatMap(([x, y, c]) => [
+      box(0.015, y - 0.25, 0.015, x / 2, (y - 0.25) / 2 + 0.1, 0, 'white'),
+      blob(0.2, 0.25, 0.2, x, y, 0, c),
+    ]),
+  ],
+} as const satisfies Record<string, readonly PropPrim[]>;
+
+/** Seasonal decorations are drawn this much bigger again than the office props (goofy giants). */
+export const DECOR_LOOK = { scale: 1.5 } as const;
+
+/** Falling snow (winter seasons): flakes in a box around the camera. */
+export const SNOW = {
+  count: 900,
+  /** Box around the camera the flakes live in (m): half width, height. */
+  halfSize: 40,
+  height: 30,
+  /** Fall speed (m/s) and sideways drift. */
+  fall: 2.2,
+  drift: 0.6,
+  /** Flake size (world units). */
+  size: 0.22,
+} as const;

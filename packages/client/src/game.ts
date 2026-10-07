@@ -24,6 +24,7 @@ import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
 import { focusPose, liveStats } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
 import { LapGhostMesh } from './render/lapGhost';
+import { Snowfall, buildDecorations, type PlacedDecor } from './render/decorations';
 import type { GhostPose } from './ghost/ghostLap';
 import { sampleClip, type ReplayClip } from './replay/photoFinish';
 
@@ -64,6 +65,8 @@ export interface GameOptions {
   mouseLocked?: () => boolean;
   /** Called at the start of every frame with the client time (ms), for per-frame stats. */
   onFrame?: (now: number) => void;
+  /** Seasonal decorations beside the track and falling snow (P11.3); absent = none. */
+  decorations?: { placed: readonly PlacedDecor[]; snow: boolean };
   /** Every live frame's cars as drawn (the photo-finish recorder keeps the last seconds). */
   recordCars?: (now: number, cars: ReadonlyMap<string, CarSnap>) => void;
   /** The ghost of your best lap at client time `now` (P11.1); null = none to draw. */
@@ -144,6 +147,8 @@ export class Game {
   private readonly itemProps: ItemProps;
   private readonly weather: Weather;
   private readonly lapGhost: LapGhostMesh;
+  private readonly decor: { group: THREE.Group; dispose(): void } | null = null;
+  private readonly snow: Snowfall | null = null;
   /** Rear-view mirror (cockpit only; null when the quality preset turns it off). */
   private mirror: RearMirror | null = null;
   /** The cockpit dashboard screen (made on first use, moved to whichever car you drive). */
@@ -177,6 +182,14 @@ export class Game {
     this.weather = new Weather(this.stage.scene.fog as THREE.Fog, this.stage.scene.background as THREE.Color, opts.track.def.sandstorm);
     this.stage.scene.add(this.itemProps.group);
     this.lapGhost = new LapGhostMesh(this.stage.scene);
+    if (opts.decorations && opts.decorations.placed.length > 0) {
+      this.decor = buildDecorations(opts.decorations.placed);
+      this.stage.scene.add(this.decor.group);
+    }
+    if (opts.decorations?.snow) {
+      this.snow = new Snowfall(opts.quality.particles);
+      this.stage.scene.add(this.snow.points);
+    }
     this.overlay = new DebugOverlay(opts.container, () => ({ ...liveStats }));
     this.overlay.setShowFps(opts.showFps ?? false);
     if (opts.view === 'overview') {
@@ -381,6 +394,7 @@ export class Game {
     }
 
     const { renderer, scene, camera } = this.stage;
+    this.snow?.update(dt, camera.position.x, camera.position.z);
     renderer.render(scene, camera);
     this.bubbles.update(now, camera, this.opts.container.clientWidth, this.opts.container.clientHeight, (id) => this.snaps.get(id));
     const info = renderer.info;
@@ -521,6 +535,8 @@ export class Game {
     this.speedLines.dispose();
     this.itemProps.dispose();
     this.lapGhost.dispose();
+    this.decor?.dispose();
+    this.snow?.dispose();
     this.dashScreen?.dispose();
     this.mirror?.dispose();
     this.trackMeshes.dispose();

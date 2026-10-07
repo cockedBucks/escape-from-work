@@ -12,9 +12,11 @@ export interface Settings {
   showFps: boolean;
   /** Race the ghost of your best lap on this track (P11.1). */
   ghost: boolean;
+  /** Seasonal decorations (P11.3): 'auto' (on the holiday dates), 'off', or a season id. */
+  decor: string;
 }
 
-export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, ghost: true };
+export const DEFAULT_SETTINGS: Readonly<Settings> = { quality: 'auto', showFps: false, ghost: true, decor: 'auto' };
 
 const KEY = 'efw.settings';
 
@@ -29,7 +31,8 @@ export function parseSettings(raw: string | null): Settings {
   const quality = (QUALITY_SETTINGS as readonly unknown[]).includes(data.quality) ? (data.quality as QualitySetting) : DEFAULT_SETTINGS.quality;
   const showFps = typeof data.showFps === 'boolean' ? data.showFps : DEFAULT_SETTINGS.showFps;
   const ghost = typeof data.ghost === 'boolean' ? data.ghost : DEFAULT_SETTINGS.ghost;
-  return { quality, showFps, ghost };
+  const decor = typeof data.decor === 'string' && /^[a-z0-9-]{1,32}$/.test(data.decor) ? data.decor : DEFAULT_SETTINGS.decor;
+  return { quality, showFps, ghost, decor };
 }
 
 export function loadSettings(): Settings {

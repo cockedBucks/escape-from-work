@@ -38,7 +38,7 @@ split-control networking end to end. Bots also fill empty cars in real races.
 
 ## 4. Shots (visual checks)
 
-`npm run shots -- <scenario ...> [--track <id>] [--quality low|medium|high] [--gl default|swiftshader|angle|headed]` (`scripts/shots.mjs`):
+`npm run shots -- <scenario ...> [--track <id>] [--quality low|medium|high] [--season <id>] [--gl default|swiftshader|angle|headed]` (`scripts/shots.mjs`; `--season` decorates the race scenarios for a `config/seasons.json` season, P11.3):
 1. Builds the client and starts the real server entry with `--prod --port 0` (a free port).
 2. Launches the system browser with `playwright-core` (`channel: "chrome"`, then `"msedge"`),
    so no browser download is needed. Without either (cloud/CI containers) it falls back to a

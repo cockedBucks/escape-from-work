@@ -1,4 +1,4 @@
-// npm run shots -- <scenario ...> [--track <id>] [--quality low|medium|high] [--gl default|swiftshader|angle|headed]
+// npm run shots -- <scenario ...> [--track <id>] [--quality low|medium|high] [--season <id>] [--gl default|swiftshader|angle|headed]
 // Builds the client, starts the production server on a free port, opens each
 // `?scenario=` page in the installed Chrome (or Edge), waits for `window.__game.ready`,
 // and writes artifacts/shots/<scenario>.png (<scenario>-<track>.png with --track) + stats.json.
@@ -31,13 +31,15 @@ function parseArgs(argv) {
   let gl = 'default';
   let track = null;
   let quality = null;
+  let season = null;
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--gl') gl = argv[++i] ?? '';
+    else if (argv[i] === '--season') season = argv[++i] ?? null;
     else if (argv[i] === '--track') track = argv[++i] ?? null;
     else if (argv[i] === '--quality') quality = argv[++i] ?? null;
     else scenarios.push(argv[i]);
   }
-  return { scenarios, gl, track, quality };
+  return { scenarios, gl, track, quality, season };
 }
 
 function tail(text, n = 12) {
@@ -84,8 +86,8 @@ function launchBrowser(mode) {
   return launchAny({ headless: mode.headless, args: mode.args });
 }
 
-async function shoot(browser, port, scenario, track, quality) {
-  const name = [scenario, track, quality].filter(Boolean).join('-');
+async function shoot(browser, port, scenario, track, quality, season) {
+  const name = [scenario, track, season, quality].filter(Boolean).join('-');
   const page = await browser.newPage({ viewport: VIEWPORT });
   const consoleErrors = [];
   page.on('console', (msg) => {
@@ -97,7 +99,7 @@ async function shoot(browser, port, scenario, track, quality) {
     if (res.status() >= 400) consoleErrors.push(`HTTP ${res.status()} ${res.url()}`);
   });
   try {
-    const trackParam = (track ? `&track=${encodeURIComponent(track)}` : '') + (quality ? `&quality=${encodeURIComponent(quality)}` : '');
+    const trackParam = (track ? `&track=${encodeURIComponent(track)}` : '') + (quality ? `&quality=${encodeURIComponent(quality)}` : '') + (season ? `&season=${encodeURIComponent(season)}` : '');
     await page.goto(`http://localhost:${port}/?scenario=${encodeURIComponent(scenario)}&seed=${SEED}${trackParam}`);
     await page.waitForFunction(() => window.__game && (window.__game.ready || window.__game.error !== null), null, {
       timeout: READY_TIMEOUT_MS,
@@ -115,7 +117,7 @@ async function shoot(browser, port, scenario, track, quality) {
 }
 
 async function main() {
-  const { scenarios, gl, track, quality } = parseArgs(process.argv.slice(2));
+  const { scenarios, gl, track, quality, season } = parseArgs(process.argv.slice(2));
   const mode = GL_MODES[gl];
   if (scenarios.length === 0 || !mode) {
     console.log(`usage: npm run shots -- <scenario ...> [--track <id>] [--quality low|medium|high] [--gl ${Object.keys(GL_MODES).join('|')}]`);
@@ -133,7 +135,7 @@ async function main() {
     browser = launched.browser;
 
     const results = [];
-    for (const scenario of scenarios) results.push(await shoot(browser, port, scenario, track, quality));
+    for (const scenario of scenarios) results.push(await shoot(browser, port, scenario, track, quality, season));
 
     const report = {
       browser: `${launched.channel} ${browser.version()}`,

@@ -7,7 +7,7 @@ import { MainMenu } from './ui/mainMenu';
 import { VolumePanel } from './ui/volumePanel';
 import { SettingsScreen } from './ui/settingsScreen';
 import { LeagueScreen, type LeagueResponse } from './ui/leagueScreen';
-import { trackName } from './content';
+import { loadSeasons, trackName } from './content';
 import { loadCameraMode, saveCameraMode } from './input/cameraPref';
 import { loadSettings, saveSettings } from './settings';
 import { Showroom } from './render/showroom';
@@ -49,6 +49,7 @@ export function showMainMenu(opts: MenuOptions): Promise<void> {
       volumes: () => opts.horns.volumes,
       camera: loadCameraMode,
       inRace: false,
+      seasons: loadSeasons().seasons,
       onSettings: (s) => saveSettings(s),
       onVolumes: (v) => opts.horns.setVolumes(v),
       onCamera: (mode) => saveCameraMode(mode),

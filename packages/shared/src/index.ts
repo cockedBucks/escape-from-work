@@ -114,6 +114,7 @@ export {
 } from './race/flow';
 export { sandstormOn } from './race/sandstorm';
 export { TEAM_NAME_MAX_LENGTH, TeamsSchema, defaultTeamName, parseTeams, type TeamsConfig } from './config/teams';
+export { DECOR_KITS, SeasonsSchema, activeSeason, parseSeasons, seasonOn, type DecorKit, type Season, type SeasonsConfig } from './config/seasons';
 export { shuffleSeats, teamNameProblem, type SeatAssignment } from './race/lobby';
 export {
   applyEvents,

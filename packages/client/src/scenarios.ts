@@ -6,8 +6,6 @@ import {
   newBotMemory,
   step,
   createChaos,
-  insideOtherRoad,
-  locateOnTrack,
   PROP_KITS,
   type PropKit,
   type CarInput,
@@ -19,7 +17,8 @@ import {
 import type { CarSource } from './game';
 import type { CarSnap } from './net/snapshots';
 import type { ItemsView } from './render/itemProps';
-import { PROP_LOOK, PROP_SHAPES, type PropPrim } from './render/look';
+import { PROP_SHAPES } from './render/look';
+import { clearOfRoads, shapeHalfWidth } from './render/propKit';
 import { ReplayRecorder, photoCamera, type ReplayClip } from './replay/photoFinish';
 
 /** Cars in a scenario bot race, and how far into the race the picture is taken (s). */
@@ -193,13 +192,7 @@ const PROP_ROW = { pad: 1.6, side: 14, sideStep: 1, maxSide: 200, camBack: 22, c
 
 /** Half the widest extent of a prop kit piece as drawn (m, `officeScale` included). */
 export function propHalfWidth(kit: PropKit): number {
-  let half = 0;
-  for (const p of PROP_SHAPES[kit] as readonly PropPrim[]) {
-    const sx = p.s === 'box' ? p.size[0]! / 2 : p.size[0]!;
-    const sz = p.s === 'box' ? p.size[2]! / 2 : p.s === 'cyl' ? p.size[0]! : p.size[2]!;
-    half = Math.max(half, Math.abs(p.at[0]) + sx, Math.abs(p.at[2]) + sz);
-  }
-  return half * PROP_LOOK.officeScale;
+  return shapeHalfWidth(PROP_SHAPES[kit]);
 }
 
 /**
@@ -223,15 +216,9 @@ export function propsShowroom(track: Track): { track: Track; camera: { from: [nu
     });
   };
   // Move the row out from the road until no prop (as a square of its drawn half width) touches any road.
-  const offRoad = (x: number, z: number, half: number): boolean =>
-    [-1, 0, 1].every((u) => [-1, 0, 1].every((v) => {
-      const q = { x: x + u * half, z: z + v * half };
-      const loc = locateOnTrack(track, q);
-      return Math.abs(loc.lateral) >= loc.halfWidth && !insideOtherRoad(track, q, loc.road);
-    }));
   let side = PROP_ROW.side;
   let props = rowAt(side);
-  while (side < PROP_ROW.maxSide && !props.every((p, i) => offRoad(p.x, p.z, halves[i]!))) {
+  while (side < PROP_ROW.maxSide && !props.every((p, i) => clearOfRoads(track, p.x, p.z, halves[i]!))) {
     side += PROP_ROW.sideStep;
     props = rowAt(side);
   }
