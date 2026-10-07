@@ -21,7 +21,7 @@ import { TEAM_COLORS } from './render/look';
 import { LIGHT } from './render/look';
 import { CAMERA_NEAR, createStage, type Stage } from './render/renderer';
 import { buildTrackMeshes, type TrackMeshes } from './render/trackMesh';
-import { focusPose, liveStats } from './test-hooks';
+import { focusPose, liveStats, otherPose } from './test-hooks';
 import { DebugOverlay } from './ui/debugOverlay';
 import { LapGhostMesh } from './render/lapGhost';
 import { Snowfall, buildDecorations, type PlacedDecor } from './render/decorations';
@@ -386,6 +386,15 @@ export class Game {
         this.dashScreen.update(now, this.dashValues);
       }
       focusPose.set = car !== undefined;
+      otherPose.set = false;
+      for (const [otherId, other] of this.snaps) {
+        if (otherId === id) continue;
+        otherPose.set = true;
+        otherPose.x = other.x;
+        otherPose.z = other.z;
+        otherPose.speed = other.speed;
+        break;
+      }
       this.speedLines.update(car ? speedLineStrength(car.speed / this.opts.tuning.car.topSpeed, car.boosting || car.nitroOn) : 0);
       if (car) {
         focusPose.x = car.x;

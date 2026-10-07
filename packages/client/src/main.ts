@@ -354,11 +354,11 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
   // Ping again now and then so the F3 overlay stays current.
   const pingTimer = window.setInterval(() => room.ping((ms) => (liveStats.pingMs = ms)), PING_EVERY_MS);
 
-  const source = new ServerCarSource(tuning.net.interpDelayMs, tuning.sim.dt * 1000);
+  const source = new ServerCarSource(tuning.net, tuning.sim.dt * 1000);
   const delayMeter = new InputDelayMeter();
   const headSender = new HeadSender();
   // Live tuning: the server sends the current values on join and after every change.
-  const tuningListeners: ((t: Tuning) => void)[] = [(t) => (source.interpDelayMs = t.net.interpDelayMs)];
+  const tuningListeners: ((t: Tuning) => void)[] = [(t) => source.setTuning(t.net)];
   let latestTuning = tuning;
   room.onMessage(MSG.tuning, (t: Tuning) => {
     latestTuning = t;
@@ -788,6 +788,8 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
       if (send) room.send(MSG.head, send);
       liveStats.snapshotAgeMs = source.lastArrival < 0 ? null : now - source.lastArrival;
       liveStats.interpDelayMs = source.interpDelayMs;
+      liveStats.jitterMs = source.jitterMs;
+      liveStats.starvedPct = source.frames === 0 ? 0 : (100 * source.starvedFrames) / source.frames;
     },
   });
   // Camera: C toggles chase ↔ cockpit (remembered). Watching always uses the chase cam.
@@ -909,7 +911,7 @@ async function showRace(hooks: GameHooks, tuning: Tuning, horns: HornPlayer, roo
     const panel = new TuningPanel(latestTuning, (t) => {
       latestTuning = t;
       game.setTuning(t);
-      source.interpDelayMs = t.net.interpDelayMs;
+      source.setTuning(t.net);
     });
     tuningListeners.push((t) => panel.serverTuning(t));
   }

@@ -1,6 +1,7 @@
 import { Client, type EndpointSettings, type Room } from '@colyseus/sdk';
-import { ROOM_NAME, type CreateGame, type GameListing, type RacePhase, type Tuning } from '@escape/shared';
+import { ROOM_NAME, type CreateGame, type GameListing, type NetTuning, type RacePhase, type Tuning } from '@escape/shared';
 import type { CarSource } from '../game';
+import { AdaptiveDelay } from './adaptiveDelay';
 import { ServerTimeline } from './latency';
 import { SnapshotBuffer, type CarSnap } from './snapshots';
 
@@ -240,26 +241,47 @@ function writeSession(token: string): void {
 
 
 /**
- * Cars from the server: every state patch becomes a snapshot stamped with the arrival
- * time, and the game draws `net.interpDelayMs` in the past, blending between snapshots.
+ * Cars from the server: every state patch becomes a snapshot on a smooth tick-based
+ * timeline, and the game draws them a little in the past, blending between snapshots. How
+ * far in the past adapts to the network (AdaptiveDelay, P13.1).
  */
 export class ServerCarSource implements CarSource {
   private readonly buffer = new SnapshotBuffer();
   private readonly timeline: ServerTimeline;
+  private readonly delay: AdaptiveDelay;
+  private extrapolateMs: number;
+  private lastSample = -1;
   /** Client time the latest snapshot arrived (ms), for the F3 "snapshot age". */
   lastArrival = -1;
   /** Timeline time of the latest snapshot (ms): when it happened, without arrival jitter. */
   lastTime = -1;
+  /** Frames drawn past the newest snapshot (the buffer ran dry), and all frames: for F3. */
+  starvedFrames = 0;
+  frames = 0;
 
   /**
-   * @param interpDelayMs how far in the past cars are drawn (`net.interpDelayMs`, tunable live)
+   * @param net `net` tuning (interpolation delay bounds, extrapolation; tunable live via `setTuning`)
    * @param dtMs one server tick in ms (`sim.dt × 1000`): snapshots are timed by tick, not arrival
    */
-  constructor(
-    public interpDelayMs: number,
-    dtMs: number,
-  ) {
+  constructor(net: NetTuning, dtMs: number) {
     this.timeline = new ServerTimeline(dtMs, TIMELINE_RELAX_MS);
+    this.delay = new AdaptiveDelay(net);
+    this.extrapolateMs = net.extrapolateMaxMs;
+  }
+
+  setTuning(net: NetTuning): void {
+    this.delay.setTuning(net);
+    this.extrapolateMs = net.extrapolateMaxMs;
+  }
+
+  /** How far in the past other cars are drawn now (ms). */
+  get interpDelayMs(): number {
+    return this.delay.current;
+  }
+
+  /** 95th-percentile lateness of recent snapshots (ms): the network's jitter. */
+  get jitterMs(): number {
+    return this.delay.jitterMs;
   }
 
   /** Call on every state change. */
@@ -272,10 +294,20 @@ export class ServerCarSource implements CarSource {
     });
     this.lastArrival = now;
     this.lastTime = this.timeline.timeOf(state.tick, now);
+    this.delay.onSnapshot(now - this.lastTime);
     this.buffer.push(this.lastTime, cars);
   }
 
   sample(now: number, out: Map<string, CarSnap>): void {
-    this.buffer.sample(now - this.interpDelayMs, out);
+    // Several samples in one frame (game + camera) must not move the delay twice.
+    if (now !== this.lastSample) {
+      this.delay.update(this.lastSample < 0 ? 0 : now - this.lastSample);
+      this.lastSample = now;
+      this.frames++;
+      this.buffer.sample(now - this.delay.current, out, this.extrapolateMs);
+      if (this.buffer.starved) this.starvedFrames++;
+      return;
+    }
+    this.buffer.sample(now - this.delay.current, out, this.extrapolateMs);
   }
 }

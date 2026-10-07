@@ -331,8 +331,19 @@ const NetSchema = z.strictObject({
   port: z.number().int().min(1).max(65535),
   /** How often the server sends state patches to clients. */
   patchRateMs: z.number().int().positive(),
-  /** How far in the past clients render, so they can interpolate between patches. */
+  /** How far in the past clients render other cars at least, so they can interpolate between patches. */
   interpDelayMs: z.number().int().nonnegative(),
+  /** The most the delay may grow to on a jittery network (P13.1, adaptive buffer). */
+  interpDelayMaxMs: z.number().int().nonnegative(),
+  /** Extra ms on top of one patch interval + the 95th-percentile lateness. */
+  interpMarginMs: nonNeg(),
+  /** Snapshots the lateness is measured over (about 30 per second). */
+  interpWindow: z.number().int().min(10).max(600),
+  /** How fast the delay may grow / shrink (ms per second): the drawn cars run a bit slower / faster meanwhile. */
+  interpGrowPerSec: pos(),
+  interpShrinkPerSec: pos(),
+  /** When the newest snapshot is late, keep moving other cars along their last motion for at most this long (ms). */
+  extrapolateMaxMs: nonNeg(),
   /** How long a dropped player's seat is held for them. */
   reconnectSeconds: z.number().positive(),
   /** Input messages a client may send per second on average; extra ones are dropped. */
@@ -411,6 +422,7 @@ export const TuningSchema = z.strictObject({
 export type Tuning = z.infer<typeof TuningSchema>;
 export type CarTuning = Tuning['car'];
 export type DriftTuning = Tuning['drift'];
+export type NetTuning = Tuning['net'];
 export type QualityLevel = Tuning['quality']['default'];
 export type LeagueTuning = Tuning['league'];
 export type Weekday = (typeof WEEKDAYS)[number];

@@ -18,6 +18,7 @@ is answered in Phase 2, before any art or content. Each phase ends playable.
 | P10 | `phases/P10-tracks-and-ship.md` | 3 more tracks, office deployment, v1.0 | launch party |
 | P12 | `phases/P12-host-join-garage.md` | Host/Join games, real-life cars, visual garage and seats | tested with the deferred tests |
 | P11 | `phases/P11-extras.md` | Later ideas: ghost lap, photo finish, seasons, Arabic UI, phone pads, battle mode | tested with the deferred tests |
+| P13 | `phases/P13-fun-pass.md` | Smooth online play, kart drift on Space, rocket start, slipstream, tricks, boost pads | tested with the deferred tests |
 
 ## How tasks work
 

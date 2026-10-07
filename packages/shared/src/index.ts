@@ -7,6 +7,7 @@ export {
   parseTuning,
   type CarTuning,
   type DriftTuning,
+  type NetTuning,
   type QualityLevel,
   type QualityPreset,
   type LeagueTuning,

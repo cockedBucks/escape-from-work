@@ -58,6 +58,7 @@ export class DebugOverlay {
       `tick  ${fmt(s.tickMs, 2)} ms\n` +
       `snap  ${fmt(s.snapshotAgeMs)} ms old\n` +
       `input ${fmt(s.inputDelayMs)} ms + ${fmt(s.interpDelayMs)} ms interp = ${screenMs(s)} ms to screen\n` +
+      `net   jitter ${fmt(s.jitterMs)} ms, late frames ${fmt(s.starvedPct, 1)}%\n` +
       `draws ${s.drawCalls}\n` +
       `tris  ${s.triangles}\n` +
       `cars  ${s.cars}`;

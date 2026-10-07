@@ -51,15 +51,20 @@ export class SnapshotBuffer {
     return this.buf.size;
   }
 
+  /** Did the last `sample` run past the newest snapshot (the buffer ran dry)? For F3 and tests. */
+  starved = false;
+
   /**
    * Fill `out` with every car's state at `renderT`. Reuses the objects already in `out`
-   * and removes cars that are gone. Before the oldest / after the newest snapshot it
-   * holds that snapshot (never guesses ahead).
+   * and removes cars that are gone. Before the oldest snapshot it holds that one. After the
+   * newest (a late patch) it keeps each car moving along its last motion for at most
+   * `extrapolateMs`, then holds (P13.1: a late Wi-Fi patch no longer freezes the car).
    */
-  sample(renderT: number, out: Map<string, CarSnap>): void {
+  sample(renderT: number, out: Map<string, CarSnap>, extrapolateMs = 0): void {
     const n = this.buf.size;
     if (n === 0) {
       out.clear();
+      this.starved = false;
       return;
     }
     let a = this.buf.get(0) as Snapshot;
@@ -71,8 +76,15 @@ export class SnapshotBuffer {
       if (s.t >= renderT) break;
     }
     if (renderT <= a.t) b = a;
-    const span = b.t - a.t;
-    const alpha = span > 0 ? Math.min(Math.max((renderT - a.t) / span, 0), 1) : 1;
+    let span = b.t - a.t;
+    let alpha = span > 0 ? Math.min(Math.max((renderT - a.t) / span, 0), 1) : 1;
+    this.starved = n > 1 && renderT > b.t;
+    if (this.starved && extrapolateMs > 0) {
+      // Past the newest: extrapolate from the two newest snapshots.
+      a = this.buf.get(n - 2) as Snapshot;
+      span = b.t - a.t;
+      alpha = span > 0 ? 1 + Math.min(renderT - b.t, extrapolateMs) / span : 1;
+    }
 
     for (const id of out.keys()) if (!b.cars.has(id)) out.delete(id);
     for (const [id, cb] of b.cars) {
@@ -84,7 +96,7 @@ export class SnapshotBuffer {
         out.set(id, o);
       }
       o.x = lerp(ca.x, cb.x, alpha);
-      o.y = lerp(ca.y, cb.y, alpha);
+      o.y = Math.max(lerp(ca.y, cb.y, alpha), 0); // extrapolating a landing car: not below the ground
       o.z = lerp(ca.z, cb.z, alpha);
       o.yaw = ca.yaw + angleDiff(ca.yaw, cb.yaw) * alpha;
       o.speed = lerp(ca.speed, cb.speed, alpha);

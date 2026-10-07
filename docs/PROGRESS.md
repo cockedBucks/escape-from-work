@@ -4,11 +4,10 @@ Updated by the agent at the end of every task and by `/handoff`. Keep it under ~
 roll old "Last sessions" lines into one summary line per finished phase.
 
 ## Now
-- Phase: P12 — Host & join games, real-life cars, visual garage (`docs/phases/P12-host-join-garage.md`),
-  the human's request of 2026-10-07 (cloud).
-- Next task: none planned. All phases done; next is running the "Deferred human tests" with the human.
-- Status: back local (2026-10-07). Cloud work merged into `main`, tags p7–p12 + v1.0 re-made locally,
-  `npm run verify` passes on Windows. The human pushes `main` and the tags.
+- Phase: P13 — Smooth online play + kart fun pass (`docs/phases/P13-fun-pass.md`), the human's request
+  of 2026-10-07 after the first real test (friend saw lag; drift on Space; more fun mechanics).
+- Next task: P13.2 Kart drift on Space.
+- Status: P13.1 done (adaptive interpolation buffer, D129). `npm run verify` passes.
 
 ## P12 phase report (cloud, 2026-10-07)
 - Works: HOST (name, track, mode, laps, bots, chaos) and JOIN (live list of every game on the

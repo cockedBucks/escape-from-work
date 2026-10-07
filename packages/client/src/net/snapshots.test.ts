@@ -19,6 +19,20 @@ describe('SnapshotBuffer', () => {
     expect(out.get('a')!.x).toBeCloseTo(2);
   });
 
+  it('keeps a car moving past the newest snapshot for at most extrapolateMs (late Wi-Fi patch)', () => {
+    const b = new SnapshotBuffer();
+    b.push(100, snap([['a', car(1)]]));
+    b.push(200, snap([['a', car(2)]]));
+    const out = new Map<string, CarSnap>();
+    b.sample(250, out, 80);
+    expect(out.get('a')!.x).toBeCloseTo(2.5);
+    expect(b.starved).toBe(true);
+    b.sample(900, out, 80); // capped: 80 ms past the newest, then it holds
+    expect(out.get('a')!.x).toBeCloseTo(2.8);
+    b.sample(150, out, 80);
+    expect(b.starved).toBe(false);
+  });
+
   it('holds the newest/oldest snapshot instead of guessing', () => {
     const b = new SnapshotBuffer();
     b.push(100, snap([['a', car(1)]]));

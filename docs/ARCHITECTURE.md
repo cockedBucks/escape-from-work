@@ -190,12 +190,17 @@ installed types for the API. Anything not on this list → ask the human first.
   isDefault); `GET /games.json` returns them with player counts for the JOIN window, which joins
   with `joinById`. `?play` joins the always-open game without the menu (tools).
 - Sim at 60 Hz. State patches every `cfg.net.patchRateMs` (start: 33 ms).
-- Clients render about `cfg.net.interpDelayMs` (start: 50 ms) in the past and interpolate
-  between snapshots. On a LAN this keeps total input-to-screen delay under ~100 ms.
+- Clients render other cars a little in the past and interpolate between snapshots. How far
+  adapts to the network (P13.1, `net/adaptiveDelay.ts`): one patch interval + the 95th-percentile
+  snapshot lateness of the last `net.interpWindow` snapshots + `net.interpMarginMs`, clamped to
+  [`net.interpDelayMs`, `net.interpDelayMaxMs`], growing fast and shrinking slowly. When a patch
+  is still late, cars keep moving along their last motion for up to `net.extrapolateMaxMs`.
+  Wired LAN: ~50–75 ms; office Wi-Fi: ~100 ms, instead of freezing and jumping.
 - Snapshots are placed on a timeline from the server tick (`tick × dt` + the smallest arrival
   offset seen, drifting up 0.5 ms per snapshot), not by arrival time, so network jitter does not
   wobble the cars. Each player's `ackSeq` (last input applied) rides in the state; the F3 overlay
-  shows ping, snapshot age and "input → screen" = echo time + `net.interpDelayMs`.
+  shows ping, snapshot age, "input → screen" = echo time + the current interpolation delay, and
+  the network's jitter and share of late frames.
 - Client-side prediction (P2.8, the fun gate said "a bit laggy"): your own car is drawn by
   `OwnCarPredictor` (`packages/client/src/net/predictor.ts`): from each server update it runs the
   shared sim ahead by (time since update + measured input echo), at most `net.predictMaxMs`,

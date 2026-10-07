@@ -16,8 +16,12 @@ export interface GameStats {
   snapshotAgeMs: number | null;
   /** Key press until the server state that applied it arrives (smoothed); null until measured. */
   inputDelayMs: number | null;
-  /** Interpolation delay added on top before it is drawn (net.interpDelayMs). */
+  /** Interpolation delay added on top before it is drawn (adapts to the network, P13.1). */
   interpDelayMs: number | null;
+  /** 95th-percentile lateness of server snapshots (ms): the network's jitter; null until measured. */
+  jitterMs: number | null;
+  /** Share of frames (%) that ran past the newest snapshot (other cars extrapolated). */
+  starvedPct: number | null;
 }
 
 export interface GameHooks {
@@ -30,6 +34,8 @@ export interface GameHooks {
   stats(): GameStats;
   /** Pose of the car the camera follows, as drawn this frame (null when none). For agents/tests. */
   focusCar(): { x: number; z: number; yaw: number; speed: number; camX: number; camZ: number } | null;
+  /** Drawn pose of another car (the first one that is not followed), for the smoothness test. */
+  otherCar(): { x: number; z: number; speed: number } | null;
 }
 
 declare global {
@@ -64,10 +70,15 @@ export const liveStats: GameStats = {
   snapshotAgeMs: null,
   inputDelayMs: null,
   interpDelayMs: null,
+  jitterMs: null,
+  starvedPct: null,
 };
 
 /** Drawn pose of the followed car; the game writes it every frame (no allocation). */
 export const focusPose = { set: false, x: 0, z: 0, yaw: 0, speed: 0, camX: 0, camZ: 0, drift: 0, boosting: false };
+
+/** Drawn pose of the first car that is not followed; the game writes it every frame. */
+export const otherPose = { set: false, x: 0, z: 0, speed: 0 };
 
 /** Weight of the newest frame in the smoothed frame time (exponential moving average). */
 const FPS_SMOOTHING = 0.1;
@@ -98,6 +109,7 @@ export function installHooks(): GameHooks {
     stats: () => ({ ...liveStats }),
     focusCar: () =>
       focusPose.set ? { x: focusPose.x, z: focusPose.z, yaw: focusPose.yaw, speed: focusPose.speed, camX: focusPose.camX, camZ: focusPose.camZ } : null,
+    otherCar: () => (otherPose.set ? { x: otherPose.x, z: otherPose.z, speed: otherPose.speed } : null),
   };
   if (scenario !== null && !KNOWN_SCENARIOS.includes(scenario)) {
     hooks.error = `unknown scenario "${scenario}" (known: ${KNOWN_SCENARIOS.join(', ')})`;

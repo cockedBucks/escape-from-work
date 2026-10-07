@@ -102,12 +102,16 @@ Try in order, and record which worked in `docs/DECISIONS.md`:
 3. `--gl headed` (a real window opens for a few seconds).
 Headless FPS is meaningless; only draw calls, triangles and the images are judged.
 
-### Smoothness (`npm run jitter -- [seconds]`)
+### Smoothness (`npm run jitter -- [seconds] [--lag ms] [--jitter ms]`)
 
-Real browser + real production server: sits solo in car 1, starts a race, holds gas while
-weaving, and records the drawn car and camera every frame (`window.__game.focusCar()` has
-`camX/camZ`). Prints the per-frame movement ÷ car speed (1.00 = perfectly even) and the
-car-vs-camera wobble; exits 1 when more than 5% of frames are off by over 40%. Use it when a
+Real browser + real production server: sits solo in car 1, turns bots on, starts a race, holds
+gas while weaving, and records the drawn car, the camera and one bot car every frame
+(`window.__game.focusCar()` has `camX/camZ`; `otherCar()` is the bot). `--lag/--jitter` put an
+in-order TCP proxy between the browser and the server that delays each packet by lag +
+random(0..jitter) ms: office Wi-Fi on one PC. P13.1 with `--lag 30 --jitter 40`: the bot car
+was off on 42% of frames with 66 frozen frames (fixed 50 ms buffer); with the adaptive buffer
+0.4% and none. Prints the per-frame movement ÷ car speed (1.00 = perfectly even) and the
+car-vs-camera wobble; exits 1 when more than 5% of frames (your car or the bot) are off by over 40%. Use it when a
 player says "laggy" or "stutters". The unit test "server updates every 2 ticks never make the
 drawn car step unevenly" in `net/predictor.test.ts` guards the prediction part in `verify`.
 P5.6b baseline: 1.4–2.7% uneven frames, wobble p50 0.01 m (was 46% and 0.16 m).
